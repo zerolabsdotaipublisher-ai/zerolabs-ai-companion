@@ -1,9 +1,11 @@
 # AI Companion
 
-Initial repository setup for AI Companion MVP.
+AI Companion MVP app built with Next.js.
 
-## Purpose
-This repository contains the AI Companion application following ZeroFlow architecture.
+## Local development
 
-## Branch Strategy
-(To be updated in Task 1.2)
+See `/docs/local-development.md` for full setup instructions, including:
+- Node.js LTS and npm requirements
+- dependency installation
+- environment setup from `.env.example`
+- local run and validation commands
