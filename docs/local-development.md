@@ -37,8 +37,12 @@ Open `http://localhost:3000`.
 ## Quality checks
 
 ```bash
+npm run format:check
 npm run lint
 npm run build
+
+# optional: fix formatting
+npm run format
 ```
 
 ## MVP stack alignment
