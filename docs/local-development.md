@@ -20,11 +20,7 @@ npm install
 cp .env.example .env.local
 ```
 
-Fill `.env.local` with real values for:
-- Supabase Auth / Postgres / Storage
-- OpenAI API
-- Qdrant
-- `ZEROFLOW_BASE_URL` (placeholder only for future compatibility)
+No external integrations are configured in this initialization task.
 
 ## Run locally
 ```bash
@@ -41,11 +37,8 @@ npm run build
 
 ## MVP stack alignment
 - Next.js (app framework)
-- Vercel (deployment target)
-- Supabase Auth
-- Supabase Postgres
-- Supabase Storage
-- OpenAI API
-- Qdrant
+- Product frontend/backend hosted on Vercel
+- Source code in GitHub
+- Product-specific app ownership
 
-ZeroFlow integration is intentionally left as future-compatible placeholders only in this setup task.
+ZeroFlow and other platform integrations are intentionally deferred to later tasks.
