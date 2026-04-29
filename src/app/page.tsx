@@ -6,8 +6,9 @@ export default function Home() {
         Next.js base application initialized with TypeScript and App Router.
       </p>
       <p className="max-w-2xl text-sm text-zinc-500 dark:text-zinc-400">
-        Platform integrations (Supabase, OpenAI, Qdrant, payments, auth, storage, and ZeroFlow services)
-        are intentionally deferred to later tasks.
+        Platform integrations (Supabase, OpenAI, Qdrant, payments, auth,
+        storage, and ZeroFlow services) are intentionally deferred to later
+        tasks.
       </p>
       <p className="text-sm text-zinc-500 dark:text-zinc-400">
         Start building features in <code className="font-mono">src/</code>.
