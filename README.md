@@ -8,6 +8,7 @@ No Supabase, OpenAI, Qdrant, auth, payments, storage, or ZeroFlow integrations a
 ## Local development
 
 See `/docs/local-development.md` for full setup instructions, including:
+
 - Node.js LTS and npm requirements
 - dependency installation
 - environment setup from `.env.example`
