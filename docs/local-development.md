@@ -24,7 +24,7 @@ npm install
 cp .env.example .env.local
 ```
 
-The bootstrap app has no required environment variables yet.
+The current bootstrap app can run without these values, but `.env.example` includes placeholders required for upcoming Supabase/OpenAI integration tasks.
 
 ## Run locally
 
@@ -38,6 +38,7 @@ Open `http://localhost:3000`.
 
 ```bash
 npm run format:check
+npm run typecheck
 npm run lint
 npm run build
 
