@@ -24,7 +24,7 @@ npm install
 cp .env.example .env.local
 ```
 
-No external integrations are configured in this initialization task.
+The bootstrap app has no required environment variables yet.
 
 ## Run locally
 
