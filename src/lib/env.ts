@@ -1,12 +1,9 @@
 import "server-only";
 
-const REQUIRED_LOCAL_ENV_VARS = [
-  "NEXT_PUBLIC_SUPABASE_URL",
-  "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-  "OPENAI_API_KEY",
-] as const;
-
-type RequiredLocalEnvVar = (typeof REQUIRED_LOCAL_ENV_VARS)[number];
+type RequiredLocalEnvVar =
+  | "NEXT_PUBLIC_SUPABASE_URL"
+  | "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+  | "OPENAI_API_KEY";
 
 function readRequiredEnv(name: RequiredLocalEnvVar): string {
   const value = process.env[name];
@@ -20,24 +17,18 @@ function readRequiredEnv(name: RequiredLocalEnvVar): string {
   return value;
 }
 
-function readOptionalEnv(name: string, fallback: string): string {
+function readRuntimeRequiredEnv(name: RequiredLocalEnvVar): string {
+  if (process.env.NODE_ENV === "development") {
+    return readRequiredEnv(name);
+  }
+
   const value = process.env[name];
-
-  return value && value.trim() !== "" ? value : fallback;
-}
-
-function validateLocalEnv(): void {
-  REQUIRED_LOCAL_ENV_VARS.forEach(readRequiredEnv);
-}
-
-// Local startup guard for developer machines; production envs are configured in deployment settings.
-if (process.env.NODE_ENV === "development") {
-  validateLocalEnv();
+  return value && value.trim() !== "" ? value : "";
 }
 
 export const env = {
-  appName: readOptionalEnv("NEXT_PUBLIC_APP_NAME", "AI Companion"),
-  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  openAiApiKey: process.env.OPENAI_API_KEY,
+  appName: process.env.NEXT_PUBLIC_APP_NAME?.trim() || "AI Companion",
+  supabaseUrl: readRuntimeRequiredEnv("NEXT_PUBLIC_SUPABASE_URL"),
+  supabaseAnonKey: readRuntimeRequiredEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+  openAiApiKey: readRuntimeRequiredEnv("OPENAI_API_KEY"),
 };
