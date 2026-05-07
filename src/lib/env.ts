@@ -17,7 +17,7 @@ function readRequiredEnv(name: RequiredLocalEnvVar): string {
   return value;
 }
 
-function readRuntimeRequiredEnv(name: RequiredLocalEnvVar): string {
+function readRuntimeRequiredEnvOrEmpty(name: RequiredLocalEnvVar): string {
   if (process.env.NODE_ENV === "development") {
     return readRequiredEnv(name);
   }
@@ -28,7 +28,7 @@ function readRuntimeRequiredEnv(name: RequiredLocalEnvVar): string {
 
 export const env = {
   appName: process.env.NEXT_PUBLIC_APP_NAME?.trim() || "AI Companion",
-  supabaseUrl: readRuntimeRequiredEnv("NEXT_PUBLIC_SUPABASE_URL"),
-  supabaseAnonKey: readRuntimeRequiredEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
-  openAiApiKey: readRuntimeRequiredEnv("OPENAI_API_KEY"),
+  supabaseUrl: readRuntimeRequiredEnvOrEmpty("NEXT_PUBLIC_SUPABASE_URL"),
+  supabaseAnonKey: readRuntimeRequiredEnvOrEmpty("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+  openAIApiKey: readRuntimeRequiredEnvOrEmpty("OPENAI_API_KEY"),
 };
