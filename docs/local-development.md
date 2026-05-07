@@ -24,7 +24,18 @@ npm install
 cp .env.example .env.local
 ```
 
-The current bootstrap app can run without these values, but `.env.example` includes placeholders required for upcoming Supabase/OpenAI integration tasks.
+Fill `.env.local` with local/dev values for required variables:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `OPENAI_API_KEY`
+
+Notes:
+
+- `.env.local` is ignored by Git via `.gitignore` and must never be committed
+- keep `.env.example` committed as the template
+- restart `npm run dev` after changing environment variables
+- required local env keys are checked on `npm run dev` startup
 
 ## Run locally
 

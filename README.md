@@ -33,4 +33,6 @@ Create `.env.local` from `.env.example` and set values per environment:
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `OPENAI_API_KEY`
 
+`.env.local` is Git-ignored and should never be committed. Keep `.env.example` as the committed template, and restart the dev server after env changes.
+
 Do not commit real secrets. Configure production values in Vercel Project Settings → Environment Variables.
