@@ -35,6 +35,7 @@ Notes:
 - `.env.local` is ignored by Git via `.gitignore` and must never be committed
 - keep `.env.example` committed as the template
 - restart `npm run dev` after changing environment variables
+- required local env keys are checked on `npm run dev` startup
 
 ## Run locally
 

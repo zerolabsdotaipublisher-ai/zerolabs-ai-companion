@@ -13,7 +13,7 @@ function readRequiredEnv(name: RequiredLocalEnvVar): string {
 
   if (!value || value.trim() === "") {
     throw new Error(
-      `Missing required environment variable: ${name}. Copy .env.example to .env.local and set local values.`,
+      `Missing required environment variable: ${name}. Set it in your local environment file (for example, .env.local).`,
     );
   }
 
@@ -30,10 +30,14 @@ function validateLocalEnv(): void {
   REQUIRED_LOCAL_ENV_VARS.forEach(readRequiredEnv);
 }
 
+// Local startup guard for developer machines; production envs are configured in deployment settings.
 if (process.env.NODE_ENV === "development") {
   validateLocalEnv();
 }
 
 export const env = {
   appName: readOptionalEnv("NEXT_PUBLIC_APP_NAME", "AI Companion"),
+  supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  openAiApiKey: process.env.OPENAI_API_KEY,
 };
