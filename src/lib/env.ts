@@ -20,6 +20,12 @@ function readRequiredEnv(name: RequiredLocalEnvVar): string {
   return value;
 }
 
+function readOptionalEnv(name: string, fallback: string): string {
+  const value = process.env[name];
+
+  return value && value.trim() !== "" ? value : fallback;
+}
+
 function validateLocalEnv(): void {
   REQUIRED_LOCAL_ENV_VARS.forEach(readRequiredEnv);
 }
@@ -29,5 +35,5 @@ if (process.env.NODE_ENV === "development") {
 }
 
 export const env = {
-  appName: process.env.NEXT_PUBLIC_APP_NAME || "AI Companion",
+  appName: readOptionalEnv("NEXT_PUBLIC_APP_NAME", "AI Companion"),
 };
