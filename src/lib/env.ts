@@ -1,1 +1,1 @@
-export { optional, publicConfig as env, required, serverConfig } from "@/config/env";
+export { publicConfig as env } from "@/config/env";
