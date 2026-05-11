@@ -11,7 +11,7 @@ Use exported config objects instead of reading `process.env` directly:
 
 Helpers:
 
-- `required(name)` for required variables (throws in local development when missing)
+- `required(name)` for required variables (throws when missing)
 - `optional(name)` for optional variables (`undefined` when missing)
 
 ## Required variables

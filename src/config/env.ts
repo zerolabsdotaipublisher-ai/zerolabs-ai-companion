@@ -11,8 +11,6 @@ type EnvName =
   | "ZERO_FLOW_API_URL"
   | "ZERO_FLOW_API_KEY";
 
-const isDevelopment = process.env.NODE_ENV === "development";
-
 export function required(name: EnvName): string {
   const value = process.env[name]?.trim();
 
@@ -20,33 +18,62 @@ export function required(name: EnvName): string {
     return value;
   }
 
-  if (isDevelopment) {
-    throw new Error(
-      `Missing required environment variable: ${name}. Set it in .env.local for local development.`,
-    );
-  }
-
-  return "";
+  throw new Error(
+    `Missing required environment variable: ${name}. Set it in .env.local (local) or your deployment environment settings.`,
+  );
 }
 
 export function optional(name: EnvName): string | undefined {
   const value = process.env[name]?.trim();
-  return value && value.length > 0 ? value : undefined;
+  return value || undefined;
 }
 
 export const publicConfig = {
   appName: optional("NEXT_PUBLIC_APP_NAME") ?? "AI Companion",
-  appUrl: required("NEXT_PUBLIC_APP_URL"),
-  supabaseUrl: required("NEXT_PUBLIC_SUPABASE_URL"),
-  supabaseAnonKey: required("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+  get appUrl() {
+    return required("NEXT_PUBLIC_APP_URL");
+  },
+  get supabaseUrl() {
+    return required("NEXT_PUBLIC_SUPABASE_URL");
+  },
+  get supabaseAnonKey() {
+    return required("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  },
 };
 
+function assertServerOnly(name: string): void {
+  if (typeof window !== "undefined") {
+    throw new Error(`${name} is server-only and cannot be accessed in client code.`);
+  }
+}
+
 export const serverConfig = {
-  supabaseServiceRoleKey: required("SUPABASE_SERVICE_ROLE_KEY"),
-  openaiApiKey: required("OPENAI_API_KEY"),
-  qdrantUrl: optional("QDRANT_URL"),
-  qdrantApiKey: optional("QDRANT_API_KEY"),
-  qdrantCollection: optional("QDRANT_COLLECTION"),
-  zeroFlowApiUrl: optional("ZERO_FLOW_API_URL"),
-  zeroFlowApiKey: optional("ZERO_FLOW_API_KEY"),
+  get supabaseServiceRoleKey() {
+    assertServerOnly("serverConfig.supabaseServiceRoleKey");
+    return required("SUPABASE_SERVICE_ROLE_KEY");
+  },
+  get openaiApiKey() {
+    assertServerOnly("serverConfig.openaiApiKey");
+    return required("OPENAI_API_KEY");
+  },
+  get qdrantUrl() {
+    assertServerOnly("serverConfig.qdrantUrl");
+    return optional("QDRANT_URL");
+  },
+  get qdrantApiKey() {
+    assertServerOnly("serverConfig.qdrantApiKey");
+    return optional("QDRANT_API_KEY");
+  },
+  get qdrantCollection() {
+    assertServerOnly("serverConfig.qdrantCollection");
+    return optional("QDRANT_COLLECTION");
+  },
+  get zeroFlowApiUrl() {
+    assertServerOnly("serverConfig.zeroFlowApiUrl");
+    return optional("ZERO_FLOW_API_URL");
+  },
+  get zeroFlowApiKey() {
+    assertServerOnly("serverConfig.zeroFlowApiKey");
+    return optional("ZERO_FLOW_API_KEY");
+  },
 };
