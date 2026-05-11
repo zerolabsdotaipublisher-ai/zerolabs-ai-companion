@@ -26,8 +26,10 @@ cp .env.example .env.local
 
 Fill `.env.local` with local/dev values for required variables:
 
+- `NEXT_PUBLIC_APP_URL`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
 - `OPENAI_API_KEY`
 
 Notes:
