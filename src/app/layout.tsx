@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { env } from "@/lib/env";
+import { publicConfig } from "@/config/env";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: env.appName,
+  title: publicConfig.appName,
   description: "Base Next.js application for AI Companion.",
 };
 

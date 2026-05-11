@@ -1,7 +1,11 @@
+import { publicConfig } from "@/config/env";
+
 export default function Home() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col justify-center gap-6 px-6 py-20">
-      <h1 className="text-4xl font-semibold tracking-tight">AI Companion</h1>
+      <h1 className="text-4xl font-semibold tracking-tight">
+        {publicConfig.appName}
+      </h1>
       <p className="max-w-2xl text-lg text-zinc-600 dark:text-zinc-300">
         Next.js base application initialized with TypeScript and App Router.
       </p>
