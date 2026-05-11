@@ -18,7 +18,6 @@ Helpers:
 
 ### Public (`publicConfig`)
 
-- `NEXT_PUBLIC_APP_NAME`
 - `NEXT_PUBLIC_APP_URL`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
@@ -35,6 +34,10 @@ Helpers:
 - `QDRANT_COLLECTION`
 - `ZERO_FLOW_API_URL`
 - `ZERO_FLOW_API_KEY`
+
+## Optional public variables (`publicConfig`)
+
+- `NEXT_PUBLIC_APP_NAME` (defaults to `AI Companion` when unset)
 
 ## Local development
 
@@ -60,3 +63,5 @@ Notes:
 4. Redeploy so new variables are applied.
 
 Only set server secrets (for example `OPENAI_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) in Vercel server environments. Do not expose them in client code.
+
+ZeroFlow environment keys in this project use the `ZERO_FLOW_*` naming convention.
