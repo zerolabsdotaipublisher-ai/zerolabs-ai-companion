@@ -35,6 +35,8 @@ Helpers:
 - `ZERO_FLOW_API_URL`
 - `ZERO_FLOW_API_KEY`
 
+ZeroFlow environment keys in this project use the `ZERO_FLOW_*` naming convention.
+
 ## Optional public variables (`publicConfig`)
 
 - `NEXT_PUBLIC_APP_NAME` (defaults to `AI Companion` when unset)
@@ -63,5 +65,3 @@ Notes:
 4. Redeploy so new variables are applied.
 
 Only set server secrets (for example `OPENAI_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) in Vercel server environments. Do not expose them in client code.
-
-ZeroFlow environment keys in this project use the `ZERO_FLOW_*` naming convention.

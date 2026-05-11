@@ -25,7 +25,7 @@ export function required(name: EnvName): string {
 
 export function optional(name: EnvName): string | undefined {
   const value = process.env[name]?.trim();
-  return value || undefined;
+  return value ? value : undefined;
 }
 
 export const publicConfig = {
