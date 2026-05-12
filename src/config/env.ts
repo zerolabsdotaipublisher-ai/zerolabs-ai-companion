@@ -16,9 +16,31 @@ export type ServerEnvName =
   | "ZERO_FLOW_API_KEY";
 
 const nonEmptyString = z.string().trim().min(1, "is required");
+const optionalTrimmedString = z.preprocess(
+  (value) => {
+    if (typeof value !== "string") {
+      return value;
+    }
+
+    const trimmedValue = value.trim();
+    return trimmedValue.length > 0 ? trimmedValue : undefined;
+  },
+  z.string().min(1).optional(),
+);
+const optionalUrl = z.preprocess(
+  (value) => {
+    if (typeof value !== "string") {
+      return value;
+    }
+
+    const trimmedValue = value.trim();
+    return trimmedValue.length > 0 ? trimmedValue : undefined;
+  },
+  z.string().url("must be a valid URL").optional(),
+);
 
 const publicEnvSchema = z.object({
-  NEXT_PUBLIC_APP_NAME: z.string().trim().min(1).optional(),
+  NEXT_PUBLIC_APP_NAME: optionalTrimmedString,
   NEXT_PUBLIC_APP_URL: nonEmptyString.url("must be a valid URL"),
   NEXT_PUBLIC_SUPABASE_URL: nonEmptyString.url("must be a valid URL"),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: nonEmptyString,
@@ -27,11 +49,11 @@ const publicEnvSchema = z.object({
 const serverEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: nonEmptyString,
   OPENAI_API_KEY: nonEmptyString,
-  QDRANT_URL: nonEmptyString.url("must be a valid URL").optional(),
-  QDRANT_API_KEY: z.string().trim().min(1).optional(),
-  QDRANT_COLLECTION: z.string().trim().min(1).optional(),
-  ZERO_FLOW_API_URL: nonEmptyString.url("must be a valid URL").optional(),
-  ZERO_FLOW_API_KEY: z.string().trim().min(1).optional(),
+  QDRANT_URL: optionalUrl,
+  QDRANT_API_KEY: optionalTrimmedString,
+  QDRANT_COLLECTION: optionalTrimmedString,
+  ZERO_FLOW_API_URL: optionalUrl,
+  ZERO_FLOW_API_KEY: optionalTrimmedString,
 });
 
 type ServerEnv = z.infer<typeof serverEnvSchema>;
