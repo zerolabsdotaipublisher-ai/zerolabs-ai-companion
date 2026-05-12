@@ -15,7 +15,18 @@ export type ServerEnvName =
   | "ZERO_FLOW_API_URL"
   | "ZERO_FLOW_API_KEY";
 
-const nonEmptyString = z.string().trim().min(1, "is required");
+const nonEmptyString = z
+  .string({
+    error: (issue) => {
+      if (issue.input === undefined) {
+        return "is required";
+      }
+
+      return undefined;
+    },
+  })
+  .trim()
+  .min(1, "is required");
 const optionalTrimmedString = z.preprocess(
   (value) => {
     if (typeof value !== "string") {
@@ -62,7 +73,10 @@ function formatEnvValidationError(scope: "public" | "server", error: z.ZodError)
   const details = error.issues
     .map((issue) => `${issue.path.join(".") || "unknown"}: ${issue.message}`)
     .join("; ");
-  return new Error(`Invalid ${scope} environment variables: ${details}`);
+  return new Error(
+    `Invalid ${scope} environment variables: ${details}. ` +
+      "Define values in .env.local for local development and configure deployment/Vercel environment variables for CI and deployment.",
+  );
 }
 
 function validateEnv<T>(scope: "public" | "server", schema: z.ZodSchema<T>, values: unknown): T {
