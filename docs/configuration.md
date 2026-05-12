@@ -1,67 +1,155 @@
 # Configuration
 
-Environment variables are centralized in:
+## Purpose of the config layer
+
+The application configuration layer centralizes all environment variable access in:
 
 - `src/config/env.ts`
 
-Use exported config objects instead of reading `process.env` directly:
+This provides:
+
+- one place to validate environment variables
+- a clear public/server boundary
+- consistent runtime errors when values are missing or invalid
+
+## Why `process.env` should not be used directly
+
+Do not read `process.env` directly outside `src/config/env.ts`.
+
+Direct usage scatters configuration logic, skips shared validation, and can accidentally expose server secrets to client code. Instead, import from the config layer:
 
 - `publicConfig` for browser-safe values (`NEXT_PUBLIC_*`)
-- `serverConfig` for server-only secrets
+- `serverConfig` for server-only values
 
-Helpers:
+For existing public-only alias usage, `src/lib/env.ts` re-exports `publicConfig` as `env`.
 
-- `required(name)` for required variables (throws when missing)
-- `optional(name)` for optional variables (`undefined` when missing)
+## Environment validation behavior
 
-## Required variables
+Validation happens in `src/config/env.ts` using Zod schemas:
+
+- Public variables are validated when the module is evaluated.
+- Server variables are validated on the server runtime path only (`typeof window === "undefined"`).
+- Invalid values (for example malformed URLs) throw an error like:
+  - `Invalid public environment variables: ...`
+  - `Invalid server environment variables: ...`
+- Missing required values throw:
+  - `Missing required environment variable: <NAME>. Set it in .env.local (local) or your deployment environment settings.`
+- Accessing `serverConfig` from client code throws a server-only access error.
+
+## Required environment variables
 
 ### Public (`publicConfig`)
 
-- `NEXT_PUBLIC_APP_URL`
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_APP_URL` (required URL)
+- `NEXT_PUBLIC_SUPABASE_URL` (required URL)
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` (required)
 
 ### Server (`serverConfig`)
 
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `OPENAI_API_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY` (required, secret)
+- `OPENAI_API_KEY` (required, secret)
 
-## Optional future variables (`serverConfig`)
+### Public optional with default
 
-- `QDRANT_URL`
-- `QDRANT_API_KEY`
-- `QDRANT_COLLECTION`
-- `ZERO_FLOW_API_URL`
-- `ZERO_FLOW_API_KEY`
+- `NEXT_PUBLIC_APP_NAME` (optional; defaults to `AI Companion`)
 
-ZeroFlow environment keys in this project use the `ZERO_FLOW_*` naming convention.
+## Public vs server-only variables
 
-## Optional public variables (`publicConfig`)
+Use this rule:
 
-- `NEXT_PUBLIC_APP_NAME` (defaults to `AI Companion` when unset)
+- `NEXT_PUBLIC_*` values can be exposed to browser/client bundles.
+- Non-`NEXT_PUBLIC_*` values are server-only and must never be used in client components.
 
-## Local development
+In this project:
 
-1. Copy template:
+- Public: `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Server-only: `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`
+
+## Local `.env.local` setup
+
+1. Copy the template:
 
    ```bash
    cp .env.example .env.local
    ```
 
-2. Fill in `.env.local` with local values.
-3. Restart `npm run dev` after changes.
+2. Fill values in `.env.local` (no real secrets in committed files).
+3. Restart the dev server after changes:
 
-Notes:
+   ```bash
+   npm run dev
+   ```
 
-- `.env.local` is gitignored and must not be committed.
-- Keep `.env.example` as placeholders only.
+Important:
 
-## Vercel
+- `.env.local` is ignored by git (`.gitignore` includes `.env*`).
+- Do **not** commit `.env.local`.
+- Keep `.env.example` as placeholder/template values only.
 
-1. Open your project in Vercel.
+## Vercel environment setup
+
+1. Open project in Vercel.
 2. Go to **Settings → Environment Variables**.
-3. Add the same required keys for each target environment (Development/Preview/Production).
-4. Redeploy so new variables are applied.
+3. Add required variables for each environment (Development, Preview, Production):
+   - `NEXT_PUBLIC_APP_NAME` (optional)
+   - `NEXT_PUBLIC_APP_URL`
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `OPENAI_API_KEY`
+4. Redeploy so new values are applied to runtime/builds.
 
-Only set server secrets (for example `OPENAI_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) in Vercel server environments. Do not expose them in client code.
+Never put server secrets (for example `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`) into client code.
+
+## Example config usage
+
+Public usage:
+
+```ts
+import { publicConfig } from "@/config/env";
+
+const appName = publicConfig.appName;
+const appUrl = publicConfig.appUrl;
+```
+
+Server usage:
+
+```ts
+import { serverConfig } from "@/config/env";
+
+const serviceRoleKey = serverConfig.supabaseServiceRoleKey;
+const openaiApiKey = serverConfig.openaiApiKey;
+```
+
+Avoid this outside `src/config/env.ts`:
+
+```ts
+process.env.MY_VARIABLE;
+```
+
+## How to safely add new environment variables
+
+1. Decide whether the variable is public (`NEXT_PUBLIC_*`) or server-only.
+2. Add it to the matching type and Zod schema in `src/config/env.ts`.
+3. Map it from `process.env` in the same file.
+4. Expose it via `publicConfig` or `serverConfig` with the correct required/optional behavior.
+5. Add placeholder entries to `.env.example`.
+6. Update docs (`docs/configuration.md` and related setup docs if needed).
+7. Validate locally (`npm run lint`, `npm run build`).
+
+## Troubleshooting invalid/missing environment variables
+
+If startup or build fails with config errors:
+
+1. Read the error name and variable key in the message.
+2. Confirm the variable exists in `.env.local` (local) or Vercel settings (deployed).
+3. For URL variables, ensure the value is a full valid URL (`https://...`).
+4. Ensure server-only keys are not being accessed in client code.
+5. Restart local dev/build after changing env values.
+
+Common issue examples:
+
+- `Invalid public environment variables: NEXT_PUBLIC_APP_URL ...`
+  - Missing or invalid URL in public app URL.
+- `Missing required environment variable: OPENAI_API_KEY ...`
+  - Missing required server secret.
