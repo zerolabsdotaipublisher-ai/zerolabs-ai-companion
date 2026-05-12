@@ -34,7 +34,6 @@ const serverEnvSchema = z.object({
   ZERO_FLOW_API_KEY: z.string().trim().min(1).optional(),
 });
 
-type PublicEnv = z.infer<typeof publicEnvSchema>;
 type ServerEnv = z.infer<typeof serverEnvSchema>;
 
 function formatEnvValidationError(scope: "public" | "server", error: z.ZodError): Error {
