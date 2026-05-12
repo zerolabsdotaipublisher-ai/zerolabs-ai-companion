@@ -65,6 +65,8 @@ In this project:
 - Public: `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - Server-only: `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`
 
+Never put server secrets (for example `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`) into client code.
+
 ## Local `.env.local` setup
 
 1. Copy the template:
@@ -82,7 +84,7 @@ In this project:
 
 Important:
 
-- `.env.local` is ignored by git (`.gitignore` uses `.env*` with an explicit `!.env.example` exception).
+- `.env.local` is ignored by git and must stay local.
 - Do **not** commit `.env.local`.
 - Keep `.env.example` as placeholder/template values only.
 
@@ -98,8 +100,6 @@ Important:
    - `SUPABASE_SERVICE_ROLE_KEY`
    - `OPENAI_API_KEY`
 4. Redeploy so new values are applied to runtime/builds.
-
-Never put server secrets (for example `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`) into client code.
 
 ## Example config usage
 
