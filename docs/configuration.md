@@ -82,7 +82,7 @@ In this project:
 
 Important:
 
-- `.env.local` is ignored by git (`.gitignore` includes `.env*`).
+- `.env.local` is ignored by git (`.gitignore` uses `.env*` with an explicit `!.env.example` exception).
 - Do **not** commit `.env.local`.
 - Keep `.env.example` as placeholder/template values only.
 
