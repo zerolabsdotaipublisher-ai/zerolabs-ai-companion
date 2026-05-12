@@ -29,10 +29,10 @@ Validation happens in `src/config/env.ts` using Zod schemas:
 
 - Public variables are validated when the module is evaluated.
 - Server variables are validated on the server runtime path only (`typeof window === "undefined"`).
-- Invalid values (for example malformed URLs) throw an error like:
-  - `Invalid public environment variables: ...`
-  - `Invalid server environment variables: ...`
-- Missing required values throw:
+- Validation failures throw:
+  - `Invalid public environment variables: <KEY>: <reason>; ... Define values in .env.local for local development and configure deployment/Vercel environment variables for CI and deployment.`
+  - `Invalid server environment variables: <KEY>: <reason>; ... Define values in .env.local for local development and configure deployment/Vercel environment variables for CI and deployment.`
+- For required lookups via `required(...)` / `requiredPublic(...)`, missing values throw:
   - `Missing required environment variable: <NAME>. Set it in .env.local (local) or your deployment environment settings.`
 - Accessing `serverConfig` from client code throws a server-only access error.
 
@@ -48,10 +48,19 @@ Validation happens in `src/config/env.ts` using Zod schemas:
 
 - `SUPABASE_SERVICE_ROLE_KEY` (required, secret)
 - `OPENAI_API_KEY` (required, secret)
+- `QDRANT_URL` (optional URL; future vector DB integration)
+- `QDRANT_API_KEY` (optional; future vector DB integration)
+- `QDRANT_COLLECTION` (optional; future vector DB integration)
+- `ZERO_FLOW_API_URL` (optional URL; future platform integration)
+- `ZERO_FLOW_API_KEY` (optional; future platform integration)
 
 ### Public optional with default
 
 - `NEXT_PUBLIC_APP_NAME` (optional; defaults to `AI Companion`)
+
+### Other template variables in `.env.example`
+
+- `NODE_ENV` (template/runtime environment label; not validated by `src/config/env.ts`)
 
 ## Public vs server-only variables
 
@@ -63,7 +72,7 @@ Use this rule:
 In this project:
 
 - Public: `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- Server-only: `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`
+- Server-only: `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`, `QDRANT_URL`, `QDRANT_API_KEY`, `QDRANT_COLLECTION`, `ZERO_FLOW_API_URL`, `ZERO_FLOW_API_KEY`
 
 Never put server secrets (for example `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`) into client code.
 
@@ -75,7 +84,7 @@ Never put server secrets (for example `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_K
    cp .env.example .env.local
    ```
 
-2. Fill values in `.env.local` (no real secrets in committed files).
+2. Fill values in `.env.local` (this is where real local secrets belong).
 3. Restart the dev server after changes:
 
    ```bash
@@ -86,19 +95,24 @@ Important:
 
 - `.env.local` is ignored by git and must stay local.
 - Do **not** commit `.env.local`.
-- Keep `.env.example` as placeholder/template values only.
+- `.env.example` must contain placeholders/template values only (never real credentials).
 
 ## Vercel environment setup
 
 1. Open project in Vercel.
 2. Go to **Settings → Environment Variables**.
 3. Add required variables for each environment (Development, Preview, Production):
-   - `NEXT_PUBLIC_APP_NAME` (optional)
-   - `NEXT_PUBLIC_APP_URL`
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `OPENAI_API_KEY`
+    - `NEXT_PUBLIC_APP_NAME` (optional)
+    - `NEXT_PUBLIC_APP_URL`
+    - `NEXT_PUBLIC_SUPABASE_URL`
+    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+    - `SUPABASE_SERVICE_ROLE_KEY`
+    - `OPENAI_API_KEY`
+    - `QDRANT_URL` (optional)
+    - `QDRANT_API_KEY` (optional)
+    - `QDRANT_COLLECTION` (optional)
+    - `ZERO_FLOW_API_URL` (optional)
+    - `ZERO_FLOW_API_KEY` (optional)
 4. Redeploy so new values are applied to runtime/builds.
 
 ## Example config usage
@@ -149,7 +163,7 @@ If startup or build fails with config errors:
 
 Common issue examples:
 
-- `Invalid public environment variables: NEXT_PUBLIC_APP_URL ...`
-  - Missing or invalid URL in public app URL.
-- `Missing required environment variable: OPENAI_API_KEY ...`
-  - Missing required server secret.
+- `Invalid public environment variables: NEXT_PUBLIC_APP_URL: is required; ... Define values in .env.local for local development and configure deployment/Vercel environment variables for CI and deployment.`
+  - Required public value is missing.
+- `Invalid server environment variables: OPENAI_API_KEY: is required; ... Define values in .env.local for local development and configure deployment/Vercel environment variables for CI and deployment.`
+  - Required server secret is missing.
