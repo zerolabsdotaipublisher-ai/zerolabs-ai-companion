@@ -78,7 +78,11 @@ function toMonitoringEvent(body: WebVitalsRequestBody): MonitoringEventInput | n
     return null;
   }
 
-  if (!isValidString(body.route, 500) || !body.route.startsWith("/")) {
+  if (!isValidString(body.route, 500)) {
+    return null;
+  }
+
+  if (!body.route.startsWith("/")) {
     return null;
   }
 
@@ -120,8 +124,8 @@ export async function POST(request: Request): Promise<Response> {
     const contentLength = request.headers.get("content-length");
 
     if (contentLength !== null) {
-      const isDigitsOnly = /^\d+$/.test(contentLength);
-      const parsedLength = isDigitsOnly ? Number(contentLength) : Number.NaN;
+      const isValidContentLengthFormat = /^\d+$/.test(contentLength);
+      const parsedLength = isValidContentLengthFormat ? Number(contentLength) : Number.NaN;
 
       if (!Number.isFinite(parsedLength) || parsedLength <= 0 || parsedLength > MAX_MONITORING_BODY_BYTES) {
         return NextResponse.json({ error: "Monitoring payload too large." }, { status: 413 });
