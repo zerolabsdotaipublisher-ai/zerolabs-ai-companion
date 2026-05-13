@@ -21,7 +21,12 @@ export async function POST(request: Request): Promise<Response> {
     const sentryTestSecret = serverConfig.sentryTestSecret;
 
     if (!sentryTestSecret) {
-      return NextResponse.json({ error: "Sentry test endpoint is disabled in production." }, { status: 404 });
+      return NextResponse.json(
+        {
+          error: "Sentry test endpoint requires SENTRY_TEST_SECRET to be configured in production.",
+        },
+        { status: 404 },
+      );
     }
 
     if (request.headers.get(SECRET_HEADER) !== sentryTestSecret) {
