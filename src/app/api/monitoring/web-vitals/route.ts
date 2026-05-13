@@ -14,6 +14,7 @@ type WebVitalsRequestBody = {
 
 const MAX_MONITORING_BODY_BYTES = 4 * 1024;
 const MAX_MONITORING_VALUE = 10_000_000;
+const utf8Encoder = new TextEncoder();
 const ALLOWED_PAYLOAD_KEYS = new Set([
   "event",
   "route",
@@ -74,19 +75,25 @@ function toMonitoringEvent(body: WebVitalsRequestBody): MonitoringEventInput | n
     return null;
   }
 
-  if (!isValidString(body.event, 100)) {
+  const event = body.event;
+
+  if (!isValidString(event, 100)) {
     return null;
   }
 
-  if (!isValidString(body.route, 500)) {
+  const route = body.route;
+
+  if (!isValidString(route, 500)) {
     return null;
   }
 
-  if (!body.route.startsWith("/")) {
+  if (!route.startsWith("/")) {
     return null;
   }
 
-  if (!isValidString(body.metric, 100)) {
+  const metric = body.metric;
+
+  if (!isValidString(metric, 100)) {
     return null;
   }
 
@@ -106,9 +113,9 @@ function toMonitoringEvent(body: WebVitalsRequestBody): MonitoringEventInput | n
   }
 
   return {
-    event: body.event,
-    route: body.route,
-    metric: body.metric,
+    event,
+    route,
+    metric,
     durationMs,
     value,
     timestamp,
@@ -124,8 +131,7 @@ export async function POST(request: Request): Promise<Response> {
     const contentLength = request.headers.get("content-length");
 
     if (contentLength !== null) {
-      const isValidContentLengthFormat = /^\d+$/.test(contentLength);
-      const parsedLength = isValidContentLengthFormat ? Number(contentLength) : Number.NaN;
+      const parsedLength = /^\d+$/.test(contentLength) ? Number(contentLength) : Number.NaN;
 
       if (!Number.isFinite(parsedLength) || parsedLength <= 0 || parsedLength > MAX_MONITORING_BODY_BYTES) {
         return NextResponse.json({ error: "Monitoring payload too large." }, { status: 413 });
@@ -134,7 +140,7 @@ export async function POST(request: Request): Promise<Response> {
 
     try {
       const rawBody = await request.text();
-      const bodyByteLength = new TextEncoder().encode(rawBody).length;
+      const bodyByteLength = utf8Encoder.encode(rawBody).length;
 
       if (bodyByteLength === 0) {
         return NextResponse.json({ error: "Monitoring payload is required." }, { status: 400 });
