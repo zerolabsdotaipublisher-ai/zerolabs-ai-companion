@@ -35,9 +35,11 @@ Fill `.env.local` with local/dev values for required variables:
 Optional Sentry values:
 
 - `NEXT_PUBLIC_SENTRY_DSN` (runtime error capture)
+- `NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE` (runtime tracing sample rate; defaults to `0.1` if unset/invalid)
 - `SENTRY_AUTH_TOKEN` (source map upload during build)
 - `SENTRY_ORG` (source map upload metadata)
 - `SENTRY_PROJECT` (source map upload metadata)
+- `SENTRY_TEST_SECRET` (required to trigger `/api/monitoring/sentry-test` when running in production mode)
 
 Notes:
 
@@ -68,17 +70,20 @@ npm run format
 
 ## Manual Sentry verification
 
-When `NEXT_PUBLIC_SENTRY_DSN` is configured, trigger a controlled test error:
+When `NEXT_PUBLIC_SENTRY_DSN` is configured, verify in a production-mode runtime (`npm run build && npm run start`) or deployed environment, then trigger a controlled test error:
 
 ```bash
-curl -i -X POST http://localhost:3000/api/monitoring/sentry-test \
-  -H "x-sentry-test: true"
+curl -i -X POST https://<your-domain>/api/monitoring/sentry-test \
+  -H "x-sentry-test: true" \
+  -H "x-sentry-test-secret: <your-sentry-test-secret>"
 ```
 
 Expected behavior:
 
+- in production mode, missing `SENTRY_TEST_SECRET` returns `404`
 - request without `x-sentry-test: true` returns `400`
-- request with the header returns `500` and the error is sent to Sentry
+- in production mode, wrong/missing `x-sentry-test-secret` returns `403`
+- request with required headers returns `500` and the error is sent to Sentry
 
 ## MVP stack alignment
 
