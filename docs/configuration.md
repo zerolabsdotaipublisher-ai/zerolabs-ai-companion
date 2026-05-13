@@ -25,7 +25,6 @@ For existing public-only alias usage, `src/lib/env.ts` re-exports `publicConfig`
 
 Exception:
 
-- Next.js/Sentry bootstrap files (`next.config.ts`, `instrumentation*.ts`, `sentry.*.config.ts`) may read `process.env` directly because they run before app module config access patterns apply.
 
 ## Environment validation behavior
 
@@ -47,8 +46,6 @@ Validation happens in `src/config/env.ts` using Zod schemas:
 - `NEXT_PUBLIC_APP_URL` (required URL)
 - `NEXT_PUBLIC_SUPABASE_URL` (required URL)
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` (required)
-- `NEXT_PUBLIC_SENTRY_DSN` (optional URL; public DSN for runtime error tracking)
-- `NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE` (optional; runtime tracing sample rate in `0.0..1.0`, defaults to `0.1` when unset/invalid)
 
 ### Server (`serverConfig`)
 
@@ -59,13 +56,6 @@ Validation happens in `src/config/env.ts` using Zod schemas:
 - `QDRANT_COLLECTION` (optional; future vector DB integration)
 - `ZERO_FLOW_API_URL` (optional URL; future platform integration)
 - `ZERO_FLOW_API_KEY` (optional; future platform integration)
-- `SENTRY_TEST_SECRET` (optional; required to enable Sentry test endpoint in production)
-
-### Build-time server-only (Sentry source maps)
-
-- `SENTRY_AUTH_TOKEN` (optional, secret; required only if uploading source maps)
-- `SENTRY_ORG` (optional; used with source map upload)
-- `SENTRY_PROJECT` (optional; used with source map upload)
 
 ### Public optional with default
 
@@ -84,8 +74,8 @@ Use this rule:
 
 In this project:
 
-- Public: `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SENTRY_DSN`, `NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE`
-- Server-only: `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`, `QDRANT_URL`, `QDRANT_API_KEY`, `QDRANT_COLLECTION`, `ZERO_FLOW_API_URL`, `ZERO_FLOW_API_KEY`, `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_TEST_SECRET`
+- Public: `NEXT_PUBLIC_APP_NAME`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Server-only: `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`, `QDRANT_URL`, `QDRANT_API_KEY`, `QDRANT_COLLECTION`, `ZERO_FLOW_API_URL`, `ZERO_FLOW_API_KEY`
 
 Never put server secrets (for example `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_API_KEY`) into client code.
 
@@ -121,64 +111,12 @@ Important:
     - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
     - `SUPABASE_SERVICE_ROLE_KEY`
     - `OPENAI_API_KEY`
-    - `NEXT_PUBLIC_SENTRY_DSN` (optional)
     - `QDRANT_URL` (optional)
     - `QDRANT_API_KEY` (optional)
     - `QDRANT_COLLECTION` (optional)
     - `ZERO_FLOW_API_URL` (optional)
     - `ZERO_FLOW_API_KEY` (optional)
-    - `SENTRY_AUTH_TOKEN` (optional, set in environments where source map upload is desired)
-    - `SENTRY_ORG` (optional, required with `SENTRY_AUTH_TOKEN`)
-    - `SENTRY_PROJECT` (optional, required with `SENTRY_AUTH_TOKEN`)
 4. Redeploy so new values are applied to runtime/builds.
-
-## Sentry runtime error tracking
-
-Sentry is configured for Next.js runtime capture across:
-
-- Client runtime (`instrumentation-client.ts`)
-- Server runtime (`sentry.server.config.ts`)
-- Edge runtime (`sentry.edge.config.ts`)
-- App Router global error boundary (`src/app/global-error.tsx`)
-
-Sentry complements the centralized structured logger (`src/lib/logger.ts`); it does not replace logging.
-
-### Source map upload behavior
-
-Source map upload is enabled only when all three variables are present: `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT`. If any are missing, upload is skipped during build.
-
-### Manual verification path (production-safe)
-
-Use the protected test endpoint from a production-mode runtime (`npm run build && npm run start`) or a deployed environment:
-
-```bash
-curl -i -X POST https://<your-domain>/api/monitoring/sentry-test \
-  -H "x-sentry-test: true" \
-  -H "x-sentry-test-secret: <your-sentry-test-secret>"
-```
-
-Behavior:
-
-- In production mode, if `SENTRY_TEST_SECRET` is not configured server-side, endpoint returns HTTP 404 and does not throw.
-- Without header `x-sentry-test: true`, endpoint returns HTTP 400 and does not throw.
-- In production mode, if `x-sentry-test-secret` does not match `SENTRY_TEST_SECRET`, endpoint returns HTTP 403 and does not throw.
-- With valid headers/secret, endpoint intentionally throws, logs via `logger.error(...)`, and sends the exception to Sentry.
-
-After triggering:
-
-1. Open **Sentry → Issues** for the configured project.
-2. Confirm a new issue containing `Intentional Sentry test error` appears.
-3. Validate stack trace and release/source context (if source maps were uploaded).
-
-### Alert configuration in Sentry
-
-Configure alerts in Sentry project settings:
-
-1. Go to **Alerts → Create Alert Rule**.
-2. Create an issue alert for `The event's level is error` and `Issue is new`.
-3. Route notifications to your team channel/email/on-call target.
-4. Optionally add environment filters (for example `production`) to reduce noise.
-5. Test the alert by triggering the verification endpoint and confirm notification delivery.
 
 ## Example config usage
 

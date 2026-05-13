@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { publicConfig } from "@/config/env";
+import { WebVitalsReporter } from "@/components/monitoring/web-vitals-reporter";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,7 +15,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <WebVitalsReporter />
+        {children}
+      </body>
     </html>
   );
 }

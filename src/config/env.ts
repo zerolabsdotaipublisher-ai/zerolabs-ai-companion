@@ -4,8 +4,7 @@ export type PublicEnvName =
   | "NEXT_PUBLIC_APP_NAME"
   | "NEXT_PUBLIC_APP_URL"
   | "NEXT_PUBLIC_SUPABASE_URL"
-  | "NEXT_PUBLIC_SUPABASE_ANON_KEY"
-  | "NEXT_PUBLIC_SENTRY_DSN";
+  | "NEXT_PUBLIC_SUPABASE_ANON_KEY";
 
 export type ServerEnvName =
   | "SUPABASE_SERVICE_ROLE_KEY"
@@ -14,8 +13,7 @@ export type ServerEnvName =
   | "QDRANT_API_KEY"
   | "QDRANT_COLLECTION"
   | "ZERO_FLOW_API_URL"
-  | "ZERO_FLOW_API_KEY"
-  | "SENTRY_TEST_SECRET";
+  | "ZERO_FLOW_API_KEY";
 
 const nonEmptyString = z
   .string({
@@ -57,7 +55,6 @@ const publicEnvSchema = z.object({
   NEXT_PUBLIC_APP_URL: nonEmptyString.url("must be a valid URL"),
   NEXT_PUBLIC_SUPABASE_URL: nonEmptyString.url("must be a valid URL"),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: nonEmptyString,
-  NEXT_PUBLIC_SENTRY_DSN: optionalUrl,
 });
 
 const serverEnvSchema = z.object({
@@ -68,7 +65,6 @@ const serverEnvSchema = z.object({
   QDRANT_COLLECTION: optionalTrimmedString,
   ZERO_FLOW_API_URL: optionalUrl,
   ZERO_FLOW_API_KEY: optionalTrimmedString,
-  SENTRY_TEST_SECRET: optionalTrimmedString,
 });
 
 type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -98,7 +94,6 @@ const publicEnv = validateEnv("public", publicEnvSchema, {
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-  NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
 });
 
 function assertServerOnly(name: string): void {
@@ -117,7 +112,6 @@ const serverEnv =
         QDRANT_COLLECTION: process.env.QDRANT_COLLECTION,
         ZERO_FLOW_API_URL: process.env.ZERO_FLOW_API_URL,
         ZERO_FLOW_API_KEY: process.env.ZERO_FLOW_API_KEY,
-        SENTRY_TEST_SECRET: process.env.SENTRY_TEST_SECRET,
       })
     : undefined;
 
@@ -153,8 +147,6 @@ function optionalPublic(name: PublicEnvName): string | undefined {
       return publicEnv.NEXT_PUBLIC_SUPABASE_URL;
     case "NEXT_PUBLIC_SUPABASE_ANON_KEY":
       return publicEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    case "NEXT_PUBLIC_SENTRY_DSN":
-      return publicEnv.NEXT_PUBLIC_SENTRY_DSN;
   }
 }
 
@@ -186,9 +178,6 @@ export const publicConfig = {
   get supabaseAnonKey() {
     return requiredPublic("NEXT_PUBLIC_SUPABASE_ANON_KEY");
   },
-  get sentryDsn() {
-    return optionalPublic("NEXT_PUBLIC_SENTRY_DSN");
-  },
 };
 
 export const serverConfig = {
@@ -219,9 +208,5 @@ export const serverConfig = {
   get zeroFlowApiKey() {
     assertServerOnly("serverConfig.zeroFlowApiKey");
     return optional("ZERO_FLOW_API_KEY");
-  },
-  get sentryTestSecret() {
-    assertServerOnly("serverConfig.sentryTestSecret");
-    return optional("SENTRY_TEST_SECRET");
   },
 };
