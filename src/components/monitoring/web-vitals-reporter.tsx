@@ -19,30 +19,47 @@ export function WebVitalsReporter(): null {
   });
 
   useEffect(() => {
-    const navigationEntry = performance.getEntriesByType("navigation")[0] as
-      | PerformanceNavigationTiming
-      | undefined;
+    const reportPageLoad = () => {
+      const navigationEntry = performance.getEntriesByType("navigation")[0] as
+        | PerformanceNavigationTiming
+        | undefined;
 
-    if (!navigationEntry) {
+      if (!navigationEntry) {
+        return;
+      }
+
+      const loadEventEndMs =
+        navigationEntry.loadEventEnd > 0
+          ? navigationEntry.loadEventEnd
+          : navigationEntry.domComplete;
+      const pageLoadDurationMs = loadEventEndMs - navigationEntry.startTime;
+
+      if (!Number.isFinite(pageLoadDurationMs) || pageLoadDurationMs <= 0) {
+        return;
+      }
+
+      sendMonitoringEvent({
+        event: "page_load",
+        route: window.location.pathname,
+        metric: "page_load_ms",
+        durationMs: roundMetric(pageLoadDurationMs),
+      });
+    };
+
+    if (document.readyState === "complete") {
+      window.setTimeout(reportPageLoad, 0);
       return;
     }
 
-    const loadEventEndMs =
-      navigationEntry.loadEventEnd > 0
-        ? navigationEntry.loadEventEnd
-        : navigationEntry.domComplete;
-    const pageLoadDurationMs = loadEventEndMs - navigationEntry.startTime;
+    const onLoad = () => {
+      window.setTimeout(reportPageLoad, 0);
+    };
 
-    if (!Number.isFinite(pageLoadDurationMs) || pageLoadDurationMs <= 0) {
-      return;
-    }
+    window.addEventListener("load", onLoad, { once: true });
 
-    sendMonitoringEvent({
-      event: "page_load",
-      route: window.location.pathname,
-      metric: "page_load_ms",
-      durationMs: roundMetric(pageLoadDurationMs),
-    });
+    return () => {
+      window.removeEventListener("load", onLoad);
+    };
   }, []);
 
   return null;
