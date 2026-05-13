@@ -15,7 +15,6 @@ export function WebVitalsReporter(): null {
       route: window.location.pathname,
       metric: metric.name,
       value: roundMetric(metric.value),
-      timestamp: new Date(metric.startTime).toISOString(),
     });
   });
 
