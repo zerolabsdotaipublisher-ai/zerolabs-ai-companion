@@ -14,7 +14,8 @@ export type ServerEnvName =
   | "QDRANT_API_KEY"
   | "QDRANT_COLLECTION"
   | "ZERO_FLOW_API_URL"
-  | "ZERO_FLOW_API_KEY";
+  | "ZERO_FLOW_API_KEY"
+  | "SENTRY_TEST_SECRET";
 
 const nonEmptyString = z
   .string({
@@ -56,7 +57,7 @@ const publicEnvSchema = z.object({
   NEXT_PUBLIC_APP_URL: nonEmptyString.url("must be a valid URL"),
   NEXT_PUBLIC_SUPABASE_URL: nonEmptyString.url("must be a valid URL"),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: nonEmptyString,
-  NEXT_PUBLIC_SENTRY_DSN: optionalTrimmedString,
+  NEXT_PUBLIC_SENTRY_DSN: optionalUrl,
 });
 
 const serverEnvSchema = z.object({
@@ -67,6 +68,7 @@ const serverEnvSchema = z.object({
   QDRANT_COLLECTION: optionalTrimmedString,
   ZERO_FLOW_API_URL: optionalUrl,
   ZERO_FLOW_API_KEY: optionalTrimmedString,
+  SENTRY_TEST_SECRET: optionalTrimmedString,
 });
 
 type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -115,6 +117,7 @@ const serverEnv =
         QDRANT_COLLECTION: process.env.QDRANT_COLLECTION,
         ZERO_FLOW_API_URL: process.env.ZERO_FLOW_API_URL,
         ZERO_FLOW_API_KEY: process.env.ZERO_FLOW_API_KEY,
+        SENTRY_TEST_SECRET: process.env.SENTRY_TEST_SECRET,
       })
     : undefined;
 
@@ -216,5 +219,9 @@ export const serverConfig = {
   get zeroFlowApiKey() {
     assertServerOnly("serverConfig.zeroFlowApiKey");
     return optional("ZERO_FLOW_API_KEY");
+  },
+  get sentryTestSecret() {
+    assertServerOnly("serverConfig.sentryTestSecret");
+    return optional("SENTRY_TEST_SECRET");
   },
 };
