@@ -16,7 +16,6 @@ function isValidString(value: unknown, maxLength: number): value is string {
   return typeof value === "string" && value.length > 0 && value.length <= maxLength;
 }
 
-
 function toMonitoringEvent(body: WebVitalsRequestBody): MonitoringEventInput | null {
   if (!isValidString(body.event, 100)) {
     return null;

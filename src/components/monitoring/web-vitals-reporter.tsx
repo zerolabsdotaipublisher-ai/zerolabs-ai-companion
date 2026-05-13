@@ -27,12 +27,13 @@ export function WebVitalsReporter(): null {
       return;
     }
 
-    const pageLoadMs =
+    const loadEventEndMs =
       navigationEntry.loadEventEnd > 0
         ? navigationEntry.loadEventEnd
         : navigationEntry.domComplete;
+    const pageLoadDurationMs = loadEventEndMs - navigationEntry.startTime;
 
-    if (!Number.isFinite(pageLoadMs) || pageLoadMs <= 0) {
+    if (!Number.isFinite(pageLoadDurationMs) || pageLoadDurationMs <= 0) {
       return;
     }
 
@@ -40,7 +41,7 @@ export function WebVitalsReporter(): null {
       event: "page_load",
       route: window.location.pathname,
       metric: "page_load_ms",
-      durationMs: roundMetric(pageLoadMs),
+      durationMs: roundMetric(pageLoadDurationMs),
     });
   }, []);
 
