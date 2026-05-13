@@ -1,10 +1,7 @@
 import "server-only";
 import { logger } from "@/lib/logger";
+import { toFiniteNumber } from "@/lib/monitoring/number";
 import type { MonitoringEvent, MonitoringEventInput } from "@/lib/monitoring/types";
-
-function toFiniteNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
-}
 
 export function buildMonitoringEvent(input: MonitoringEventInput): MonitoringEvent {
   return {

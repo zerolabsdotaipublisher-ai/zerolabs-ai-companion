@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { toFiniteNumber } from "@/lib/monitoring/number";
 import { logMonitoringEvent, withApiLatency } from "@/lib/monitoring/server";
 import type { MonitoringEventInput } from "@/lib/monitoring/types";
 
@@ -15,9 +16,6 @@ function isValidString(value: unknown, maxLength: number): value is string {
   return typeof value === "string" && value.length > 0 && value.length <= maxLength;
 }
 
-function toOptionalFiniteNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
-}
 
 function toMonitoringEvent(body: WebVitalsRequestBody): MonitoringEventInput | null {
   if (!isValidString(body.event, 100)) {
@@ -41,8 +39,8 @@ function toMonitoringEvent(body: WebVitalsRequestBody): MonitoringEventInput | n
     event: body.event,
     route: body.route,
     metric: body.metric,
-    durationMs: toOptionalFiniteNumber(body.durationMs),
-    value: toOptionalFiniteNumber(body.value),
+    durationMs: toFiniteNumber(body.durationMs),
+    value: toFiniteNumber(body.value),
     timestamp,
   };
 }

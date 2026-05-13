@@ -1,10 +1,7 @@
+import { toFiniteNumber } from "@/lib/monitoring/number";
 import type { MonitoringEventInput } from "@/lib/monitoring/types";
 
 const MONITORING_ENDPOINT = "/api/monitoring/web-vitals";
-
-function toFiniteNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
-}
 
 export function sendMonitoringEvent(input: MonitoringEventInput): void {
   const payload = {
