@@ -23,9 +23,6 @@ Direct usage scatters configuration logic, skips shared validation, and can acci
 
 For existing public-only alias usage, `src/lib/env.ts` re-exports `publicConfig` as `env`.
 
-Exception:
-
-
 ## Environment validation behavior
 
 Validation happens in `src/config/env.ts` using Zod schemas:
