@@ -60,7 +60,7 @@ function isValidOrigin(request: Request): boolean {
 }
 
 function hasValidNumericValue(value: number | undefined): boolean {
-  return value === undefined || (Math.abs(value) <= MAX_MONITORING_VALUE && value >= 0);
+  return value === undefined || (value >= 0 && value <= MAX_MONITORING_VALUE);
 }
 
 function toMonitoringEvent(body: WebVitalsRequestBody): MonitoringEventInput | null {
@@ -120,7 +120,8 @@ export async function POST(request: Request): Promise<Response> {
     const contentLength = request.headers.get("content-length");
 
     if (contentLength !== null) {
-      const parsedLength = Number.parseInt(contentLength, 10);
+      const isDigitsOnly = /^\d+$/.test(contentLength);
+      const parsedLength = isDigitsOnly ? Number(contentLength) : Number.NaN;
 
       if (!Number.isFinite(parsedLength) || parsedLength <= 0 || parsedLength > MAX_MONITORING_BODY_BYTES) {
         return NextResponse.json({ error: "Monitoring payload too large." }, { status: 413 });
