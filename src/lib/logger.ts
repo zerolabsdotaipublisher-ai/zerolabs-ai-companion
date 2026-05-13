@@ -37,15 +37,18 @@ type LogEntry = {
 
 const REDACTED = "[REDACTED]";
 const CIRCULAR_REFERENCE = "[Circular]";
-const UNPARSABLE_LOG = "[Unparsable log payload]";
 const SENSITIVE_KEY_PATTERN =
-  /secret|token|password|api[_-]?key|authorization|cookie|session|credential|private[_-]?key|bearer|jwt/i;
+  /secret|client_secret|token|access_token|refresh_token|password|passwd|api[_-]?key|apikey|authorization|auth|cookie|session|credential|private[_-]?key|privatekey|bearer|jwt/i;
 
 function isSensitiveKey(key: string): boolean {
   return SENSITIVE_KEY_PATTERN.test(key);
 }
 
-function sanitizeValue(value: unknown, seen = new WeakSet<object>()): unknown {
+function sanitizeValue(value: unknown): unknown {
+  return sanitizeValueWithSeen(value, new WeakSet<object>());
+}
+
+function sanitizeValueWithSeen(value: unknown, seen: WeakSet<object>): unknown {
   if (value === null || value === undefined) {
     return value;
   }
@@ -71,7 +74,7 @@ function sanitizeValue(value: unknown, seen = new WeakSet<object>()): unknown {
   }
 
   if (Array.isArray(value)) {
-    return value.map((item) => sanitizeValue(item, seen));
+    return value.map((item) => sanitizeValueWithSeen(item, seen));
   }
 
   if (typeof value === "object") {
@@ -89,7 +92,7 @@ function sanitizeValue(value: unknown, seen = new WeakSet<object>()): unknown {
         continue;
       }
 
-      result[key] = sanitizeValue(nestedValue, seen);
+      result[key] = sanitizeValueWithSeen(nestedValue, seen);
     }
 
     return result;
@@ -112,7 +115,10 @@ function normalizeError(error: unknown): LogEntry["error"] {
   }
 
   if (error && typeof error === "object") {
-    const sanitizedError = sanitizeValue(error) as Record<string, unknown>;
+    const sanitizedError = sanitizeValueWithSeen(error, new WeakSet<object>()) as Record<
+      string,
+      unknown
+    >;
 
     return {
       name: typeof sanitizedError.name === "string" ? sanitizedError.name : undefined,
@@ -137,20 +143,21 @@ function createLogEntry(level: LogLevel, message: string, options?: LogOptions):
 }
 
 function writeLog(level: LogLevel, payload: LogEntry): void {
-  let output = UNPARSABLE_LOG;
-
-  try {
-    output = JSON.stringify(payload);
-  } catch {
-    output = JSON.stringify({
-      level,
-      message: payload.message,
-      timestamp: payload.timestamp,
-      error: {
-        message: "Failed to serialize log payload",
-      },
-    });
-  }
+  const output = (() => {
+    try {
+      return JSON.stringify(payload);
+    } catch (error) {
+      return JSON.stringify({
+        level,
+        message: payload.message,
+        timestamp: payload.timestamp,
+        error: {
+          message: "Failed to serialize log payload",
+          stack: error instanceof Error ? error.stack : String(error),
+        },
+      });
+    }
+  })();
 
   if (level === "error") {
     console.error(output);
@@ -166,10 +173,10 @@ function writeLog(level: LogLevel, payload: LogEntry): void {
 }
 
 export const logger = {
-  info(message: string, options?: Omit<LogOptions, "error">): void {
+  info(message: string, options?: LogOptions): void {
     writeLog("info", createLogEntry("info", message, options));
   },
-  warn(message: string, options?: Omit<LogOptions, "error">): void {
+  warn(message: string, options?: LogOptions): void {
     writeLog("warn", createLogEntry("warn", message, options));
   },
   error(message: string, options?: LogOptions): void {
