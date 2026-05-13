@@ -37,11 +37,52 @@ type LogEntry = {
 
 const REDACTED = "[REDACTED]";
 const CIRCULAR_REFERENCE = "[Circular]";
-const SENSITIVE_KEY_PATTERN =
-  /secret|client_secret|token|access_token|refresh_token|password|passwd|api[_-]?key|apikey|authorization|auth|cookie|session|credential|private[_-]?key|privatekey|bearer|jwt/i;
+
+const SENSITIVE_SINGLE_TOKENS = new Set([
+  "secret",
+  "token",
+  "password",
+  "passwd",
+  "authorization",
+  "cookie",
+  "session",
+  "credential",
+  "bearer",
+  "jwt",
+]);
+
+const SENSITIVE_EXACT_KEYS = new Set([
+  "client_secret",
+  "access_token",
+  "refresh_token",
+  "api_key",
+  "apikey",
+  "private_key",
+]);
 
 function isSensitiveKey(key: string): boolean {
-  return SENSITIVE_KEY_PATTERN.test(key);
+  const normalized = key.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase();
+
+  if (SENSITIVE_EXACT_KEYS.has(normalized)) {
+    return true;
+  }
+
+  const tokens = normalized.split(/[^a-z0-9]+/).filter(Boolean);
+
+  for (const token of tokens) {
+    if (SENSITIVE_SINGLE_TOKENS.has(token)) {
+      return true;
+    }
+  }
+
+  for (let index = 0; index < tokens.length - 1; index += 1) {
+    const pair = `${tokens[index]}_${tokens[index + 1]}`;
+    if (SENSITIVE_EXACT_KEYS.has(pair)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function sanitizeValue(value: unknown): unknown {
@@ -53,7 +94,11 @@ function sanitizeValueWithSeen(value: unknown, seen: WeakSet<object>): unknown {
     return value;
   }
 
-  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+  if (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
     return value;
   }
 
@@ -74,6 +119,12 @@ function sanitizeValueWithSeen(value: unknown, seen: WeakSet<object>): unknown {
   }
 
   if (Array.isArray(value)) {
+    if (seen.has(value)) {
+      return CIRCULAR_REFERENCE;
+    }
+
+    seen.add(value);
+
     return value.map((item) => sanitizeValueWithSeen(item, seen));
   }
 
@@ -115,29 +166,44 @@ function normalizeError(error: unknown): LogEntry["error"] {
   }
 
   if (error && typeof error === "object") {
-    const sanitizedError = sanitizeValueWithSeen(error, new WeakSet<object>()) as Record<
-      string,
-      unknown
-    >;
+    const sanitizedError = sanitizeValueWithSeen(
+      error,
+      new WeakSet<object>(),
+    ) as Record<string, unknown>;
 
     return {
-      name: typeof sanitizedError.name === "string" ? sanitizedError.name : undefined,
-      message: typeof sanitizedError.message === "string" ? sanitizedError.message : undefined,
-      stack: typeof sanitizedError.stack === "string" ? sanitizedError.stack : undefined,
+      name:
+        typeof sanitizedError.name === "string"
+          ? sanitizedError.name
+          : undefined,
+      message:
+        typeof sanitizedError.message === "string"
+          ? sanitizedError.message
+          : undefined,
+      stack:
+        typeof sanitizedError.stack === "string"
+          ? sanitizedError.stack
+          : undefined,
     };
   }
 
   return { message: String(error) };
 }
 
-function createLogEntry(level: LogLevel, message: string, options?: LogOptions): LogEntry {
+function createLogEntry(
+  level: LogLevel,
+  message: string,
+  options?: LogOptions,
+): LogEntry {
   return {
     level,
     message,
     timestamp: new Date().toISOString(),
     ...(options?.context ? { context: options.context } : {}),
     ...(options?.source ? { source: options.source } : {}),
-    ...(options?.metadata ? { metadata: sanitizeValue(options.metadata) as Record<string, unknown> } : {}),
+    ...(options?.metadata
+      ? { metadata: sanitizeValue(options.metadata) as Record<string, unknown> }
+      : {}),
     ...(options?.error ? { error: normalizeError(options.error) } : {}),
   };
 }
