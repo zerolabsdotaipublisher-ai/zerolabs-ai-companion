@@ -12,8 +12,6 @@ export default withSentryConfig(nextConfig, {
   project: process.env.SENTRY_PROJECT,
   authToken: process.env.SENTRY_AUTH_TOKEN,
   silent: true,
-  disableLogger: true,
-  dryRun: !hasSentryAuthToken,
   sourcemaps: {
     disable: !hasSentryAuthToken,
   },
