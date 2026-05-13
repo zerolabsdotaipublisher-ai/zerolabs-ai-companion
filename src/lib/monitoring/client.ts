@@ -27,7 +27,7 @@ export function sendMonitoringEvent(input: MonitoringEventInput): void {
   void fetch(MONITORING_ENDPOINT, {
     method: "POST",
     headers: {
-      "content-type": "application/json",
+      "Content-Type": "application/json",
     },
     body,
     keepalive: true,

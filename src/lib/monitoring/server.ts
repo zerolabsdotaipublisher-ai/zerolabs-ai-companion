@@ -2,8 +2,6 @@ import "server-only";
 import { logger } from "@/lib/logger";
 import type { MonitoringEvent, MonitoringEventInput } from "@/lib/monitoring/types";
 
-const SOURCE = "monitoring/performance";
-
 function toFiniteNumber(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
@@ -23,9 +21,11 @@ export function buildMonitoringEvent(input: MonitoringEventInput): MonitoringEve
 export function logMonitoringEvent(input: MonitoringEventInput): void {
   const event = buildMonitoringEvent(input);
 
+  const source = event.route.startsWith("/") ? event.route.slice(1) : event.route;
+
   logger.info("Performance metric captured.", {
     context: "monitoring",
-    source: SOURCE,
+    source,
     metadata: event,
   });
 }
