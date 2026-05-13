@@ -60,14 +60,6 @@ const SENSITIVE_EXACT_KEYS = new Set([
   "private_key",
 ]);
 
-const SENSITIVE_TOKEN_PAIRS = new Set([
-  "client_secret",
-  "access_token",
-  "refresh_token",
-  "api_key",
-  "private_key",
-]);
-
 function isSensitiveKey(key: string): boolean {
   const normalized = key.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase();
 
@@ -85,7 +77,7 @@ function isSensitiveKey(key: string): boolean {
 
   for (let index = 0; index < tokens.length - 1; index += 1) {
     const pair = `${tokens[index]}_${tokens[index + 1]}`;
-    if (SENSITIVE_TOKEN_PAIRS.has(pair)) {
+    if (SENSITIVE_EXACT_KEYS.has(pair)) {
       return true;
     }
   }
