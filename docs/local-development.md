@@ -32,6 +32,13 @@ Fill `.env.local` with local/dev values for required variables:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `OPENAI_API_KEY`
 
+Optional Sentry values:
+
+- `NEXT_PUBLIC_SENTRY_DSN` (runtime error capture)
+- `SENTRY_AUTH_TOKEN` (source map upload during build)
+- `SENTRY_ORG` (source map upload metadata)
+- `SENTRY_PROJECT` (source map upload metadata)
+
 Notes:
 
 - `.env.local` is ignored by Git via `.gitignore` and must never be committed
@@ -58,6 +65,20 @@ npm run build
 # optional: fix formatting
 npm run format
 ```
+
+## Manual Sentry verification
+
+When `NEXT_PUBLIC_SENTRY_DSN` is configured, trigger a controlled test error:
+
+```bash
+curl -i -X POST http://localhost:3000/api/monitoring/sentry-test \
+  -H "x-sentry-test: true"
+```
+
+Expected behavior:
+
+- request without `x-sentry-test: true` returns `400`
+- request with the header returns `500` and the error is sent to Sentry
 
 ## MVP stack alignment
 

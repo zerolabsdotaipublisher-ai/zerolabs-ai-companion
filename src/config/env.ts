@@ -4,7 +4,8 @@ export type PublicEnvName =
   | "NEXT_PUBLIC_APP_NAME"
   | "NEXT_PUBLIC_APP_URL"
   | "NEXT_PUBLIC_SUPABASE_URL"
-  | "NEXT_PUBLIC_SUPABASE_ANON_KEY";
+  | "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+  | "NEXT_PUBLIC_SENTRY_DSN";
 
 export type ServerEnvName =
   | "SUPABASE_SERVICE_ROLE_KEY"
@@ -55,6 +56,7 @@ const publicEnvSchema = z.object({
   NEXT_PUBLIC_APP_URL: nonEmptyString.url("must be a valid URL"),
   NEXT_PUBLIC_SUPABASE_URL: nonEmptyString.url("must be a valid URL"),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: nonEmptyString,
+  NEXT_PUBLIC_SENTRY_DSN: optionalTrimmedString,
 });
 
 const serverEnvSchema = z.object({
@@ -94,6 +96,7 @@ const publicEnv = validateEnv("public", publicEnvSchema, {
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
 });
 
 function assertServerOnly(name: string): void {
@@ -147,6 +150,8 @@ function optionalPublic(name: PublicEnvName): string | undefined {
       return publicEnv.NEXT_PUBLIC_SUPABASE_URL;
     case "NEXT_PUBLIC_SUPABASE_ANON_KEY":
       return publicEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    case "NEXT_PUBLIC_SENTRY_DSN":
+      return publicEnv.NEXT_PUBLIC_SENTRY_DSN;
   }
 }
 
@@ -177,6 +182,9 @@ export const publicConfig = {
   },
   get supabaseAnonKey() {
     return requiredPublic("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  },
+  get sentryDsn() {
+    return optionalPublic("NEXT_PUBLIC_SENTRY_DSN");
   },
 };
 
