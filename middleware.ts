@@ -12,8 +12,6 @@ const PUBLIC_ROUTES = new Set([
   "/auth/signup",
 ]);
 
-const PROTECTED_ROUTE_PREFIXES = ["/today", "/capture", "/timeline", "/settings", "/app"];
-
 function isStaticAsset(pathname: string): boolean {
   return pathname.startsWith("/_next/") || pathname.startsWith("/static/") || /\.[^/]+$/.test(pathname);
 }
@@ -26,12 +24,6 @@ function isPublicRoute(pathname: string): boolean {
   return pathname.startsWith("/api/");
 }
 
-function isProtectedRoute(pathname: string): boolean {
-  return PROTECTED_ROUTE_PREFIXES.some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
-  );
-}
-
 function copyCookies(source: NextResponse, target: NextResponse): void {
   for (const cookie of source.cookies.getAll()) {
     target.cookies.set(cookie);
@@ -41,7 +33,7 @@ function copyCookies(source: NextResponse, target: NextResponse): void {
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
 
-  if (isStaticAsset(pathname) || isPublicRoute(pathname) || !isProtectedRoute(pathname)) {
+  if (isStaticAsset(pathname) || isPublicRoute(pathname)) {
     return NextResponse.next();
   }
 
@@ -92,11 +84,5 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-  matcher: [
-    "/today/:path*",
-    "/capture/:path*",
-    "/timeline/:path*",
-    "/settings/:path*",
-    "/app/:path*",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };
