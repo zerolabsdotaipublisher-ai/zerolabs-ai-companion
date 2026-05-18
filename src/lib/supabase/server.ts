@@ -24,7 +24,6 @@ export async function getSupabaseServerClient(): Promise<SupabaseClient> {
             source: "supabase.server",
             error,
           });
-          return;
         }
       },
     },
