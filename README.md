@@ -17,7 +17,7 @@ See `/docs/local-development.md` for full setup instructions, including:
 - local run and validation commands
 
 For authentication validation coverage and smoke-check guidance, see
-`/docs/auth-validation.md`.
+[`docs/auth-validation.md`](docs/auth-validation.md).
 
 ## Vercel deployment (build configuration)
 

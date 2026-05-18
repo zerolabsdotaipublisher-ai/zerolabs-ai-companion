@@ -59,7 +59,7 @@ npm run build
 npm run format
 ```
 
-For auth-specific validation and smoke checks, see `/docs/auth-validation.md`.
+For auth-specific validation and smoke checks, see [`auth-validation.md`](auth-validation.md).
 
 ## MVP stack alignment
 
