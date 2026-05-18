@@ -2,8 +2,10 @@
 
 AI Companion MVP app built with Next.js.
 
-This repository currently contains only the base Next.js application framework.
-No Supabase, OpenAI, Qdrant, auth, payments, storage, or ZeroFlow integrations are included yet.
+This repository contains a lightweight MVP foundation with centralized environment configuration,
+Supabase client/server helpers, and auth middleware guardrails.
+
+Product-level auth UI and other platform integrations remain incremental and task-driven.
 
 ## Local development
 
@@ -13,6 +15,9 @@ See `/docs/local-development.md` for full setup instructions, including:
 - dependency installation
 - environment setup from `.env.example`
 - local run and validation commands
+
+For authentication validation coverage and smoke-check guidance, see
+[`docs/auth-validation.md`](docs/auth-validation.md).
 
 ## Vercel deployment (build configuration)
 

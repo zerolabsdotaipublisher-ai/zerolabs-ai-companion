@@ -59,6 +59,8 @@ npm run build
 npm run format
 ```
 
+For auth-specific validation and smoke checks, see [`auth-validation.md`](auth-validation.md).
+
 ## MVP stack alignment
 
 - Next.js (app framework)
