@@ -15,6 +15,14 @@ const PUBLIC_ROUTES = new Set([
 const STATIC_FILE_REGEX =
   /\.(?:avif|bmp|css|eot|gif|ico|jpeg|jpg|js|json|map|mp4|otf|pdf|png|svg|ttf|txt|webm|webp|woff|woff2|xml)$/i;
 
+function normalizePathname(pathname: string): string {
+  if (pathname === "/") {
+    return pathname;
+  }
+
+  return pathname.replace(/\/+$/, "");
+}
+
 function isStaticAsset(pathname: string): boolean {
   return (
     pathname.startsWith("/_next/") ||
@@ -25,7 +33,7 @@ function isStaticAsset(pathname: string): boolean {
 }
 
 function isPublicRoute(pathname: string): boolean {
-  return PUBLIC_ROUTES.has(pathname);
+  return PUBLIC_ROUTES.has(normalizePathname(pathname));
 }
 
 function copyCookies(source: NextResponse, target: NextResponse): void {
@@ -36,8 +44,9 @@ function copyCookies(source: NextResponse, target: NextResponse): void {
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
+  const normalizedPathname = normalizePathname(pathname);
 
-  if (isStaticAsset(pathname) || isPublicRoute(pathname)) {
+  if (isStaticAsset(pathname)) {
     return NextResponse.next();
   }
 
@@ -51,12 +60,24 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
         return request.cookies.getAll();
       },
       setAll(cookiesToSet) {
-        for (const { name, value } of cookiesToSet) {
-          request.cookies.set(name, value);
-        }
+        try {
+          for (const { name, value } of cookiesToSet) {
+            request.cookies.set(name, value);
+          }
 
-        for (const { name, value, options } of cookiesToSet) {
-          response.cookies.set(name, value, options);
+          for (const { name, value, options } of cookiesToSet) {
+            response.cookies.set(name, value, options);
+          }
+        } catch (error) {
+          const reason =
+            error instanceof Error
+              ? `${error.name}: ${error.message}`
+              : String(error);
+
+          console.warn("Supabase auth cookie sync skipped in middleware.", {
+            source: "middleware",
+            reason,
+          });
         }
       },
     },
@@ -66,7 +87,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (!user && !isPublicRoute(normalizedPathname)) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
 
@@ -82,5 +103,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-  matcher: ["/((?!api).*)"],
+  matcher: [
+    "/((?!api(?:/|$)|_next/static|_next/image|_next/webpack-hmr|favicon.ico).*)",
+  ],
 };
