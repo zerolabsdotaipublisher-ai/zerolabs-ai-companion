@@ -69,9 +69,14 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
             response.cookies.set(name, value, options);
           }
         } catch (error) {
+          const reason =
+            error instanceof Error
+              ? `${error.name}: ${error.message}`
+              : String(error);
+
           console.warn("Supabase auth cookie sync skipped in middleware.", {
             source: "middleware",
-            error,
+            reason,
           });
         }
       },
