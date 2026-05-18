@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 export async function getSupabaseServerClient(): Promise<SupabaseClient> {
   const cookieStore = await cookies();
@@ -17,7 +18,12 @@ export async function getSupabaseServerClient(): Promise<SupabaseClient> {
           for (const { name, value, options } of cookiesToSet) {
             cookieStore.set(name, value, options);
           }
-        } catch {
+        } catch (error) {
+          logger.warn("Supabase auth cookie sync skipped during SSR.", {
+            context: "auth",
+            source: "supabase.server",
+            error,
+          });
           return;
         }
       },
