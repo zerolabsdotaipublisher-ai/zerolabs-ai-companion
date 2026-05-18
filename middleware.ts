@@ -25,11 +25,7 @@ function isStaticAsset(pathname: string): boolean {
 }
 
 function isPublicRoute(pathname: string): boolean {
-  if (PUBLIC_ROUTES.has(pathname)) {
-    return true;
-  }
-
-  return pathname.startsWith("/api/");
+  return PUBLIC_ROUTES.has(pathname);
 }
 
 function copyCookies(source: NextResponse, target: NextResponse): void {
@@ -90,5 +86,5 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-  matcher: ["/:path*"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
