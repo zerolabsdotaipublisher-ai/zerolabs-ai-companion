@@ -12,8 +12,10 @@ const PUBLIC_ROUTES = new Set([
   "/auth/signup",
 ]);
 
+const STATIC_FILE_REGEX = /\.(?:avif|bmp|css|gif|ico|jpeg|jpg|js|json|map|png|svg|txt|webp|woff|woff2)$/i;
+
 function isStaticAsset(pathname: string): boolean {
-  return pathname.startsWith("/_next/") || pathname.startsWith("/static/") || /\.[^/]+$/.test(pathname);
+  return pathname.startsWith("/_next/") || pathname.startsWith("/static/") || STATIC_FILE_REGEX.test(pathname);
 }
 
 function isPublicRoute(pathname: string): boolean {
@@ -71,9 +73,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     redirectUrl.pathname = "/login";
 
     const nextPath = `${pathname}${request.nextUrl.search}`;
-    if (nextPath !== "/login") {
-      redirectUrl.searchParams.set("next", nextPath);
-    }
+    redirectUrl.searchParams.set("next", nextPath);
 
     const redirectResponse = NextResponse.redirect(redirectUrl);
     copyCookies(response, redirectResponse);
