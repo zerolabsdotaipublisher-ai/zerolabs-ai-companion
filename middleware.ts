@@ -12,10 +12,16 @@ const PUBLIC_ROUTES = new Set([
   "/auth/signup",
 ]);
 
-const STATIC_FILE_REGEX = /\.(?:avif|bmp|css|gif|ico|jpeg|jpg|js|json|map|png|svg|txt|webp|woff|woff2)$/i;
+const STATIC_FILE_REGEX =
+  /\.(?:avif|bmp|css|eot|gif|ico|jpeg|jpg|js|json|map|mp4|otf|pdf|png|svg|ttf|txt|webm|webp|woff|woff2|xml)$/i;
 
 function isStaticAsset(pathname: string): boolean {
-  return pathname.startsWith("/_next/") || pathname.startsWith("/static/") || STATIC_FILE_REGEX.test(pathname);
+  return (
+    pathname.startsWith("/_next/") ||
+    pathname.startsWith("/static/") ||
+    pathname.startsWith("/favicon.") ||
+    STATIC_FILE_REGEX.test(pathname)
+  );
 }
 
 function isPublicRoute(pathname: string): boolean {
@@ -84,5 +90,5 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/:path*"],
 };
