@@ -80,7 +80,10 @@ export default function SignupPage() {
     setIsSubmitting(false);
 
     if (error) {
-      setSubmitError(error.message || "Signup failed. Please try again.");
+      setSubmitError(
+        error.message ||
+          "Unable to create account. Please check your information and try again.",
+      );
       return;
     }
 
