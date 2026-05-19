@@ -87,6 +87,8 @@ function isDuplicateSignupAttempt(
     return true;
   }
 
+  // Supabase can return a user object with no identities when signup is
+  // obfuscated for an already-registered email instead of surfacing an error.
   return Array.isArray(user?.identities) && user.identities.length === 0;
 }
 
