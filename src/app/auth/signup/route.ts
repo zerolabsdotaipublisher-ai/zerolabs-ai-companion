@@ -6,6 +6,7 @@ import {
   type SignupFormValues,
   validateSignupValues,
 } from "@/lib/auth/signup";
+import { getAuthCallbackUrl } from "@/lib/auth/redirects";
 import { logger } from "@/lib/logger";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -131,6 +132,9 @@ export async function POST(request: Request): Promise<Response> {
   const { data, error } = await supabase.auth.signUp({
     email: values.email,
     password: values.password,
+    options: {
+      emailRedirectTo: getAuthCallbackUrl(),
+    },
   });
 
   if (isDuplicateSignupAttempt(error?.message, data.user, data.session)) {

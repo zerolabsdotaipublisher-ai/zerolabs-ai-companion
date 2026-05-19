@@ -39,6 +39,15 @@ Notes:
 - restart `npm run dev` after changing environment variables
 - required local env keys are checked on `npm run dev` startup
 
+## Supabase auth redirect URLs
+
+Configure Supabase email confirmation redirects for each environment:
+
+- local: `http://localhost:3000/auth/callback`
+- preview/production: `APP_URL/auth/callback` (replace `APP_URL` with that environment's `NEXT_PUBLIC_APP_URL`, for example `https://your-domain.com/auth/callback`)
+
+`APP_URL` should match the deployed `NEXT_PUBLIC_APP_URL` value for that environment.
+
 ## Run locally
 
 ```bash
