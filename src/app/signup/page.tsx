@@ -17,6 +17,10 @@ function isAuthCallbackError(value: string): value is AuthCallbackError {
 
 function getCallbackError(value: string | string[] | undefined): AuthCallbackError | undefined {
   if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return undefined;
+    }
+
     return getCallbackError(value[0]);
   }
 

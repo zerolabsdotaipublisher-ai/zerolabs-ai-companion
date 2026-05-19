@@ -1,5 +1,7 @@
 # Authentication Validation (AIC-202)
 
+This updates the earlier auth validation notes with Task 2.4 signup lifecycle checks.
+
 ## Scope
 
 This document records lightweight validation for the existing Supabase authentication integration and signup lifecycle:
