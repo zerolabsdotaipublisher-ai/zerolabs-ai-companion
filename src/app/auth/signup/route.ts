@@ -21,6 +21,11 @@ const DUPLICATE_EMAIL_MESSAGE =
 const SIGNUP_SUCCESS_MESSAGE =
   "Account created. Check your email for a confirmation link, then continue in the app.";
 const SIGNUP_SUCCESS_REDIRECT = "/";
+const DUPLICATE_SIGNUP_MESSAGE_FRAGMENTS = [
+  "already registered",
+  "already exists",
+  "user already",
+];
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -66,7 +71,14 @@ function isDuplicateSignupAttempt(
   message: string | undefined,
   user: { identities?: Array<unknown> | null } | null,
 ): boolean {
-  if (message && /already registered|already exists|user already/i.test(message)) {
+  const normalizedMessage = message?.toLowerCase();
+
+  if (
+    normalizedMessage &&
+    DUPLICATE_SIGNUP_MESSAGE_FRAGMENTS.some((fragment) =>
+      normalizedMessage.includes(fragment),
+    )
+  ) {
     return true;
   }
 

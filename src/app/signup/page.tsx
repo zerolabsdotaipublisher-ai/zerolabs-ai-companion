@@ -50,7 +50,7 @@ export default function SignupPage() {
       const response = await fetch("/auth/signup", {
         method: "POST",
         headers: {
-          "content-type": "application/json",
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(values),
       });
