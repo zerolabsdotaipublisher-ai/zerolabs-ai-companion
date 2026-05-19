@@ -45,11 +45,10 @@ function buildRedirectUrl(
 export async function GET(request: NextRequest): Promise<Response> {
   const code = request.nextUrl.searchParams.get("code");
   const failureRedirectPath = getFailureRedirectPath(request);
+  const authErrorType = determineAuthErrorType(request);
 
   if (!code) {
-    return NextResponse.redirect(
-      buildRedirectUrl(request, failureRedirectPath, determineAuthErrorType(request)),
-    );
+    return NextResponse.redirect(buildRedirectUrl(request, failureRedirectPath, authErrorType));
   }
 
   const supabase = await getSupabaseServerClient();
@@ -66,9 +65,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       error,
     });
 
-    return NextResponse.redirect(
-      buildRedirectUrl(request, failureRedirectPath, determineAuthErrorType(request)),
-    );
+    return NextResponse.redirect(buildRedirectUrl(request, failureRedirectPath, authErrorType));
   }
 
   return NextResponse.redirect(buildRedirectUrl(request, AUTH_SUCCESS_REDIRECT));
