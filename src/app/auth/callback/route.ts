@@ -15,7 +15,7 @@ function getFailureRedirectPath(request: NextRequest): string {
     : LOGIN_REDIRECT;
 }
 
-function getSafeErrorParam(request: NextRequest): AuthCallbackError {
+function determineAuthErrorType(request: NextRequest): AuthCallbackError {
   const errorCode = request.nextUrl.searchParams.get("error_code")?.toLowerCase();
   const error = request.nextUrl.searchParams.get("error")?.toLowerCase();
 
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest): Promise<Response> {
 
   if (!code) {
     return NextResponse.redirect(
-      buildRedirectUrl(request, failureRedirectPath, getSafeErrorParam(request)),
+      buildRedirectUrl(request, failureRedirectPath, determineAuthErrorType(request)),
     );
   }
 
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
-    logger.warn("Supabase auth callback code exchange failed.", {
+    logger.warn("Failed to exchange auth callback code for session.", {
       context: "auth",
       source: "auth.callback",
       metadata: {
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     });
 
     return NextResponse.redirect(
-      buildRedirectUrl(request, failureRedirectPath, getSafeErrorParam(request)),
+      buildRedirectUrl(request, failureRedirectPath, determineAuthErrorType(request)),
     );
   }
 
