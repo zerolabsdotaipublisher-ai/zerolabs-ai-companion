@@ -7,12 +7,12 @@ type SignupPageProps = {
 };
 
 function getCallbackError(value: string | string[] | undefined): AuthCallbackError | undefined {
-  if (value === "link_expired" || value === "verification_failed") {
-    return value;
-  }
-
   if (Array.isArray(value)) {
     return getCallbackError(value[0]);
+  }
+
+  if (value === "link_expired" || value === "verification_failed") {
+    return value;
   }
 
   return undefined;

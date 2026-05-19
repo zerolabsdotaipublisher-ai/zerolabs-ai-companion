@@ -25,7 +25,7 @@ type SignupResponse = {
 const REDIRECT_DELAY_MS = 1200;
 const CALLBACK_ERROR_MESSAGES: Record<AuthCallbackError, string> = {
   link_expired:
-    "Your email confirmation link has expired. Sign up again to receive a new link.",
+    "Your email confirmation link has expired. Request a new confirmation email to continue.",
   verification_failed:
     "We couldn't verify your email link. Please request a new confirmation email.",
 };
