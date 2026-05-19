@@ -1,8 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import {
+  AUTH_ENTRY_REDIRECT,
   AUTH_SUCCESS_REDIRECT,
-  LOGIN_REDIRECT,
   SIGNUP_REDIRECT,
   type AuthCallbackError,
 } from "@/lib/auth/redirects";
@@ -12,7 +12,7 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 function getFailureRedirectPath(request: NextRequest): string {
   return request.nextUrl.searchParams.get("type") === "signup"
     ? SIGNUP_REDIRECT
-    : LOGIN_REDIRECT;
+    : AUTH_ENTRY_REDIRECT;
 }
 
 function isExpiredAuthError(value: string | undefined): boolean {
