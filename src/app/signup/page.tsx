@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useState } from "react";
+import { z } from "zod";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -14,12 +15,10 @@ type FormValues = {
 type FormErrors = Partial<Record<keyof FormValues, string>>;
 
 const MIN_PASSWORD_LENGTH = 8;
+const emailSchema = z.string().email();
 
 function isValidEmailFormat(email: string): boolean {
-  const emailField = document.createElement("input");
-  emailField.type = "email";
-  emailField.value = email;
-  return emailField.validity.valid;
+  return emailSchema.safeParse(email).success;
 }
 
 function validate(values: FormValues): FormErrors {
