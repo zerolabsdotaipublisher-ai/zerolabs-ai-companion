@@ -75,6 +75,7 @@ function toSignupValues(body: Record<string, unknown>): SignupFormValues {
 function isDuplicateSignupAttempt(
   message: string | undefined,
   user: { identities?: Array<unknown> | null } | null,
+  session: unknown,
 ): boolean {
   const normalizedMessage = message?.toLowerCase();
 
@@ -89,7 +90,7 @@ function isDuplicateSignupAttempt(
 
   // Supabase can return a user object with no identities when signup is
   // obfuscated for an already-registered email instead of surfacing an error.
-  return Array.isArray(user?.identities) && user.identities.length === 0;
+  return !session && Array.isArray(user?.identities) && user.identities.length === 0;
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -137,7 +138,7 @@ export async function POST(request: Request): Promise<Response> {
     password: values.password,
   });
 
-  if (isDuplicateSignupAttempt(error?.message, data.user)) {
+  if (isDuplicateSignupAttempt(error?.message, data.user, data.session)) {
     return NextResponse.json<SignupRouteResponse>(
       { error: DUPLICATE_EMAIL_MESSAGE },
       { status: 409 },

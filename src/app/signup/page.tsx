@@ -21,7 +21,7 @@ const REDIRECT_DELAY_MS = 1200;
 
 export default function SignupPage() {
   const router = useRouter();
-  const redirectTimeoutRef = useRef<number | null>(null);
+  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [values, setValues] = useState<SignupFormValues>({
     email: "",
     password: "",
@@ -35,7 +35,7 @@ export default function SignupPage() {
   useEffect(() => {
     return () => {
       if (redirectTimeoutRef.current !== null) {
-        window.clearTimeout(redirectTimeoutRef.current);
+        clearTimeout(redirectTimeoutRef.current);
       }
     };
   }, []);
@@ -81,7 +81,7 @@ export default function SignupPage() {
       setSuccessMessage(result.message ?? "Account created. Redirecting...");
 
       const redirectTo = result.redirectTo ?? "/";
-      redirectTimeoutRef.current = window.setTimeout(() => {
+      redirectTimeoutRef.current = setTimeout(() => {
         router.push(redirectTo);
         router.refresh();
       }, REDIRECT_DELAY_MS);
