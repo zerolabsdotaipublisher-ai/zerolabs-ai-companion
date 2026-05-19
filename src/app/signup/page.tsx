@@ -37,7 +37,9 @@ function validate(values: FormValues): FormErrors {
     errors.password = `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
   }
 
-  if (values.confirmPassword !== values.password) {
+  if (!values.confirmPassword) {
+    errors.confirmPassword = "Please confirm your password.";
+  } else if (values.confirmPassword !== values.password) {
     errors.confirmPassword = "Passwords do not match.";
   }
 
