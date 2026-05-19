@@ -36,6 +36,7 @@ export default function SignupPage() {
     return () => {
       if (redirectTimeoutRef.current !== null) {
         clearTimeout(redirectTimeoutRef.current);
+        redirectTimeoutRef.current = null;
       }
     };
   }, []);
@@ -81,7 +82,12 @@ export default function SignupPage() {
       setSuccessMessage(result.message ?? "Account created. Redirecting...");
 
       const redirectTo = result.redirectTo ?? "/";
+      if (redirectTimeoutRef.current !== null) {
+        clearTimeout(redirectTimeoutRef.current);
+        redirectTimeoutRef.current = null;
+      }
       redirectTimeoutRef.current = setTimeout(() => {
+        redirectTimeoutRef.current = null;
         router.push(redirectTo);
         router.refresh();
       }, REDIRECT_DELAY_MS);
