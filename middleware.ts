@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { AUTH_ENTRY_REDIRECT } from "@/lib/auth/redirects";
 import { env } from "@/lib/env";
 
 const PUBLIC_ROUTES = new Set([
@@ -89,7 +90,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
   if (!user && !isPublicRoute(normalizedPathname)) {
     const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/login";
+    redirectUrl.pathname = AUTH_ENTRY_REDIRECT;
 
     const nextPath = `${pathname}${request.nextUrl.search}`;
     redirectUrl.searchParams.set("next", nextPath);
