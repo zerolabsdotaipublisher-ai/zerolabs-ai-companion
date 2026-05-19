@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useState } from "react";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -15,13 +15,20 @@ type FormErrors = Partial<Record<keyof FormValues, string>>;
 
 const MIN_PASSWORD_LENGTH = 8;
 
+function isValidEmailFormat(email: string): boolean {
+  const emailField = document.createElement("input");
+  emailField.type = "email";
+  emailField.value = email;
+  return emailField.validity.valid;
+}
+
 function validate(values: FormValues): FormErrors {
   const errors: FormErrors = {};
   const normalizedEmail = values.email.trim();
 
   if (!normalizedEmail) {
     errors.email = "Email is required.";
-  } else if (!/^\S+@\S+\.\S+$/.test(normalizedEmail)) {
+  } else if (!isValidEmailFormat(normalizedEmail)) {
     errors.email = "Enter a valid email address.";
   }
 
@@ -49,8 +56,6 @@ export default function SignupPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const supabase = useMemo(() => getSupabaseBrowserClient(), []);
-
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -66,7 +71,7 @@ export default function SignupPage() {
 
     setIsSubmitting(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { error } = await getSupabaseBrowserClient().auth.signUp({
       email: values.email.trim(),
       password: values.password,
     });
