@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 
+const PLACEHOLDER_BASE_URL = "https://placeholder.invalid";
+
 type LoginPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
@@ -25,7 +27,7 @@ function appendSearchParams(
 export default async function LoginPage({
   searchParams,
 }: LoginPageProps): Promise<never> {
-  const redirectUrl = new URL("/signup", "http://localhost");
+  const redirectUrl = new URL("/signup", PLACEHOLDER_BASE_URL);
   appendSearchParams(redirectUrl.searchParams, (await searchParams) ?? {});
   redirect(`${redirectUrl.pathname}${redirectUrl.search}`);
 }
