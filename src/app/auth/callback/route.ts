@@ -15,11 +15,15 @@ function getFailureRedirectPath(request: NextRequest): string {
     : LOGIN_REDIRECT;
 }
 
+function isExpiredAuthError(value: string | undefined): boolean {
+  return /(^|[_-])expired([_-]|$)/.test(value ?? "");
+}
+
 function determineAuthErrorType(request: NextRequest): AuthCallbackError {
   const errorCode = request.nextUrl.searchParams.get("error_code")?.toLowerCase();
   const error = request.nextUrl.searchParams.get("error")?.toLowerCase();
 
-  if (errorCode?.includes("expired") || error?.includes("expired")) {
+  if (isExpiredAuthError(errorCode) || isExpiredAuthError(error)) {
     return "link_expired";
   }
 
@@ -45,10 +49,11 @@ function buildRedirectUrl(
 export async function GET(request: NextRequest): Promise<Response> {
   const code = request.nextUrl.searchParams.get("code");
   const failureRedirectPath = getFailureRedirectPath(request);
-  const authErrorType = determineAuthErrorType(request);
 
   if (!code) {
-    return NextResponse.redirect(buildRedirectUrl(request, failureRedirectPath, authErrorType));
+    return NextResponse.redirect(
+      buildRedirectUrl(request, failureRedirectPath, determineAuthErrorType(request)),
+    );
   }
 
   const supabase = await getSupabaseServerClient();
@@ -65,7 +70,9 @@ export async function GET(request: NextRequest): Promise<Response> {
       error,
     });
 
-    return NextResponse.redirect(buildRedirectUrl(request, failureRedirectPath, authErrorType));
+    return NextResponse.redirect(
+      buildRedirectUrl(request, failureRedirectPath, determineAuthErrorType(request)),
+    );
   }
 
   return NextResponse.redirect(buildRedirectUrl(request, AUTH_SUCCESS_REDIRECT));
