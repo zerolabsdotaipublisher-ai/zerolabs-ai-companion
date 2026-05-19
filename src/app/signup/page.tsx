@@ -1,61 +1,44 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
-import { z } from "zod";
+import { useRouter } from "next/navigation";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
-import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import {
+  type SignupFormErrors,
+  type SignupFormValues,
+  validateSignupValues,
+} from "@/lib/auth/signup";
 
-type FormValues = {
-  email: string;
-  password: string;
-  confirmPassword: string;
+type SignupResponse = {
+  error?: string;
+  fieldErrors?: SignupFormErrors;
+  message?: string;
+  redirectTo?: string;
 };
 
-type FormErrors = Partial<Record<keyof FormValues, string>>;
-
-const MIN_PASSWORD_LENGTH = 8;
-const emailSchema = z.string().email();
-
-function isValidEmailFormat(email: string): boolean {
-  return emailSchema.safeParse(email).success;
-}
-
-function validate(values: FormValues): FormErrors {
-  const errors: FormErrors = {};
-  const normalizedEmail = values.email.trim();
-
-  if (!normalizedEmail) {
-    errors.email = "Email is required.";
-  } else if (!isValidEmailFormat(normalizedEmail)) {
-    errors.email = "Enter a valid email address.";
-  }
-
-  if (!values.password) {
-    errors.password = "Password is required.";
-  } else if (values.password.length < MIN_PASSWORD_LENGTH) {
-    errors.password = `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`;
-  }
-
-  if (!values.confirmPassword) {
-    errors.confirmPassword = "Please confirm your password.";
-  } else if (values.confirmPassword !== values.password) {
-    errors.confirmPassword = "Passwords do not match.";
-  }
-
-  return errors;
-}
+const REDIRECT_DELAY_MS = 1200;
 
 export default function SignupPage() {
-  const [values, setValues] = useState<FormValues>({
+  const router = useRouter();
+  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [values, setValues] = useState<SignupFormValues>({
     email: "",
     password: "",
     confirmPassword: "",
   });
-  const [errors, setErrors] = useState<FormErrors>({});
+  const [errors, setErrors] = useState<SignupFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimeoutRef.current !== null) {
+        clearTimeout(redirectTimeoutRef.current);
+      }
+    };
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -63,7 +46,7 @@ export default function SignupPage() {
     setSubmitError(null);
     setSuccessMessage(null);
 
-    const nextErrors = validate(values);
+    const nextErrors = validateSignupValues(values);
     setErrors(nextErrors);
 
     if (Object.keys(nextErrors).length > 0) {
@@ -72,26 +55,40 @@ export default function SignupPage() {
 
     setIsSubmitting(true);
 
-    const { error } = await getSupabaseBrowserClient().auth.signUp({
-      email: values.email.trim(),
-      password: values.password,
-    });
+    try {
+      const response = await fetch("/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
+      const result = (await response.json()) as SignupResponse;
 
-    setIsSubmitting(false);
+      setIsSubmitting(false);
 
-    if (error) {
-      setSubmitError(
-        error.message ||
-          "Unable to create account. Please check your information and try again.",
-      );
-      return;
+      if (!response.ok) {
+        setErrors(result.fieldErrors ?? {});
+        setSubmitError(
+          result.error ||
+            "Unable to create account. Please check your information and try again.",
+        );
+        return;
+      }
+
+      setValues({ email: "", password: "", confirmPassword: "" });
+      setErrors({});
+      setSuccessMessage(result.message ?? "Account created. Redirecting...");
+
+      const redirectTo = result.redirectTo ?? "/";
+      redirectTimeoutRef.current = setTimeout(() => {
+        router.push(redirectTo);
+        router.refresh();
+      }, REDIRECT_DELAY_MS);
+    } catch {
+      setIsSubmitting(false);
+      setSubmitError("Unable to create account. Please try again.");
     }
-
-    setSuccessMessage(
-      "Account created. Check your email for a confirmation link, then log in.",
-    );
-    setValues({ email: "", password: "", confirmPassword: "" });
-    setErrors({});
   }
 
   return (
@@ -113,6 +110,7 @@ export default function SignupPage() {
               id="email"
               inputMode="email"
               name="email"
+              disabled={isSubmitting}
               onChange={(event) =>
                 setValues((previous) => ({ ...previous, email: event.target.value }))
               }
@@ -134,6 +132,7 @@ export default function SignupPage() {
               className="w-full rounded-md border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none ring-zinc-900/10 placeholder:text-zinc-400 focus:ring-2 dark:border-zinc-700 dark:ring-zinc-100/20"
               id="password"
               name="password"
+              disabled={isSubmitting}
               onChange={(event) =>
                 setValues((previous) => ({ ...previous, password: event.target.value }))
               }
@@ -155,6 +154,7 @@ export default function SignupPage() {
               className="w-full rounded-md border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none ring-zinc-900/10 placeholder:text-zinc-400 focus:ring-2 dark:border-zinc-700 dark:ring-zinc-100/20"
               id="confirmPassword"
               name="confirmPassword"
+              disabled={isSubmitting}
               onChange={(event) =>
                 setValues((previous) => ({
                   ...previous,
