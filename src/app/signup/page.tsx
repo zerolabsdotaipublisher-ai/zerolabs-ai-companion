@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 import {
   type SignupFormErrors,
@@ -21,6 +21,7 @@ const REDIRECT_DELAY_MS = 1200;
 
 export default function SignupPage() {
   const router = useRouter();
+  const redirectTimeoutRef = useRef<number | null>(null);
   const [values, setValues] = useState<SignupFormValues>({
     email: "",
     password: "",
@@ -30,6 +31,14 @@ export default function SignupPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimeoutRef.current !== null) {
+        window.clearTimeout(redirectTimeoutRef.current);
+      }
+    };
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -72,7 +81,7 @@ export default function SignupPage() {
       setSuccessMessage(result.message ?? "Account created. Redirecting...");
 
       const redirectTo = result.redirectTo ?? "/";
-      window.setTimeout(() => {
+      redirectTimeoutRef.current = window.setTimeout(() => {
         router.push(redirectTo);
         router.refresh();
       }, REDIRECT_DELAY_MS);

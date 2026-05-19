@@ -35,6 +35,11 @@ function isValidOrigin(request: Request): boolean {
   const requestOrigin = new URL(request.url).origin;
   const originHeader = request.headers.get("origin");
   const refererHeader = request.headers.get("referer");
+  const hasOriginMetadata = Boolean(originHeader || refererHeader);
+
+  if (!hasOriginMetadata) {
+    return false;
+  }
 
   if (originHeader) {
     try {
