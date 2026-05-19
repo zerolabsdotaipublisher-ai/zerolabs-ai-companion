@@ -18,7 +18,6 @@ No new product/auth features were added as part of this validation task.
 - Signup UI validates email, password length, and password confirmation before posting to `/auth/signup`.
 - Signup route re-validates on the server, sets `emailRedirectTo` to `/auth/callback`, and maps duplicate-email responses to a clean `409` message.
 - Callback route redirects verification failures back to `/signup?error=...` and now surfaces those errors on the signup page.
-- Existing `/login` requests are treated as an alias to `/signup`, preserving query parameters such as `next`.
 
 ### 2) Supabase auth helper integration
 
@@ -39,11 +38,11 @@ These checks confirm persistence wiring is present in the existing implementatio
 
 Validated against the middleware logic and local route smoke checks:
 
-- Public routes remain accessible (`/` returned `200`; `/signup` returned `200`; `/login` now redirects to `/signup`).
+- Public routes remain accessible (`/` returned `200`; `/signup` returned `200`; `/login` returned `404` without a redirect loop).
 - Unauthenticated redirect path is implemented for non-public routes:
   - destination: `/signup`
   - safe continuation param: `next=<original path + query>`
-- Redirect loop prevention is implemented by keeping both `/signup` and `/login` public.
+- Redirect loop prevention is implemented by keeping `/signup` and `/login` in the public-route allowlist.
 
 Note: the current app snapshot has no implemented protected page route, so practical redirect behavior for an existing protected UI route should be re-checked once such a route exists.
 
@@ -54,7 +53,7 @@ Local dev server was started successfully and handled route requests without run
 - `GET /` → `200`
 - `GET /signup` → `200`
 - `GET /auth/callback?error=access_denied&error_code=otp_expired&type=signup` → `307` to `/signup?error=link_expired`
-- `GET /login` → redirect to `/signup`
+- `GET /login` → `404` (no redirect loop)
 - `GET /private` → `307` to `/signup?next=%2Fprivate`
 
 No runtime auth exceptions were observed in the dev server log during these checks.
@@ -83,4 +82,4 @@ When valid Supabase environment values and auth UI flow are available, run:
 6. Retry an expired or invalid verification link and confirm `/signup?error=...` shows the callback error message.
 7. Refresh an authenticated page and confirm session remains valid.
 8. Open a protected route while signed out and confirm redirect to `/signup?next=...`.
-9. Open public routes (`/`, `/login`, `/signup`) while signed out and confirm accessibility without loops.
+9. Open public routes (`/`, `/login`, `/signup`) while signed out and confirm no redirect loops.
