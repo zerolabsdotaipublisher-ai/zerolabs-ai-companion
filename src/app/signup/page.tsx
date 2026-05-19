@@ -17,6 +17,8 @@ type SignupResponse = {
   redirectTo?: string;
 };
 
+const REDIRECT_DELAY_MS = 1200;
+
 export default function SignupPage() {
   const router = useRouter();
   const [values, setValues] = useState<SignupFormValues>({
@@ -73,7 +75,7 @@ export default function SignupPage() {
       window.setTimeout(() => {
         router.push(redirectTo);
         router.refresh();
-      }, 1200);
+      }, REDIRECT_DELAY_MS);
     } catch {
       setIsSubmitting(false);
       setSubmitError("Unable to create account. Please try again.");
