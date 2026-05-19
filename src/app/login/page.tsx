@@ -9,6 +9,10 @@ function appendSearchParams(
   searchParams: Record<string, string | string[] | undefined>,
 ): void {
   for (const [key, value] of Object.entries(searchParams)) {
+    if (value === undefined) {
+      continue;
+    }
+
     if (typeof value === "string") {
       target.set(key, value);
       continue;
