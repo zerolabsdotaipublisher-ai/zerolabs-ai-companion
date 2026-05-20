@@ -34,21 +34,23 @@ export function LoginForm() {
         submitDelayTimeoutRef.current = null;
       }
 
-      submitDelayResolveRef.current?.();
-      submitDelayResolveRef.current = null;
+      resolveSubmitDelay();
     };
   }, []);
 
+  function resolveSubmitDelay() {
+    const resolve = submitDelayResolveRef.current;
+    submitDelayResolveRef.current = null;
+    resolve?.();
+  }
+
   function waitForSubmitDelay() {
     return new Promise<void>((resolve) => {
-      submitDelayResolveRef.current = () => {
-        submitDelayResolveRef.current = null;
-        resolve();
-      };
+      submitDelayResolveRef.current = resolve;
 
       submitDelayTimeoutRef.current = window.setTimeout(() => {
         submitDelayTimeoutRef.current = null;
-        submitDelayResolveRef.current?.();
+        resolveSubmitDelay();
       }, SUBMIT_DELAY_MS);
     });
   }
