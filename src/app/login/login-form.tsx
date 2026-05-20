@@ -15,10 +15,13 @@ type LoginResponse = {
   error?: string;
   fieldErrors?: LoginFormErrors;
   redirectTo?: string;
+  safeUserMessage?: boolean;
 };
 
 const GENERIC_AUTH_ERROR_MESSAGE =
   "We couldn’t sign you in. Please check your email and password and try again.";
+const GENERIC_ACCOUNT_ACCESS_ERROR_MESSAGE =
+  "Unable to log in right now. Please check your account status or try again.";
 const GENERIC_RETRY_ERROR_MESSAGE =
   "We couldn’t sign you in right now. Please try again in a moment.";
 const NETWORK_ERROR_MESSAGE =
@@ -52,13 +55,25 @@ export function LoginForm() {
     });
   }
 
-  function getSubmitErrorMessage(httpResponse: Response, fieldErrors: LoginFormErrors): string | null {
+  function getSubmitErrorMessage(
+    httpResponse: Response,
+    responseBody: LoginResponse,
+    fieldErrors: LoginFormErrors,
+  ): string | null {
     if (Object.keys(fieldErrors).length > 0) {
       return null;
     }
 
-    if (httpResponse.status === 401 || httpResponse.status === 403) {
+    if (httpResponse.status === 401) {
       return GENERIC_AUTH_ERROR_MESSAGE;
+    }
+
+    if (httpResponse.status === 403) {
+      if (responseBody.safeUserMessage && responseBody.error) {
+        return responseBody.error;
+      }
+
+      return GENERIC_ACCOUNT_ACCESS_ERROR_MESSAGE;
     }
 
     return GENERIC_RETRY_ERROR_MESSAGE;
@@ -103,7 +118,7 @@ export function LoginForm() {
         const nextFieldErrors = result.fieldErrors ?? {};
 
         setErrors(nextFieldErrors);
-        setSubmitError(getSubmitErrorMessage(response, nextFieldErrors));
+        setSubmitError(getSubmitErrorMessage(response, result, nextFieldErrors));
         return;
       }
 

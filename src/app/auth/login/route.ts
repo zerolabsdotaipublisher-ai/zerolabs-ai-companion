@@ -14,6 +14,7 @@ type LoginRouteResponse = {
   error?: string;
   fieldErrors?: LoginFormErrors;
   redirectTo?: string;
+  safeUserMessage?: boolean;
 };
 
 const INVALID_CREDENTIALS_MESSAGE =
@@ -122,7 +123,10 @@ export async function POST(request: Request): Promise<Response> {
 
   if (isEmailNotConfirmedError(error?.message)) {
     return NextResponse.json<LoginRouteResponse>(
-      { error: EMAIL_NOT_CONFIRMED_MESSAGE },
+      {
+        error: EMAIL_NOT_CONFIRMED_MESSAGE,
+        safeUserMessage: true,
+      },
       { status: 403 },
     );
   }
