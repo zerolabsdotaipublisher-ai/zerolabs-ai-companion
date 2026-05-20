@@ -44,14 +44,8 @@ export function LoginForm() {
     };
   }, [resolveSubmitDelay]);
 
-  function waitForSubmitDelay() {
+  const waitForSubmitDelay = useCallback(() => {
     return new Promise<void>((resolve) => {
-      if (submitDelayTimeoutRef.current !== null) {
-        clearTimeout(submitDelayTimeoutRef.current);
-        submitDelayTimeoutRef.current = null;
-      }
-
-      resolveSubmitDelay();
       submitDelayResolveRef.current = resolve;
 
       submitDelayTimeoutRef.current = setTimeout(() => {
@@ -59,7 +53,7 @@ export function LoginForm() {
         resolveSubmitDelay();
       }, SUBMIT_DELAY_MS);
     });
-  }
+  }, [resolveSubmitDelay]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
