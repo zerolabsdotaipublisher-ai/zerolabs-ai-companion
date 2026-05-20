@@ -1,3 +1,6 @@
+import { redirect } from "next/navigation";
+
+import { AUTH_ENTRY_REDIRECT } from "@/lib/auth/redirects";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function DashboardPage() {
@@ -5,6 +8,10 @@ export default async function DashboardPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect(`${AUTH_ENTRY_REDIRECT}?next=%2Fdashboard`);
+  }
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col justify-center gap-6 px-6 py-20">
