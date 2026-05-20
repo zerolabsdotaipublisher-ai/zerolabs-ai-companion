@@ -22,10 +22,16 @@ export function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
+  const isSubmittingRef = useRef(false);
   const submitDelayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const submitDelayResolveRef = useRef<(() => void) | null>(null);
 
   const resolveSubmitDelay = useCallback(() => {
+    if (submitDelayTimeoutRef.current !== null) {
+      clearTimeout(submitDelayTimeoutRef.current);
+      submitDelayTimeoutRef.current = null;
+    }
+
     const resolve = submitDelayResolveRef.current;
     submitDelayResolveRef.current = null;
     resolve?.();
@@ -34,12 +40,6 @@ export function LoginForm() {
   useEffect(() => {
     return () => {
       isMountedRef.current = false;
-
-      if (submitDelayTimeoutRef.current !== null) {
-        clearTimeout(submitDelayTimeoutRef.current);
-        submitDelayTimeoutRef.current = null;
-      }
-
       resolveSubmitDelay();
     };
   }, [resolveSubmitDelay]);
@@ -64,6 +64,10 @@ export function LoginForm() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    if (isSubmittingRef.current) {
+      return;
+    }
+
     setSubmitError(null);
 
     const nextErrors = validateLoginValues(values);
@@ -73,6 +77,7 @@ export function LoginForm() {
       return;
     }
 
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
 
     try {
@@ -84,6 +89,8 @@ export function LoginForm() {
 
       setSubmitError(LOGIN_UNAVAILABLE_MESSAGE);
     } finally {
+      isSubmittingRef.current = false;
+
       if (isMountedRef.current) {
         setIsSubmitting(false);
       }
