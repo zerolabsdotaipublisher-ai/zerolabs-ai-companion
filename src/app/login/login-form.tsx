@@ -1,19 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { FormEvent, useState } from "react";
 
 import {
   type LoginFormErrors,
   type LoginFormValues,
   validateLoginValues,
 } from "@/lib/auth/login";
+import { AUTHENTICATED_APP_REDIRECT } from "@/lib/auth/redirects";
 
-const LOGIN_UNAVAILABLE_MESSAGE =
-  "Login is not available yet. Please use signup to create an account or try again later.";
-const SUBMIT_DELAY_MS = 300;
+type LoginResponse = {
+  error?: string;
+  fieldErrors?: LoginFormErrors;
+  redirectTo?: string;
+};
 
 export function LoginForm() {
+  const router = useRouter();
   const [values, setValues] = useState<LoginFormValues>({
     email: "",
     password: "",
@@ -21,46 +26,9 @@ export function LoginForm() {
   const [errors, setErrors] = useState<LoginFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const isMountedRef = useRef(true);
-  const isSubmittingRef = useRef(false);
-  const submitDelayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const submitDelayResolveRef = useRef<(() => void) | null>(null);
-
-  const resolveSubmitDelay = useCallback(() => {
-    if (submitDelayTimeoutRef.current !== null) {
-      clearTimeout(submitDelayTimeoutRef.current);
-      submitDelayTimeoutRef.current = null;
-    }
-
-    const resolve = submitDelayResolveRef.current;
-    submitDelayResolveRef.current = null;
-    resolve?.();
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-      resolveSubmitDelay();
-    };
-  }, [resolveSubmitDelay]);
-
-  const waitForSubmitDelay = useCallback(() => {
-    return new Promise<void>((resolve) => {
-      submitDelayResolveRef.current = resolve;
-
-      submitDelayTimeoutRef.current = setTimeout(() => {
-        submitDelayTimeoutRef.current = null;
-        resolveSubmitDelay();
-      }, SUBMIT_DELAY_MS);
-    });
-  }, [resolveSubmitDelay]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    if (isSubmittingRef.current) {
-      return;
-    }
 
     setSubmitError(null);
 
@@ -71,23 +39,34 @@ export function LoginForm() {
       return;
     }
 
-    isSubmittingRef.current = true;
     setIsSubmitting(true);
 
     try {
-      await waitForSubmitDelay();
+      const response = await fetch("/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(values),
+      });
+      const result = (await response.json()) as LoginResponse;
 
-      if (!isMountedRef.current) {
+      if (!response.ok) {
+        setErrors(result.fieldErrors ?? {});
+        setSubmitError(
+          result.error ||
+            "Unable to log in. Please check your information and try again.",
+        );
         return;
       }
 
-      setSubmitError(LOGIN_UNAVAILABLE_MESSAGE);
+      setErrors({});
+      router.replace(result.redirectTo ?? AUTHENTICATED_APP_REDIRECT);
+      router.refresh();
+    } catch {
+      setSubmitError("Unable to log in right now. Please try again.");
     } finally {
-      isSubmittingRef.current = false;
-
-      if (isMountedRef.current) {
-        setIsSubmitting(false);
-      }
+      setIsSubmitting(false);
     }
   }
 
