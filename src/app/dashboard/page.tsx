@@ -10,7 +10,9 @@ export default async function DashboardPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`${AUTH_ENTRY_REDIRECT}?next=%2Fdashboard`);
+    const searchParams = new URLSearchParams();
+    searchParams.set("next", "/dashboard");
+    redirect(`${AUTH_ENTRY_REDIRECT}?${searchParams.toString()}`);
   }
 
   return (

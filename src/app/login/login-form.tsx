@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 
 import {
   type LoginFormErrors,
@@ -23,12 +23,17 @@ export function LoginForm() {
     email: "",
     password: "",
   });
+  const submitInFlightRef = useRef(false);
   const [errors, setErrors] = useState<LoginFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (submitInFlightRef.current) {
+      return;
+    }
 
     setSubmitError(null);
 
@@ -39,6 +44,7 @@ export function LoginForm() {
       return;
     }
 
+    submitInFlightRef.current = true;
     setIsSubmitting(true);
 
     try {
@@ -66,6 +72,7 @@ export function LoginForm() {
     } catch {
       setSubmitError("Unable to connect. Please check your connection and try again.");
     } finally {
+      submitInFlightRef.current = false;
       setIsSubmitting(false);
     }
   }
