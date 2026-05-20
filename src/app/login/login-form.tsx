@@ -17,6 +17,15 @@ type LoginResponse = {
   redirectTo?: string;
 };
 
+const GENERIC_AUTH_ERROR_MESSAGE =
+  "We couldn’t sign you in. Please check your email and password and try again.";
+const GENERIC_RETRY_ERROR_MESSAGE =
+  "We couldn’t sign you in right now. Please try again in a moment.";
+const NETWORK_ERROR_MESSAGE =
+  "We couldn’t sign you in right now. Please check your connection and try again.";
+const SUBMIT_BUTTON_LABEL = "Sign in";
+const SUBMIT_BUTTON_PENDING_LABEL = "Signing in...";
+
 export function LoginForm() {
   const router = useRouter();
   const [values, setValues] = useState<LoginFormValues>({
@@ -27,6 +36,33 @@ export function LoginForm() {
   const [errors, setErrors] = useState<LoginFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  function handleChange(field: keyof LoginFormValues, nextValue: string) {
+    setValues((previous) => ({ ...previous, [field]: nextValue }));
+    setSubmitError(null);
+    setErrors((previous) => {
+      if (!previous[field]) {
+        return previous;
+      }
+
+      return {
+        ...previous,
+        [field]: undefined,
+      };
+    });
+  }
+
+  function getSubmitErrorMessage(httpResponse: Response, fieldErrors: LoginFormErrors): string | null {
+    if (Object.keys(fieldErrors).length > 0) {
+      return null;
+    }
+
+    if (httpResponse.status === 401 || httpResponse.status === 403) {
+      return GENERIC_AUTH_ERROR_MESSAGE;
+    }
+
+    return GENERIC_RETRY_ERROR_MESSAGE;
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -55,14 +91,19 @@ export function LoginForm() {
         },
         body: JSON.stringify(values),
       });
-      const result = (await response.json()) as LoginResponse;
+      let result: LoginResponse = {};
+
+      try {
+        result = (await response.json()) as LoginResponse;
+      } catch {
+        result = {};
+      }
 
       if (!response.ok) {
-        setErrors(result.fieldErrors ?? {});
-        setSubmitError(
-          result.error ||
-            "Unable to log in. Please check your information and try again.",
-        );
+        const nextFieldErrors = result.fieldErrors ?? {};
+
+        setErrors(nextFieldErrors);
+        setSubmitError(getSubmitErrorMessage(response, nextFieldErrors));
         return;
       }
 
@@ -70,7 +111,7 @@ export function LoginForm() {
       router.replace(result.redirectTo ?? AUTHENTICATED_APP_REDIRECT);
       router.refresh();
     } catch {
-      setSubmitError("Unable to connect. Please check your connection and try again.");
+      setSubmitError(NETWORK_ERROR_MESSAGE);
     } finally {
       submitInFlightRef.current = false;
       setIsSubmitting(false);
@@ -85,12 +126,18 @@ export function LoginForm() {
           Log in to AI Companion with your email and password.
         </p>
 
-        <form className="mt-6 space-y-4" noValidate onSubmit={handleSubmit}>
+        <form aria-busy={isSubmitting} className="mt-6 space-y-4" noValidate onSubmit={handleSubmit}>
+          <p aria-live="polite" className="sr-only" role="status">
+            {isSubmitting ? "Signing in. Please wait." : ""}
+          </p>
+
           <div className="space-y-1.5">
             <label className="text-sm font-medium" htmlFor="email">
               Email
             </label>
             <input
+              aria-describedby={errors.email ? "login-email-error" : undefined}
+              aria-invalid={errors.email ? "true" : "false"}
               autoComplete="email"
               className="w-full rounded-md border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none ring-zinc-900/10 placeholder:text-zinc-400 focus:ring-2 dark:border-zinc-700 dark:ring-zinc-100/20"
               disabled={isSubmitting}
@@ -98,14 +145,16 @@ export function LoginForm() {
               inputMode="email"
               name="email"
               onChange={(event) => {
-                setValues((previous) => ({ ...previous, email: event.target.value }));
+                handleChange("email", event.target.value);
               }}
               placeholder="you@example.com"
               type="email"
               value={values.email}
             />
             {errors.email ? (
-              <p className="text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+              <p className="text-sm text-red-600 dark:text-red-400" id="login-email-error">
+                {errors.email}
+              </p>
             ) : null}
           </div>
 
@@ -114,25 +163,30 @@ export function LoginForm() {
               Password
             </label>
             <input
+              aria-describedby={errors.password ? "login-password-error" : undefined}
+              aria-invalid={errors.password ? "true" : "false"}
               autoComplete="current-password"
               className="w-full rounded-md border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none ring-zinc-900/10 placeholder:text-zinc-400 focus:ring-2 dark:border-zinc-700 dark:ring-zinc-100/20"
               disabled={isSubmitting}
               id="password"
               name="password"
               onChange={(event) => {
-                setValues((previous) => ({ ...previous, password: event.target.value }));
+                handleChange("password", event.target.value);
               }}
               placeholder="Enter your password"
               type="password"
               value={values.password}
             />
             {errors.password ? (
-              <p className="text-sm text-red-600 dark:text-red-400">{errors.password}</p>
+              <p className="text-sm text-red-600 dark:text-red-400" id="login-password-error">
+                {errors.password}
+              </p>
             ) : null}
           </div>
 
           {submitError ? (
             <p
+              aria-live="assertive"
               className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300"
               role="alert"
             >
@@ -141,11 +195,11 @@ export function LoginForm() {
           ) : null}
 
           <button
-            className="inline-flex w-full items-center justify-center rounded-md bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+            className="inline-flex h-11 w-full items-center justify-center rounded-md bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
             disabled={isSubmitting}
             type="submit"
           >
-            {isSubmitting ? "Logging in..." : "Log in"}
+            {isSubmitting ? SUBMIT_BUTTON_PENDING_LABEL : SUBMIT_BUTTON_LABEL}
           </button>
         </form>
 
