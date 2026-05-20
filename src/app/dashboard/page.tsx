@@ -21,7 +21,7 @@ export default async function DashboardPage() {
           You are signed in to AI Companion.
         </p>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Signed in as <span className="font-medium">{user?.email ?? "your account"}</span>.
+          Signed in as <span className="font-medium">{user.email ?? "your account"}</span>.
         </p>
       </div>
     </main>
