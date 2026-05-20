@@ -64,7 +64,7 @@ export function LoginForm() {
       router.replace(result.redirectTo ?? AUTHENTICATED_APP_REDIRECT);
       router.refresh();
     } catch {
-      setSubmitError("Unable to log in right now. Please try again.");
+      setSubmitError("Unable to connect. Please check your connection and try again.");
     } finally {
       setIsSubmitting(false);
     }

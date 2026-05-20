@@ -131,7 +131,7 @@ export async function POST(request: Request): Promise<Response> {
     logger.error("Supabase login failed.", {
       context: "auth",
       source: "auth.login",
-      error: error ?? "Supabase login returned no session.",
+      error: error ?? { message: "Supabase login returned no session." },
     });
 
     return NextResponse.json<LoginRouteResponse>(
