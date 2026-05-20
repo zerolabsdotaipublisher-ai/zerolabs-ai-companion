@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChangeEvent, FormEvent, useRef, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 
 import {
   type LoginFormErrors,
@@ -23,6 +23,8 @@ const GENERIC_RETRY_ERROR_MESSAGE =
   "We couldn’t sign you in right now. Please try again in a moment.";
 const NETWORK_ERROR_MESSAGE =
   "We couldn’t sign you in right now. Please check your connection and try again.";
+const SUBMIT_BUTTON_LABEL = "Sign in";
+const SUBMIT_BUTTON_PENDING_LABEL = "Signing in...";
 
 export function LoginForm() {
   const router = useRouter();
@@ -50,21 +52,13 @@ export function LoginForm() {
     });
   }
 
-  function getSubmitErrorMessage(
-    response: Response,
-    result: LoginResponse,
-    fieldErrors: LoginFormErrors,
-  ): string | null {
+  function getSubmitErrorMessage(httpResponse: Response, fieldErrors: LoginFormErrors): string | null {
     if (Object.keys(fieldErrors).length > 0) {
       return null;
     }
 
-    if (response.status === 401 || response.status === 403) {
+    if (httpResponse.status === 401 || httpResponse.status === 403) {
       return GENERIC_AUTH_ERROR_MESSAGE;
-    }
-
-    if (result.error) {
-      return GENERIC_RETRY_ERROR_MESSAGE;
     }
 
     return GENERIC_RETRY_ERROR_MESSAGE;
@@ -109,7 +103,7 @@ export function LoginForm() {
         const nextFieldErrors = result.fieldErrors ?? {};
 
         setErrors(nextFieldErrors);
-        setSubmitError(getSubmitErrorMessage(response, result, nextFieldErrors));
+        setSubmitError(getSubmitErrorMessage(response, nextFieldErrors));
         return;
       }
 
@@ -134,7 +128,7 @@ export function LoginForm() {
 
         <form aria-busy={isSubmitting} className="mt-6 space-y-4" noValidate onSubmit={handleSubmit}>
           <p aria-live="polite" className="sr-only" role="status">
-            {isSubmitting ? "Signing in. Please wait." : submitError ? "" : " "}
+            {isSubmitting ? "Signing in. Please wait." : ""}
           </p>
 
           <div className="space-y-1.5">
@@ -150,7 +144,7 @@ export function LoginForm() {
               id="email"
               inputMode="email"
               name="email"
-              onChange={(event: ChangeEvent<HTMLInputElement>) => {
+              onChange={(event) => {
                 handleChange("email", event.target.value);
               }}
               placeholder="you@example.com"
@@ -176,7 +170,7 @@ export function LoginForm() {
               disabled={isSubmitting}
               id="password"
               name="password"
-              onChange={(event: ChangeEvent<HTMLInputElement>) => {
+              onChange={(event) => {
                 handleChange("password", event.target.value);
               }}
               placeholder="Enter your password"
@@ -201,15 +195,11 @@ export function LoginForm() {
           ) : null}
 
           <button
-            aria-disabled={isSubmitting}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+            className="inline-flex h-11 w-full items-center justify-center rounded-md bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-zinc-700 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
             disabled={isSubmitting}
             type="submit"
           >
-            <span className="grid place-items-center">
-              <span className="invisible col-start-1 row-start-1">Signing in...</span>
-              <span className="col-start-1 row-start-1">{isSubmitting ? "Signing in..." : "Log in"}</span>
-            </span>
+            {isSubmitting ? SUBMIT_BUTTON_PENDING_LABEL : SUBMIT_BUTTON_LABEL}
           </button>
         </form>
 
