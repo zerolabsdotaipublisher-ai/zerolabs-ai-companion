@@ -30,10 +30,6 @@ function isValidOrigin(request: Request): boolean {
   const originHeader = request.headers.get("origin");
   const refererHeader = request.headers.get("referer");
 
-  if (!originHeader && !refererHeader) {
-    return false;
-  }
-
   if (originHeader) {
     try {
       if (new URL(originHeader).origin !== requestOrigin) {
