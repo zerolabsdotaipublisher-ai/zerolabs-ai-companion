@@ -40,7 +40,7 @@ These checks confirm persistence wiring is present in the existing implementatio
 
 Validated against the middleware logic and local route smoke checks:
 
-- Public routes remain accessible (`/` returned `200`; `/signup` returned `200`; `/login` returned `404` without a redirect loop).
+- Public routes remain accessible (`/` returned `200`; `/signup` returned `200`; `/login` returned `200` without a redirect loop).
 - Unauthenticated redirect path is implemented for non-public routes:
   - destination: `/signup`
   - safe continuation param: `next=<original path + query>`
@@ -55,7 +55,7 @@ Local dev server was started successfully and handled route requests without run
 - `GET /` → `200`
 - `GET /signup` → `200`
 - `GET /auth/callback?error=access_denied&error_code=otp_expired&type=signup` → `307` to `/signup?error=link_expired`
-- `GET /login` → `404` (no redirect loop)
+- `GET /login` → `200` (no redirect loop)
 - `GET /private` → `307` to `/signup?next=%2Fprivate`
 
 No runtime auth exceptions were observed in the dev server log during these checks.
@@ -85,3 +85,5 @@ When valid Supabase environment values and auth UI flow are available, run:
 7. Refresh an authenticated page and confirm session remains valid.
 8. Open a protected route while signed out and confirm redirect to `/signup?next=...`.
 9. Open public routes (`/`, `/login`, `/signup`) while signed out and confirm no redirect loops.
+10. Open `/login` on desktop and mobile, confirm the password field is masked, and verify client-side email/password validation appears before submit.
+11. Confirm the `/login` page links to `/signup`.
