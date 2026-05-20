@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import {
   type LoginFormErrors,
@@ -21,9 +21,46 @@ export function LoginForm() {
   const [errors, setErrors] = useState<LoginFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
+  const isSubmittingRef = useRef(false);
+  const submitDelayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const submitDelayResolveRef = useRef<(() => void) | null>(null);
+
+  const resolveSubmitDelay = useCallback(() => {
+    if (submitDelayTimeoutRef.current !== null) {
+      clearTimeout(submitDelayTimeoutRef.current);
+      submitDelayTimeoutRef.current = null;
+    }
+
+    const resolve = submitDelayResolveRef.current;
+    submitDelayResolveRef.current = null;
+    resolve?.();
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      resolveSubmitDelay();
+    };
+  }, [resolveSubmitDelay]);
+
+  const waitForSubmitDelay = useCallback(() => {
+    return new Promise<void>((resolve) => {
+      submitDelayResolveRef.current = resolve;
+
+      submitDelayTimeoutRef.current = setTimeout(() => {
+        submitDelayTimeoutRef.current = null;
+        resolveSubmitDelay();
+      }, SUBMIT_DELAY_MS);
+    });
+  }, [resolveSubmitDelay]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (isSubmittingRef.current) {
+      return;
+    }
 
     setSubmitError(null);
 
@@ -34,15 +71,23 @@ export function LoginForm() {
       return;
     }
 
+    isSubmittingRef.current = true;
     setIsSubmitting(true);
 
     try {
-      await new Promise((resolve) => {
-        setTimeout(resolve, SUBMIT_DELAY_MS);
-      });
+      await waitForSubmitDelay();
+
+      if (!isMountedRef.current) {
+        return;
+      }
+
       setSubmitError(LOGIN_UNAVAILABLE_MESSAGE);
     } finally {
-      setIsSubmitting(false);
+      isSubmittingRef.current = false;
+
+      if (isMountedRef.current) {
+        setIsSubmitting(false);
+      }
     }
   }
 
@@ -101,7 +146,10 @@ export function LoginForm() {
           </div>
 
           {submitError ? (
-            <p className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
+            <p
+              className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300"
+              role="alert"
+            >
               {submitError}
             </p>
           ) : null}
