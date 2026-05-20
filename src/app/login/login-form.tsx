@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 
 import {
   type LoginFormErrors,
@@ -25,6 +25,12 @@ export function LoginForm() {
   const submitDelayTimeoutRef = useRef<number | null>(null);
   const submitDelayResolveRef = useRef<(() => void) | null>(null);
 
+  const resolveSubmitDelay = useCallback(() => {
+    const resolve = submitDelayResolveRef.current;
+    submitDelayResolveRef.current = null;
+    resolve?.();
+  }, []);
+
   useEffect(() => {
     return () => {
       isMountedRef.current = false;
@@ -36,13 +42,7 @@ export function LoginForm() {
 
       resolveSubmitDelay();
     };
-  }, []);
-
-  function resolveSubmitDelay() {
-    const resolve = submitDelayResolveRef.current;
-    submitDelayResolveRef.current = null;
-    resolve?.();
-  }
+  }, [resolveSubmitDelay]);
 
   function waitForSubmitDelay() {
     return new Promise<void>((resolve) => {
