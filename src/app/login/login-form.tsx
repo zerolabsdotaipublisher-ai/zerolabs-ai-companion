@@ -22,7 +22,7 @@ export function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const isMountedRef = useRef(true);
-  const submitDelayTimeoutRef = useRef<number | null>(null);
+  const submitDelayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const submitDelayResolveRef = useRef<(() => void) | null>(null);
 
   const resolveSubmitDelay = useCallback(() => {
@@ -36,7 +36,7 @@ export function LoginForm() {
       isMountedRef.current = false;
 
       if (submitDelayTimeoutRef.current !== null) {
-        window.clearTimeout(submitDelayTimeoutRef.current);
+        clearTimeout(submitDelayTimeoutRef.current);
         submitDelayTimeoutRef.current = null;
       }
 
@@ -46,9 +46,15 @@ export function LoginForm() {
 
   function waitForSubmitDelay() {
     return new Promise<void>((resolve) => {
+      if (submitDelayTimeoutRef.current !== null) {
+        clearTimeout(submitDelayTimeoutRef.current);
+        submitDelayTimeoutRef.current = null;
+      }
+
+      resolveSubmitDelay();
       submitDelayResolveRef.current = resolve;
 
-      submitDelayTimeoutRef.current = window.setTimeout(() => {
+      submitDelayTimeoutRef.current = setTimeout(() => {
         submitDelayTimeoutRef.current = null;
         resolveSubmitDelay();
       }, SUBMIT_DELAY_MS);
