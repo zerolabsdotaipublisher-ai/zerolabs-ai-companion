@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 import {
   type LoginFormErrors,
@@ -21,6 +21,37 @@ export function LoginForm() {
   const [errors, setErrors] = useState<LoginFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
+  const submitDelayTimeoutRef = useRef<number | null>(null);
+  const submitDelayResolveRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+
+      if (submitDelayTimeoutRef.current !== null) {
+        window.clearTimeout(submitDelayTimeoutRef.current);
+        submitDelayTimeoutRef.current = null;
+      }
+
+      submitDelayResolveRef.current?.();
+      submitDelayResolveRef.current = null;
+    };
+  }, []);
+
+  function waitForSubmitDelay() {
+    return new Promise<void>((resolve) => {
+      submitDelayResolveRef.current = () => {
+        submitDelayResolveRef.current = null;
+        resolve();
+      };
+
+      submitDelayTimeoutRef.current = window.setTimeout(() => {
+        submitDelayTimeoutRef.current = null;
+        submitDelayResolveRef.current?.();
+      }, SUBMIT_DELAY_MS);
+    });
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -37,12 +68,17 @@ export function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      await new Promise((resolve) => {
-        setTimeout(resolve, SUBMIT_DELAY_MS);
-      });
+      await waitForSubmitDelay();
+
+      if (!isMountedRef.current) {
+        return;
+      }
+
       setSubmitError(LOGIN_UNAVAILABLE_MESSAGE);
     } finally {
-      setIsSubmitting(false);
+      if (isMountedRef.current) {
+        setIsSubmitting(false);
+      }
     }
   }
 
@@ -101,7 +137,10 @@ export function LoginForm() {
           </div>
 
           {submitError ? (
-            <p className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300">
+            <p
+              className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300"
+              role="alert"
+            >
               {submitError}
             </p>
           ) : null}
