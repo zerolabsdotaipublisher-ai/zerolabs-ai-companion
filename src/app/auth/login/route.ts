@@ -32,11 +32,7 @@ function getLoginFailureLogMessage(error: unknown, hasSession: boolean): string 
     return "Supabase login failed with auth error.";
   }
 
-  if (!hasSession) {
-    return "Supabase login returned no session.";
-  }
-
-  return "Supabase login failed.";
+  return hasSession ? "Supabase login failed." : "Supabase login returned no session.";
 }
 
 function isValidOrigin(request: Request): boolean {

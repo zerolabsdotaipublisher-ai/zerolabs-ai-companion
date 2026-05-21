@@ -42,11 +42,7 @@ function getSignupFailureLogMessage(error: unknown, hasUser: boolean): string {
     return "Supabase signup failed with auth error.";
   }
 
-  if (!hasUser) {
-    return "Supabase signup returned no user.";
-  }
-
-  return "Supabase signup failed.";
+  return hasUser ? "Supabase signup failed." : "Supabase signup returned no user.";
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
