@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { AUTH_ENTRY_REDIRECT } from "@/lib/auth/redirects";
-import { env } from "@/lib/env";
+import { getSupabaseClientConfig } from "@/lib/supabase/config";
 
 const PUBLIC_ROUTES = new Set([
   "/",
@@ -46,6 +46,7 @@ function copyCookies(source: NextResponse, target: NextResponse): void {
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
   const normalizedPathname = normalizePathname(pathname);
+  const { url, anonKey, global } = getSupabaseClientConfig();
 
   if (isStaticAsset(pathname)) {
     return NextResponse.next();
@@ -55,7 +56,8 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     request,
   });
 
-  const supabase = createServerClient(env.supabaseUrl, env.supabaseAnonKey, {
+  const supabase = createServerClient(url, anonKey, {
+    global,
     cookies: {
       getAll() {
         return request.cookies.getAll();
