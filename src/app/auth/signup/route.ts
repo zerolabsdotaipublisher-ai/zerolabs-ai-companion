@@ -37,6 +37,18 @@ function getCallbackUrlOrigin(): string | undefined {
   }
 }
 
+function getSignupFailureLogMessage(error: unknown, hasUser: boolean): string {
+  if (error) {
+    return "Supabase signup failed with auth error.";
+  }
+
+  if (!hasUser) {
+    return "Supabase signup returned no user.";
+  }
+
+  return "Supabase signup failed.";
+}
+
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -159,7 +171,7 @@ export async function POST(request: Request): Promise<Response> {
       request,
     });
 
-    logger.error("Supabase signup failed.", {
+    logger.error(getSignupFailureLogMessage(error, Boolean(data.user)), {
       context: "auth",
       source: "auth.signup",
       metadata: {

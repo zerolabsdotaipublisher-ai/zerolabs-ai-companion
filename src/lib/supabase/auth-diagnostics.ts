@@ -32,6 +32,8 @@ type DecodedAnonKey = {
   role?: string;
 };
 
+// Cache auth settings briefly to reduce repeated diagnostic traffic during
+// failure bursts while still keeping the signals reasonably fresh.
 const AUTH_SETTINGS_CACHE_TTL_MS = 60_000;
 
 let cachedAuthSettingsSignal:
@@ -49,6 +51,8 @@ function decodeSupabaseAnonKey(): DecodedAnonKey {
   }
 
   try {
+    // This is diagnostic-only metadata extraction; auth still relies on
+    // Supabase request/response validation rather than local JWT trust.
     const payload = JSON.parse(Buffer.from(keyParts[1], "base64url").toString("utf8")) as {
       iss?: unknown;
       ref?: unknown;

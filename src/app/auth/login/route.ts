@@ -27,6 +27,18 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function getLoginFailureLogMessage(error: unknown, hasSession: boolean): string {
+  if (error) {
+    return "Supabase login failed with auth error.";
+  }
+
+  if (!hasSession) {
+    return "Supabase login returned no session.";
+  }
+
+  return "Supabase login failed.";
+}
+
 function isValidOrigin(request: Request): boolean {
   const requestOrigin = new URL(request.url).origin;
   const originHeader = request.headers.get("origin");
@@ -138,7 +150,7 @@ export async function POST(request: Request): Promise<Response> {
       request,
     });
 
-    logger.error("Supabase login failed.", {
+    logger.error(getLoginFailureLogMessage(error, Boolean(data.session)), {
       context: "auth",
       source: "auth.login",
       metadata: {
