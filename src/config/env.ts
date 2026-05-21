@@ -69,7 +69,7 @@ const serverEnvSchema = z.object({
 
 type ServerEnv = z.infer<typeof serverEnvSchema>;
 
-let cachedServerEnv: ServerEnv | undefined;
+let validatedServerEnv: ServerEnv | undefined;
 
 function formatEnvValidationError(scope: "public" | "server", error: z.ZodError): Error {
   const details = error.issues
@@ -107,8 +107,8 @@ function assertServerOnly(name: string): void {
 function getServerEnv(): ServerEnv {
   assertServerOnly("server environment config");
 
-  if (!cachedServerEnv) {
-    cachedServerEnv = validateEnv("server", serverEnvSchema, {
+  if (!validatedServerEnv) {
+    validatedServerEnv = validateEnv("server", serverEnvSchema, {
       SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
       OPENAI_API_KEY: process.env.OPENAI_API_KEY,
       QDRANT_URL: process.env.QDRANT_URL,
@@ -119,7 +119,7 @@ function getServerEnv(): ServerEnv {
     });
   }
 
-  return cachedServerEnv;
+  return validatedServerEnv;
 }
 
 function requiredPublic(name: PublicEnvName): string {
