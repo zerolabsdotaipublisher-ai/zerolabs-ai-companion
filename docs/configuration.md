@@ -28,7 +28,7 @@ For existing public-only alias usage, `src/lib/env.ts` re-exports `publicConfig`
 Validation happens in `src/config/env.ts` using Zod schemas:
 
 - Public variables are validated when the module is evaluated.
-- Server variables are validated on the server runtime path only (`typeof window === "undefined"`).
+- Server variables are validated lazily on first server-side access to `serverConfig` or the server-only helpers.
 - Validation failures throw:
   - `Invalid public environment variables: <KEY>: <reason>; ... Define values in .env.local for local development and configure deployment/Vercel environment variables for CI and deployment.`
   - `Invalid server environment variables: <KEY>: <reason>; ... Define values in .env.local for local development and configure deployment/Vercel environment variables for CI and deployment.`
@@ -101,13 +101,13 @@ Important:
 
 1. Open project in Vercel.
 2. Go to **Settings → Environment Variables**.
-3. Add required variables for each environment (Development, Preview, Production):
+3. Add variables for each environment (Development, Preview, Production) using the exact names from `src/config/env.ts`:
     - `NEXT_PUBLIC_APP_NAME` (optional)
     - `NEXT_PUBLIC_APP_URL`
     - `NEXT_PUBLIC_SUPABASE_URL`
     - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-    - `SUPABASE_SERVICE_ROLE_KEY`
-    - `OPENAI_API_KEY`
+    - `SUPABASE_SERVICE_ROLE_KEY` (required for code paths that access `serverConfig.supabaseServiceRoleKey`)
+    - `OPENAI_API_KEY` (required for code paths that access `serverConfig.openaiApiKey`)
     - `QDRANT_URL` (optional)
     - `QDRANT_API_KEY` (optional)
     - `QDRANT_COLLECTION` (optional)
