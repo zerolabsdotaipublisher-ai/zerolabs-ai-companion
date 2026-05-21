@@ -29,6 +29,14 @@ const DUPLICATE_SIGNUP_MESSAGE_FRAGMENTS = [
   "user already",
 ];
 
+function getCallbackUrlOrigin(): string | undefined {
+  try {
+    return new URL(getAuthCallbackUrl()).origin;
+  } catch {
+    return undefined;
+  }
+}
+
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -164,7 +172,7 @@ export async function POST(request: Request): Promise<Response> {
             : undefined,
         authResponseHasSession: Boolean(data.session),
         authResponseHasUser: Boolean(data.user),
-        callbackUrlOrigin: new URL(getAuthCallbackUrl()).origin,
+        callbackUrlOrigin: getCallbackUrlOrigin(),
       },
       error: error ?? "Supabase signup returned no user.",
     });

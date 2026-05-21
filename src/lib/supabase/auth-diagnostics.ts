@@ -32,6 +32,15 @@ type DecodedAnonKey = {
   role?: string;
 };
 
+const AUTH_SETTINGS_CACHE_TTL_MS = 60_000;
+
+let cachedAuthSettingsSignal:
+  | {
+      expiresAt: number;
+      value: AuthSettingsSignal;
+    }
+  | undefined;
+
 function decodeSupabaseAnonKey(): DecodedAnonKey {
   const keyParts = env.supabaseAnonKey.split(".");
 
@@ -106,6 +115,21 @@ function getRequestDiagnostics(request?: Pick<Request, "url">): {
 }
 
 async function getAuthSettingsSignal(): Promise<AuthSettingsSignal> {
+  const now = Date.now();
+
+  if (cachedAuthSettingsSignal && cachedAuthSettingsSignal.expiresAt > now) {
+    return cachedAuthSettingsSignal.value;
+  }
+
+  const cacheValue = (value: AuthSettingsSignal): AuthSettingsSignal => {
+    cachedAuthSettingsSignal = {
+      expiresAt: now + AUTH_SETTINGS_CACHE_TTL_MS,
+      value,
+    };
+
+    return value;
+  };
+
   try {
     const response = await fetch(new URL("/auth/v1/settings", env.supabaseUrl), {
       headers: {
@@ -123,18 +147,18 @@ async function getAuthSettingsSignal(): Promise<AuthSettingsSignal> {
       body = undefined;
     }
 
-    return {
+    return cacheValue({
       reachable: true,
       responseStatus: response.status,
       disableSignup: getNestedBoolean(body, "disable_signup"),
       emailProviderEnabled: getNestedBoolean(body, "external", "email", "enabled"),
       mailerAutoConfirmEnabled: getNestedBoolean(body, "mailer_autoconfirm"),
-    };
+    });
   } catch (error) {
-    return {
+    return cacheValue({
       reachable: false,
       errorMessage: error instanceof Error ? error.message : String(error),
-    };
+    });
   }
 }
 
