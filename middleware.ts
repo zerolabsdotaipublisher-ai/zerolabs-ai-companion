@@ -3,6 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { AUTH_ENTRY_REDIRECT } from "@/lib/auth/redirects";
 import { getSupabaseClientConfig } from "@/lib/supabase/config";
+import { logger } from "@/lib/logger";
+import { createSupabaseAuthDiagnostics } from "@/lib/supabase/auth-diagnostics";
 
 const PUBLIC_ROUTES = new Set([
   "/",
@@ -88,7 +90,21 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser();
+
+  if (error) {
+    const diagnostics = await createSupabaseAuthDiagnostics({
+      request,
+    });
+
+    logger.warn("Supabase middleware session lookup failed.", {
+      context: "auth",
+      source: "middleware",
+      metadata: diagnostics,
+      error,
+    });
+  }
 
   if (!user && !isPublicRoute(normalizedPathname)) {
     const redirectUrl = request.nextUrl.clone();

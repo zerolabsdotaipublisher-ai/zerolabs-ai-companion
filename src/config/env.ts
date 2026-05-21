@@ -69,6 +69,8 @@ const serverEnvSchema = z.object({
 
 type ServerEnv = z.infer<typeof serverEnvSchema>;
 
+let validatedServerEnv: ServerEnv | undefined;
+
 function formatEnvValidationError(scope: "public" | "server", error: z.ZodError): Error {
   const details = error.issues
     .map((issue) => `${issue.path.join(".") || "unknown"}: ${issue.message}`)
@@ -102,27 +104,22 @@ function assertServerOnly(name: string): void {
   }
 }
 
-const serverEnv =
-  typeof window === "undefined"
-    ? validateEnv("server", serverEnvSchema, {
-        SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-        OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-        QDRANT_URL: process.env.QDRANT_URL,
-        QDRANT_API_KEY: process.env.QDRANT_API_KEY,
-        QDRANT_COLLECTION: process.env.QDRANT_COLLECTION,
-        ZERO_FLOW_API_URL: process.env.ZERO_FLOW_API_URL,
-        ZERO_FLOW_API_KEY: process.env.ZERO_FLOW_API_KEY,
-      })
-    : undefined;
-
 function getServerEnv(): ServerEnv {
   assertServerOnly("server environment config");
 
-  if (!serverEnv) {
-    throw new Error("Server environment configuration is unavailable in client code.");
+  if (!validatedServerEnv) {
+    validatedServerEnv = validateEnv("server", serverEnvSchema, {
+      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+      QDRANT_URL: process.env.QDRANT_URL,
+      QDRANT_API_KEY: process.env.QDRANT_API_KEY,
+      QDRANT_COLLECTION: process.env.QDRANT_COLLECTION,
+      ZERO_FLOW_API_URL: process.env.ZERO_FLOW_API_URL,
+      ZERO_FLOW_API_KEY: process.env.ZERO_FLOW_API_KEY,
+    });
   }
 
-  return serverEnv;
+  return validatedServerEnv;
 }
 
 function requiredPublic(name: PublicEnvName): string {

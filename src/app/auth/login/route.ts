@@ -8,6 +8,7 @@ import {
 } from "@/lib/auth/login";
 import { AUTHENTICATED_APP_REDIRECT } from "@/lib/auth/redirects";
 import { logger } from "@/lib/logger";
+import { createSupabaseAuthDiagnostics } from "@/lib/supabase/auth-diagnostics";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 type LoginRouteResponse = {
@@ -24,6 +25,10 @@ const EMAIL_NOT_CONFIRMED_MESSAGE =
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getLoginFailureLogMessage(error: unknown): string {
+  return error ? "Supabase login failed with auth error." : "Supabase login returned no session.";
 }
 
 function isValidOrigin(request: Request): boolean {
@@ -132,9 +137,25 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   if (error || !data.session) {
-    logger.error("Supabase login failed.", {
+    const diagnostics = await createSupabaseAuthDiagnostics({
+      includeAuthSettings: true,
+      request,
+    });
+
+    logger.error(getLoginFailureLogMessage(error), {
       context: "auth",
       source: "auth.login",
+      metadata: {
+        ...diagnostics,
+        authErrorCode:
+          error && "code" in error && typeof error.code === "string" ? error.code : undefined,
+        authErrorStatus:
+          error && "status" in error && typeof error.status === "number"
+            ? error.status
+            : undefined,
+        authResponseHasSession: Boolean(data.session),
+        authResponseHasUser: Boolean(data.user),
+      },
       error: error ?? { message: "Supabase login returned no session." },
     });
 

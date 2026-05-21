@@ -8,6 +8,7 @@ import {
 } from "@/lib/auth/signup";
 import { getAuthCallbackUrl } from "@/lib/auth/redirects";
 import { logger } from "@/lib/logger";
+import { createSupabaseAuthDiagnostics } from "@/lib/supabase/auth-diagnostics";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 type SignupRouteResponse = {
@@ -27,6 +28,18 @@ const DUPLICATE_SIGNUP_MESSAGE_FRAGMENTS = [
   "already exists",
   "user already",
 ];
+
+function getCallbackUrlOrigin(): string | undefined {
+  try {
+    return new URL(getAuthCallbackUrl()).origin;
+  } catch {
+    return undefined;
+  }
+}
+
+function getSignupFailureLogMessage(error: unknown): string {
+  return error ? "Supabase signup failed with auth error." : "Supabase signup returned no user.";
+}
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -145,9 +158,26 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   if (error || !data.user) {
-    logger.error("Supabase signup failed.", {
+    const diagnostics = await createSupabaseAuthDiagnostics({
+      includeAuthSettings: true,
+      request,
+    });
+
+    logger.error(getSignupFailureLogMessage(error), {
       context: "auth",
       source: "auth.signup",
+      metadata: {
+        ...diagnostics,
+        authErrorCode:
+          error && "code" in error && typeof error.code === "string" ? error.code : undefined,
+        authErrorStatus:
+          error && "status" in error && typeof error.status === "number"
+            ? error.status
+            : undefined,
+        authResponseHasSession: Boolean(data.session),
+        authResponseHasUser: Boolean(data.user),
+        callbackUrlOrigin: getCallbackUrlOrigin(),
+      },
       error: error ?? "Supabase signup returned no user.",
     });
 
