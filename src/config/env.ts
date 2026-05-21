@@ -104,23 +104,19 @@ function assertServerOnly(name: string): void {
   }
 }
 
-function getServerEnvValues() {
-  return {
-    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-    QDRANT_URL: process.env.QDRANT_URL,
-    QDRANT_API_KEY: process.env.QDRANT_API_KEY,
-    QDRANT_COLLECTION: process.env.QDRANT_COLLECTION,
-    ZERO_FLOW_API_URL: process.env.ZERO_FLOW_API_URL,
-    ZERO_FLOW_API_KEY: process.env.ZERO_FLOW_API_KEY,
-  };
-}
-
 function getServerEnv(): ServerEnv {
   assertServerOnly("server environment config");
 
   if (!cachedServerEnv) {
-    cachedServerEnv = validateEnv("server", serverEnvSchema, getServerEnvValues());
+    cachedServerEnv = validateEnv("server", serverEnvSchema, {
+      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+      QDRANT_URL: process.env.QDRANT_URL,
+      QDRANT_API_KEY: process.env.QDRANT_API_KEY,
+      QDRANT_COLLECTION: process.env.QDRANT_COLLECTION,
+      ZERO_FLOW_API_URL: process.env.ZERO_FLOW_API_URL,
+      ZERO_FLOW_API_KEY: process.env.ZERO_FLOW_API_KEY,
+    });
   }
 
   return cachedServerEnv;
