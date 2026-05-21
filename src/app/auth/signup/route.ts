@@ -8,6 +8,7 @@ import {
 } from "@/lib/auth/signup";
 import { getAuthCallbackUrl } from "@/lib/auth/redirects";
 import { logger } from "@/lib/logger";
+import { createSupabaseAuthDiagnostics } from "@/lib/supabase/auth-diagnostics";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 type SignupRouteResponse = {
@@ -145,9 +146,26 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   if (error || !data.user) {
+    const diagnostics = await createSupabaseAuthDiagnostics({
+      includeAuthSettings: true,
+      request,
+    });
+
     logger.error("Supabase signup failed.", {
       context: "auth",
       source: "auth.signup",
+      metadata: {
+        ...diagnostics,
+        authErrorCode:
+          error && "code" in error && typeof error.code === "string" ? error.code : undefined,
+        authErrorStatus:
+          error && "status" in error && typeof error.status === "number"
+            ? error.status
+            : undefined,
+        authResponseHasSession: Boolean(data.session),
+        authResponseHasUser: Boolean(data.user),
+        callbackUrlOrigin: new URL(getAuthCallbackUrl()).origin,
+      },
       error: error ?? "Supabase signup returned no user.",
     });
 

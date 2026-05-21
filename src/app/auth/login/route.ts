@@ -8,6 +8,7 @@ import {
 } from "@/lib/auth/login";
 import { AUTHENTICATED_APP_REDIRECT } from "@/lib/auth/redirects";
 import { logger } from "@/lib/logger";
+import { createSupabaseAuthDiagnostics } from "@/lib/supabase/auth-diagnostics";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 type LoginRouteResponse = {
@@ -132,9 +133,25 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   if (error || !data.session) {
+    const diagnostics = await createSupabaseAuthDiagnostics({
+      includeAuthSettings: true,
+      request,
+    });
+
     logger.error("Supabase login failed.", {
       context: "auth",
       source: "auth.login",
+      metadata: {
+        ...diagnostics,
+        authErrorCode:
+          error && "code" in error && typeof error.code === "string" ? error.code : undefined,
+        authErrorStatus:
+          error && "status" in error && typeof error.status === "number"
+            ? error.status
+            : undefined,
+        authResponseHasSession: Boolean(data.session),
+        authResponseHasUser: Boolean(data.user),
+      },
       error: error ?? { message: "Supabase login returned no session." },
     });
 
