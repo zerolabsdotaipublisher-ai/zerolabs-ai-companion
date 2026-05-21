@@ -37,10 +37,8 @@ function getCallbackUrlOrigin(): string | undefined {
   }
 }
 
-function getSignupFailureLogMessage(error: unknown, hasUser: boolean): string {
-  return error || hasUser
-    ? "Supabase signup failed with auth error."
-    : "Supabase signup returned no user.";
+function getSignupFailureLogMessage(error: unknown): string {
+  return error ? "Supabase signup failed with auth error." : "Supabase signup returned no user.";
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -165,7 +163,7 @@ export async function POST(request: Request): Promise<Response> {
       request,
     });
 
-    logger.error(getSignupFailureLogMessage(error, Boolean(data.user)), {
+    logger.error(getSignupFailureLogMessage(error), {
       context: "auth",
       source: "auth.signup",
       metadata: {

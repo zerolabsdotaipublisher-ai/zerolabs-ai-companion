@@ -27,10 +27,8 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function getLoginFailureLogMessage(error: unknown, hasSession: boolean): string {
-  return error || hasSession
-    ? "Supabase login failed with auth error."
-    : "Supabase login returned no session.";
+function getLoginFailureLogMessage(error: unknown): string {
+  return error ? "Supabase login failed with auth error." : "Supabase login returned no session.";
 }
 
 function isValidOrigin(request: Request): boolean {
@@ -144,7 +142,7 @@ export async function POST(request: Request): Promise<Response> {
       request,
     });
 
-    logger.error(getLoginFailureLogMessage(error, Boolean(data.session)), {
+    logger.error(getLoginFailureLogMessage(error), {
       context: "auth",
       source: "auth.login",
       metadata: {
