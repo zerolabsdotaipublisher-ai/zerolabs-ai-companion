@@ -28,11 +28,9 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 }
 
 function getLoginFailureLogMessage(error: unknown, hasSession: boolean): string {
-  if (error) {
-    return "Supabase login failed with auth error.";
-  }
-
-  return hasSession ? "Supabase login failed." : "Supabase login returned no session.";
+  return error || hasSession
+    ? "Supabase login failed with auth error."
+    : "Supabase login returned no session.";
 }
 
 function isValidOrigin(request: Request): boolean {

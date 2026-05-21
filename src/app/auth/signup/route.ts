@@ -38,11 +38,9 @@ function getCallbackUrlOrigin(): string | undefined {
 }
 
 function getSignupFailureLogMessage(error: unknown, hasUser: boolean): string {
-  if (error) {
-    return "Supabase signup failed with auth error.";
-  }
-
-  return hasUser ? "Supabase signup failed." : "Supabase signup returned no user.";
+  return error || hasUser
+    ? "Supabase signup failed with auth error."
+    : "Supabase signup returned no user.";
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

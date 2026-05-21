@@ -35,6 +35,7 @@ type DecodedAnonKey = {
 // Cache auth settings briefly to reduce repeated diagnostic traffic during
 // failure bursts while still keeping the signals reasonably fresh.
 const AUTH_SETTINGS_CACHE_TTL_MS = 60_000;
+const AUTH_SETTINGS_TIMEOUT_MS = 3_000;
 
 let cachedAuthSettingsSignal:
   | {
@@ -141,6 +142,7 @@ async function getAuthSettingsSignal(): Promise<AuthSettingsSignal> {
         Authorization: `Bearer ${env.supabaseAnonKey}`,
       },
       cache: "no-store",
+      signal: AbortSignal.timeout(AUTH_SETTINGS_TIMEOUT_MS),
     });
 
     let body: unknown;
