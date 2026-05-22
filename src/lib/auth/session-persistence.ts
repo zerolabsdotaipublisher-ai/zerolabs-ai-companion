@@ -30,6 +30,12 @@ const DISALLOWED_POST_AUTH_REDIRECT_ROUTES: ReadonlySet<string> = new Set(
   AUTH_FLOW_PUBLIC_ROUTES,
 );
 
+function getRedirectCandidateValue(candidatePath: unknown): string | undefined {
+  const value = Array.isArray(candidatePath) ? candidatePath[0] : candidatePath;
+
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
 export function normalizeAuthPathname(pathname: string): string {
   if (pathname === "/") {
     return pathname;
@@ -55,10 +61,10 @@ export function isPublicAuthRoute(
 }
 
 export function resolvePostAuthRedirectPath(
-  candidatePath: string | string[] | undefined,
+  candidatePath: unknown,
   fallbackPath: string,
 ): string {
-  const value = Array.isArray(candidatePath) ? candidatePath[0] : candidatePath;
+  const value = getRedirectCandidateValue(candidatePath);
 
   if (!value || !value.startsWith("/") || value.startsWith("//")) {
     return fallbackPath;
