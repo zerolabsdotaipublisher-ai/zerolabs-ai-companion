@@ -1,17 +1,32 @@
 import { redirect } from "next/navigation";
 
 import { AUTH_ENTRY_REDIRECT } from "@/lib/auth/redirects";
-import { buildAuthEntryRedirectPath } from "@/lib/auth/session-persistence";
+import {
+  buildAuthEntryRedirectPath,
+  buildSearchParamsString,
+  type RouteSearchParams,
+} from "@/lib/auth/session-persistence";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
-export default async function DashboardPage() {
+type DashboardPageProps = {
+  searchParams?: Promise<RouteSearchParams>;
+};
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
+  const resolvedSearchParams = (await searchParams) ?? {};
   const supabase = await getSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(buildAuthEntryRedirectPath("/dashboard", "", AUTH_ENTRY_REDIRECT));
+    redirect(
+      buildAuthEntryRedirectPath(
+        "/dashboard",
+        buildSearchParamsString(resolvedSearchParams),
+        AUTH_ENTRY_REDIRECT,
+      ),
+    );
   }
 
   return (

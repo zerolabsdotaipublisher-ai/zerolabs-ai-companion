@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { isStateChangingAuthRequestAllowed } from "@/lib/auth/origin";
 import {
   normalizeSignupValues,
   type SignupFormErrors,
@@ -45,34 +46,6 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function isValidOrigin(request: Request): boolean {
-  const requestOrigin = new URL(request.url).origin;
-  const originHeader = request.headers.get("origin");
-  const refererHeader = request.headers.get("referer");
-
-  if (originHeader) {
-    try {
-      if (new URL(originHeader).origin !== requestOrigin) {
-        return false;
-      }
-    } catch {
-      return false;
-    }
-  }
-
-  if (refererHeader) {
-    try {
-      if (new URL(refererHeader).origin !== requestOrigin) {
-        return false;
-      }
-    } catch {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 function toSignupValues(body: Record<string, unknown>): SignupFormValues {
   return {
     email: typeof body.email === "string" ? body.email : "",
@@ -103,7 +76,7 @@ function isDuplicateSignupAttempt(
 }
 
 export async function POST(request: Request): Promise<Response> {
-  if (!isValidOrigin(request)) {
+  if (!isStateChangingAuthRequestAllowed(request)) {
     return NextResponse.json<SignupRouteResponse>(
       { error: "Origin is not allowed." },
       { status: 403 },
