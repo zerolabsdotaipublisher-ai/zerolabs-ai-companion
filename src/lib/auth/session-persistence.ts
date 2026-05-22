@@ -8,7 +8,7 @@ const STATIC_FILE_REGEX =
   /\.(?:avif|bmp|css|eot|gif|ico|jpeg|jpg|js|json|map|mp4|otf|pdf|png|svg|ttf|txt|webm|webp|woff|woff2|xml)$/i;
 const SUPABASE_SESSION_COOKIE_REGEX =
   /^(?:__Host-)?sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i;
-const LOCAL_REDIRECT_ORIGIN = "http://localhost";
+const REDIRECT_URL_BASE = "http://localhost";
 const AUTH_FLOW_PUBLIC_ROUTES = [
   "/login",
   "/logout",
@@ -65,7 +65,7 @@ export function resolvePostAuthRedirectPath(
   }
 
   try {
-    const resolvedUrl = new URL(value, LOCAL_REDIRECT_ORIGIN);
+    const resolvedUrl = new URL(value, REDIRECT_URL_BASE);
     const normalizedPathname = normalizeAuthPathname(resolvedUrl.pathname);
 
     if (DISALLOWED_POST_AUTH_REDIRECT_ROUTES.has(normalizedPathname)) {
@@ -83,7 +83,7 @@ export function buildAuthEntryRedirectPath(
   search: string,
   authEntryPath: string,
 ): string {
-  const redirectUrl = new URL(authEntryPath, "http://localhost");
+  const redirectUrl = new URL(authEntryPath, REDIRECT_URL_BASE);
   redirectUrl.searchParams.set("next", `${pathname}${search}`);
   return `${redirectUrl.pathname}${redirectUrl.search}`;
 }
