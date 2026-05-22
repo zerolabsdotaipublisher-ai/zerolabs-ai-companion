@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  getStateChangingAuthHeaders,
   isRequestOriginAllowed,
   isStateChangingAuthRequestAllowed,
 } from "../../src/lib/auth/origin";
@@ -23,6 +24,26 @@ test("allows same-origin auth requests when only the referer header matches", ()
     headers: {
       referer: "https://example.com/signup?plan=pro",
     },
+  });
+
+  assert.equal(isStateChangingAuthRequestAllowed(request), true);
+});
+
+test("allows same-origin auth requests when fetch metadata marks them same-origin", () => {
+  const request = new Request("https://example.com/auth/logout", {
+    method: "POST",
+    headers: {
+      "sec-fetch-site": "same-origin",
+    },
+  });
+
+  assert.equal(isStateChangingAuthRequestAllowed(request), true);
+});
+
+test("allows state-changing auth requests with the trusted client header", () => {
+  const request = new Request("https://example.com/auth/login", {
+    method: "POST",
+    headers: getStateChangingAuthHeaders(),
   });
 
   assert.equal(isStateChangingAuthRequestAllowed(request), true);

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState } from "react";
 
 import type { AuthCallbackError } from "@/lib/auth/redirects";
+import { getStateChangingAuthHeaders } from "@/lib/auth/origin";
 import {
   type SignupFormErrors,
   type SignupFormValues,
@@ -74,6 +75,7 @@ export function SignupForm({ callbackError }: SignupFormProps) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...getStateChangingAuthHeaders(),
         },
         body: JSON.stringify(values),
       });

@@ -9,6 +9,7 @@ import {
   type LoginFormValues,
   validateLoginValues,
 } from "@/lib/auth/login";
+import { getStateChangingAuthHeaders } from "@/lib/auth/origin";
 import { AUTHENTICATED_APP_REDIRECT } from "@/lib/auth/redirects";
 
 type LoginResponse = {
@@ -107,6 +108,7 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...getStateChangingAuthHeaders(),
         },
         body: JSON.stringify({
           ...values,
