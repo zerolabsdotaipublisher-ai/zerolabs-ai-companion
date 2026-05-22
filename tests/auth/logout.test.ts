@@ -44,3 +44,21 @@ test("falls back to /login when the logout JSON response contains an invalid red
 test("falls back to /login when the logout redirect candidate itself is missing", () => {
   assert.equal(resolveLogoutRedirectPath(undefined), "/login");
 });
+
+test("falls back to /login for backslash-based redirect values that normalize into external paths", () => {
+  assert.equal(resolveLogoutRedirectPath("/\\evil.example/login"), "/login");
+  assert.equal(resolveLogoutRedirectPath("/\\/evil.example/login"), "/login");
+  assert.equal(
+    resolveLogoutRedirectPathFromResponseBody({
+      redirectTo: "/\\\\evil.example/login",
+    }),
+    "/login",
+  );
+});
+
+test("preserves valid internal logout redirect paths after normalization", () => {
+  assert.equal(
+    resolveLogoutRedirectPath("/dashboard/settings?tab=profile#security"),
+    "/dashboard/settings?tab=profile#security",
+  );
+});
