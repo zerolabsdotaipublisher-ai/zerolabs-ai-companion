@@ -53,6 +53,10 @@ export function buildAuthEntryRedirectPath(
   return `${redirectUrl.pathname}${redirectUrl.search}`;
 }
 
+/**
+ * Normalizes Next.js page search params into a query string.
+ * Undefined values are skipped, while array values emit one entry per item.
+ */
 export function buildSearchParamsString(searchParams: RouteSearchParams): string {
   const normalizedSearchParams = new URLSearchParams();
 

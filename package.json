@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "node -e \"require('node:fs').rmSync('.test-dist', { recursive: true, force: true })\" && tsc -p tsconfig.test.json && node -e \"const fs=require('node:fs'); const path=require('node:path'); const { spawnSync }=require('node:child_process'); const root=path.join('.test-dist','tests'); const files=[]; const walk=(dir)=>{ for (const entry of fs.readdirSync(dir,{ withFileTypes:true })) { const fullPath=path.join(dir,entry.name); if (entry.isDirectory()) { walk(fullPath); } else if (/\\.test\\.js$/u.test(entry.name)) { files.push(fullPath); } } }; if (fs.existsSync(root)) { walk(root); } files.sort(); if (files.length===0) { console.error('No compiled test files found.'); process.exit(1); } const result=spawnSync(process.execPath,['--test',...files],{ stdio:'inherit' }); process.exit(result.status ?? 1);\"",
+    "test": "node scripts/run-tests.mjs",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
