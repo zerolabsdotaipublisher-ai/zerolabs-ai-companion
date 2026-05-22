@@ -41,7 +41,6 @@ function toLoginValues(body: Record<string, unknown>): LoginFormValues {
 }
 
 function getRequestedRedirectPath(next: unknown): string | string[] | undefined {
-
   if (typeof next === "string") {
     return next;
   }
