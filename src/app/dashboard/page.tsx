@@ -1,12 +1,8 @@
-import { redirect } from "next/navigation";
-
-import { AUTH_ENTRY_REDIRECT } from "@/lib/auth/redirects";
 import {
-  buildAuthEntryRedirectPath,
   buildSearchParamsString,
   type RouteSearchParams,
 } from "@/lib/auth/session-persistence";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { requireServerSession } from "@/lib/auth/server";
 
 type DashboardPageProps = {
   searchParams?: Promise<RouteSearchParams>;
@@ -14,20 +10,10 @@ type DashboardPageProps = {
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const resolvedSearchParams = (await searchParams) ?? {};
-  const supabase = await getSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect(
-      buildAuthEntryRedirectPath(
-        "/dashboard",
-        buildSearchParamsString(resolvedSearchParams),
-        AUTH_ENTRY_REDIRECT,
-      ),
-    );
-  }
+  const { user } = await requireServerSession({
+    pathname: "/dashboard",
+    searchParams: buildSearchParamsString(resolvedSearchParams),
+  });
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col justify-center gap-6 px-6 py-20">
