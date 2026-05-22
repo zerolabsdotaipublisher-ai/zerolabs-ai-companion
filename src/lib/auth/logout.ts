@@ -2,6 +2,15 @@ import { LOGIN_REDIRECT } from "@/lib/auth/redirects";
 
 const REDIRECT_URL_BASE = "http://localhost";
 
+function isSafeInternalAppPath(path: string): boolean {
+  return (
+    path.length > 0 &&
+    path.startsWith("/") &&
+    !path.startsWith("//") &&
+    !path.includes("\\")
+  );
+}
+
 function getLogoutRedirectCandidate(responseBody: unknown): unknown {
   if (!responseBody || typeof responseBody !== "object") {
     return undefined;
@@ -16,18 +25,23 @@ export function resolveLogoutRedirectPath(
   candidatePath: unknown,
   fallbackPath: string = LOGIN_REDIRECT,
 ): string {
-  if (
-    typeof candidatePath !== "string" ||
-    candidatePath.length === 0 ||
-    !candidatePath.startsWith("/") ||
-    candidatePath.startsWith("//")
-  ) {
+  if (typeof candidatePath !== "string" || !isSafeInternalAppPath(candidatePath)) {
     return fallbackPath;
   }
 
   try {
     const resolvedUrl = new URL(candidatePath, REDIRECT_URL_BASE);
-    return `${resolvedUrl.pathname}${resolvedUrl.search}${resolvedUrl.hash}`;
+    const resolvedPath = `${resolvedUrl.pathname}${resolvedUrl.search}${resolvedUrl.hash}`;
+
+    if (
+      resolvedUrl.origin !== REDIRECT_URL_BASE ||
+      !isSafeInternalAppPath(resolvedUrl.pathname) ||
+      !isSafeInternalAppPath(resolvedPath)
+    ) {
+      return fallbackPath;
+    }
+
+    return resolvedPath;
   } catch {
     return fallbackPath;
   }
