@@ -1,5 +1,3 @@
-import "server-only";
-
 import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
 import { cache } from "react";
 
