@@ -5,7 +5,7 @@ type RequestOriginValidationOptions = {
 export const STATE_CHANGING_AUTH_HEADER = "x-ai-companion-auth-request";
 export const STATE_CHANGING_AUTH_HEADER_VALUE = "1";
 
-function isTrustedFetchSite(value: string | null): boolean {
+function isSameOriginFetchSite(value: string | null): boolean {
   return value === "same-origin";
 }
 
@@ -61,7 +61,7 @@ export function isStateChangingAuthRequestAllowed(request: Request): boolean {
   if (
     !originHeader &&
     !refererHeader &&
-    isTrustedFetchSite(request.headers.get("sec-fetch-site"))
+    isSameOriginFetchSite(request.headers.get("sec-fetch-site"))
   ) {
     return true;
   }

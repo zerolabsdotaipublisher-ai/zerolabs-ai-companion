@@ -62,13 +62,9 @@ export function LogoutButton({
       return;
     }
 
-    const timeoutId = window.setTimeout(() => {
+    queueMicrotask(() => {
       buttonRef.current?.click();
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
+    });
   }, [autoSubmit]);
 
   return (
