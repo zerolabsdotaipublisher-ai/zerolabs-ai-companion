@@ -61,6 +61,8 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     },
   });
 
+  // getUser() keeps SSR auth authoritative and lets Supabase refresh cookies
+  // during middleware execution before protected routes render.
   const {
     data: { user },
     error,

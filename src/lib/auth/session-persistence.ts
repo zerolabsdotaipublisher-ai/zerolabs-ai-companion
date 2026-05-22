@@ -8,10 +8,24 @@ const STATIC_FILE_REGEX =
   /\.(?:avif|bmp|css|eot|gif|ico|jpeg|jpg|js|json|map|mp4|otf|pdf|png|svg|ttf|txt|webm|webp|woff|woff2|xml)$/i;
 const SUPABASE_SESSION_COOKIE_REGEX =
   /^(?:__Host-)?sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i;
+const LOCAL_REDIRECT_ORIGIN = "http://localhost";
 
 export const PUBLIC_AUTH_ROUTES = new Set([
   "/",
+  "/health",
+  "/healthz",
   "/login",
+  "/logout",
+  "/signup",
+  "/auth/callback",
+  "/auth/login",
+  "/auth/logout",
+  "/auth/signup",
+]);
+
+const DISALLOWED_POST_AUTH_REDIRECT_ROUTES = new Set([
+  "/login",
+  "/logout",
   "/signup",
   "/auth/callback",
   "/auth/login",
@@ -41,6 +55,26 @@ export function isPublicAuthRoute(
   publicRoutes: ReadonlySet<string> = PUBLIC_AUTH_ROUTES,
 ): boolean {
   return publicRoutes.has(normalizeAuthPathname(pathname));
+}
+
+export function resolvePostAuthRedirectPath(
+  candidatePath: string | string[] | undefined,
+  fallbackPath: string,
+): string {
+  const value = Array.isArray(candidatePath) ? candidatePath[0] : candidatePath;
+
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return fallbackPath;
+  }
+
+  const resolvedUrl = new URL(value, LOCAL_REDIRECT_ORIGIN);
+  const normalizedPathname = normalizeAuthPathname(resolvedUrl.pathname);
+
+  if (DISALLOWED_POST_AUTH_REDIRECT_ROUTES.has(normalizedPathname)) {
+    return fallbackPath;
+  }
+
+  return `${resolvedUrl.pathname}${resolvedUrl.search}`;
 }
 
 export function buildAuthEntryRedirectPath(

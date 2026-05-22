@@ -8,6 +8,7 @@ import {
   validateLoginValues,
 } from "@/lib/auth/login";
 import { AUTHENTICATED_APP_REDIRECT } from "@/lib/auth/redirects";
+import { resolvePostAuthRedirectPath } from "@/lib/auth/session-persistence";
 import { logger } from "@/lib/logger";
 import { createSupabaseAuthDiagnostics } from "@/lib/supabase/auth-diagnostics";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
@@ -37,6 +38,20 @@ function toLoginValues(body: Record<string, unknown>): LoginFormValues {
     email: typeof body.email === "string" ? body.email : "",
     password: typeof body.password === "string" ? body.password : "",
   };
+}
+
+function getRequestedRedirectPath(body: Record<string, unknown>): string | string[] | undefined {
+  const { next } = body;
+
+  if (typeof next === "string") {
+    return next;
+  }
+
+  if (Array.isArray(next) && next.every((value) => typeof value === "string")) {
+    return next;
+  }
+
+  return undefined;
 }
 
 function isInvalidCredentialsError(message: string | undefined): boolean {
@@ -139,6 +154,9 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   return NextResponse.json<LoginRouteResponse>({
-    redirectTo: AUTHENTICATED_APP_REDIRECT,
+    redirectTo: resolvePostAuthRedirectPath(
+      getRequestedRedirectPath(parsedBody),
+      AUTHENTICATED_APP_REDIRECT,
+    ),
   });
 }

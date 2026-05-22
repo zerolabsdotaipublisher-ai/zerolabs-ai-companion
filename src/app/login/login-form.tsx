@@ -18,6 +18,10 @@ type LoginResponse = {
   safeUserMessage?: boolean;
 };
 
+type LoginFormProps = {
+  redirectTo: string;
+};
+
 const GENERIC_AUTH_ERROR_MESSAGE =
   "We couldn’t sign you in. Please check your email and password and try again.";
 const GENERIC_ACCOUNT_ACCESS_ERROR_MESSAGE =
@@ -29,7 +33,7 @@ const NETWORK_ERROR_MESSAGE =
 const SUBMIT_BUTTON_LABEL = "Sign in";
 const SUBMIT_BUTTON_PENDING_LABEL = "Signing in...";
 
-export function LoginForm() {
+export function LoginForm({ redirectTo }: LoginFormProps) {
   const router = useRouter();
   const [values, setValues] = useState<LoginFormValues>({
     email: "",
@@ -104,7 +108,10 @@ export function LoginForm() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          next: redirectTo,
+        }),
       });
       let result: LoginResponse = {};
 
