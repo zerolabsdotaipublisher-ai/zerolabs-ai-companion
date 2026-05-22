@@ -4,9 +4,7 @@ import { redirect } from "next/navigation";
 
 import {
   buildServerAuthRedirectPath,
-  getAuthenticatedUser,
   getServerAuthState,
-  getServerSession,
   hasAuthenticatedServerSession,
   type AuthenticatedServerAuthState,
   type ProtectedRouteOptions,

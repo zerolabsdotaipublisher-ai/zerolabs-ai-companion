@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import type { Session, User } from "@supabase/supabase-js";
 
 import {
   buildServerAuthRedirectPath,
@@ -28,7 +29,7 @@ test("builds login redirects for protected server routes with normalized search 
 });
 
 test("treats only a validated user and session pair as an authenticated server session", () => {
-  const user = {
+  const user: User = {
     id: "user-123",
     app_metadata: {},
     user_metadata: {},
@@ -36,7 +37,7 @@ test("treats only a validated user and session pair as an authenticated server s
     created_at: "2026-01-01T00:00:00.000Z",
   };
 
-  const session = {
+  const session: Session = {
     access_token: "access-token",
     refresh_token: "refresh-token",
     expires_in: 3600,
