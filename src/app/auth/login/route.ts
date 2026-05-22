@@ -40,18 +40,13 @@ function toLoginValues(body: Record<string, unknown>): LoginFormValues {
   };
 }
 
-function getRequestedRedirectPath(body: Record<string, unknown>): string | string[] | undefined {
-  const { next } = body;
+function getRequestedRedirectPath(next: unknown): string | string[] | undefined {
 
   if (typeof next === "string") {
     return next;
   }
 
-  if (
-    Array.isArray(next) &&
-    next.length > 0 &&
-    next.every((value) => typeof value === "string")
-  ) {
+  if (Array.isArray(next) && next.length > 0) {
     return next;
   }
 
@@ -159,7 +154,7 @@ export async function POST(request: Request): Promise<Response> {
 
   return NextResponse.json<LoginRouteResponse>({
     redirectTo: resolvePostAuthRedirectPath(
-      getRequestedRedirectPath(parsedBody),
+      getRequestedRedirectPath(parsedBody.next),
       AUTHENTICATED_APP_REDIRECT,
     ),
   });
