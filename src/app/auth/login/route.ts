@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { isRequestOriginAllowed } from "@/lib/auth/origin";
 import {
   normalizeLoginValues,
   type LoginFormErrors,
@@ -31,34 +32,6 @@ function getLoginFailureLogMessage(error: unknown): string {
   return error ? "Supabase login failed with auth error." : "Supabase login returned no session.";
 }
 
-function isValidOrigin(request: Request): boolean {
-  const requestOrigin = new URL(request.url).origin;
-  const originHeader = request.headers.get("origin");
-  const refererHeader = request.headers.get("referer");
-
-  if (originHeader) {
-    try {
-      if (new URL(originHeader).origin !== requestOrigin) {
-        return false;
-      }
-    } catch {
-      return false;
-    }
-  }
-
-  if (refererHeader) {
-    try {
-      if (new URL(refererHeader).origin !== requestOrigin) {
-        return false;
-      }
-    } catch {
-      return false;
-    }
-  }
-
-  return true;
-}
-
 function toLoginValues(body: Record<string, unknown>): LoginFormValues {
   return {
     email: typeof body.email === "string" ? body.email : "",
@@ -75,7 +48,13 @@ function isEmailNotConfirmedError(message: string | undefined): boolean {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  if (!isValidOrigin(request)) {
+  if (
+    !isRequestOriginAllowed(
+      request.url,
+      request.headers.get("origin"),
+      request.headers.get("referer"),
+    )
+  ) {
     return NextResponse.json<LoginRouteResponse>(
       { error: "Origin is not allowed." },
       { status: 403 },
