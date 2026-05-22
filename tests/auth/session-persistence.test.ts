@@ -58,6 +58,7 @@ test("preserves only safe post-auth redirects and avoids auth loops", () => {
   assert.equal(resolvePostAuthRedirectPath(42, "/dashboard"), "/dashboard");
   assert.equal(resolvePostAuthRedirectPath(true, "/dashboard"), "/dashboard");
   assert.equal(resolvePostAuthRedirectPath(Symbol("next"), "/dashboard"), "/dashboard");
+  assert.equal(resolvePostAuthRedirectPath(() => "/dashboard", "/dashboard"), "/dashboard");
   assert.equal(resolvePostAuthRedirectPath({ path: "/dashboard" }, "/dashboard"), "/dashboard");
   assert.equal(
     resolvePostAuthRedirectPath([null] as unknown as string[], "/dashboard"),
@@ -73,6 +74,10 @@ test("preserves only safe post-auth redirects and avoids auth loops", () => {
   );
   assert.equal(
     resolvePostAuthRedirectPath(["//evil.example/dashboard", "/dashboard"], "/dashboard"),
+    "/dashboard",
+  );
+  assert.equal(
+    resolvePostAuthRedirectPath(["//evil.example/dashboard", "//still-evil.example"], "/dashboard"),
     "/dashboard",
   );
   assert.equal(resolvePostAuthRedirectPath("/login?next=%2Fdashboard", "/dashboard"), "/dashboard");
