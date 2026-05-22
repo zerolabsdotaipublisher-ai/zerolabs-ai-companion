@@ -47,7 +47,11 @@ function getRequestedRedirectPath(body: Record<string, unknown>): string | strin
     return next;
   }
 
-  if (Array.isArray(next) && next.every((value) => typeof value === "string")) {
+  if (
+    Array.isArray(next) &&
+    next.length > 0 &&
+    next.every((value) => typeof value === "string")
+  ) {
     return next;
   }
 

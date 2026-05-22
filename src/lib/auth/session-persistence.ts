@@ -9,29 +9,24 @@ const STATIC_FILE_REGEX =
 const SUPABASE_SESSION_COOKIE_REGEX =
   /^(?:__Host-)?sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i;
 const LOCAL_REDIRECT_ORIGIN = "http://localhost";
+const AUTH_FLOW_PUBLIC_ROUTES = [
+  "/login",
+  "/logout",
+  "/signup",
+  "/auth/callback",
+  "/auth/login",
+  "/auth/logout",
+  "/auth/signup",
+] as const;
 
 export const PUBLIC_AUTH_ROUTES = new Set([
   "/",
   "/health",
   "/healthz",
-  "/login",
-  "/logout",
-  "/signup",
-  "/auth/callback",
-  "/auth/login",
-  "/auth/logout",
-  "/auth/signup",
+  ...AUTH_FLOW_PUBLIC_ROUTES,
 ]);
 
-const DISALLOWED_POST_AUTH_REDIRECT_ROUTES = new Set([
-  "/login",
-  "/logout",
-  "/signup",
-  "/auth/callback",
-  "/auth/login",
-  "/auth/logout",
-  "/auth/signup",
-]);
+const DISALLOWED_POST_AUTH_REDIRECT_ROUTES = new Set<string>(AUTH_FLOW_PUBLIC_ROUTES);
 
 export function normalizeAuthPathname(pathname: string): string {
   if (pathname === "/") {
