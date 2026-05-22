@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import { getStateChangingAuthHeaders } from "@/lib/auth/origin";
+
 type LogoutButtonProps = {
   autoSubmit?: boolean;
   className: string;
@@ -37,6 +39,7 @@ export function LogoutButton({
     try {
       const response = await fetch("/auth/logout", {
         method: "POST",
+        headers: getStateChangingAuthHeaders(),
       });
 
       if (!response.ok) {

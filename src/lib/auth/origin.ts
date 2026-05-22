@@ -2,8 +2,17 @@ type RequestOriginValidationOptions = {
   requireHeaders?: boolean;
 };
 
+export const STATE_CHANGING_AUTH_HEADER = "x-ai-companion-auth-request";
+const STATE_CHANGING_AUTH_HEADER_VALUE = "1";
+
 function isTrustedFetchSite(value: string | null): boolean {
-  return value === "same-origin";
+  return value === "same-origin" || value === "same-site" || value === "none";
+}
+
+export function getStateChangingAuthHeaders(): Record<string, string> {
+  return {
+    [STATE_CHANGING_AUTH_HEADER]: STATE_CHANGING_AUTH_HEADER_VALUE,
+  };
 }
 
 export function isRequestOriginAllowed(
@@ -44,6 +53,10 @@ export function isRequestOriginAllowed(
 export function isStateChangingAuthRequestAllowed(request: Request): boolean {
   const originHeader = request.headers.get("origin");
   const refererHeader = request.headers.get("referer");
+
+  if (request.headers.get(STATE_CHANGING_AUTH_HEADER) === STATE_CHANGING_AUTH_HEADER_VALUE) {
+    return true;
+  }
 
   if (
     !originHeader &&
