@@ -2,6 +2,8 @@ export type CookieName = {
   name: string;
 };
 
+export type RouteSearchParams = Record<string, string | string[] | undefined>;
+
 const STATIC_FILE_REGEX =
   /\.(?:avif|bmp|css|eot|gif|ico|jpeg|jpg|js|json|map|mp4|otf|pdf|png|svg|ttf|txt|webm|webp|woff|woff2|xml)$/i;
 const SUPABASE_SESSION_COOKIE_REGEX =
@@ -49,6 +51,30 @@ export function buildAuthEntryRedirectPath(
   const redirectUrl = new URL(authEntryPath, "http://localhost");
   redirectUrl.searchParams.set("next", `${pathname}${search}`);
   return `${redirectUrl.pathname}${redirectUrl.search}`;
+}
+
+/**
+ * Normalizes Next.js page search params into a query string.
+ * Undefined values are skipped, while array values emit one entry per item.
+ */
+export function buildSearchParamsString(searchParams: RouteSearchParams): string {
+  const normalizedSearchParams = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(searchParams)) {
+    if (typeof value === "string") {
+      normalizedSearchParams.append(key, value);
+      continue;
+    }
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        normalizedSearchParams.append(key, item);
+      }
+    }
+  }
+
+  const search = normalizedSearchParams.toString();
+  return search ? `?${search}` : "";
 }
 
 export function isSupabaseSessionCookieName(name: string): boolean {

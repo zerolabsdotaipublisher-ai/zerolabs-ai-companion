@@ -1,8 +1,17 @@
+type RequestOriginValidationOptions = {
+  requireHeaders?: boolean;
+};
+
 export function isRequestOriginAllowed(
   requestUrl: string,
   originHeader: string | null,
   refererHeader: string | null,
+  options: RequestOriginValidationOptions = {},
 ): boolean {
+  if (options.requireHeaders && !originHeader && !refererHeader) {
+    return false;
+  }
+
   const requestOrigin = new URL(requestUrl).origin;
 
   if (originHeader) {
@@ -26,4 +35,13 @@ export function isRequestOriginAllowed(
   }
 
   return true;
+}
+
+export function isStateChangingAuthRequestAllowed(request: Request): boolean {
+  return isRequestOriginAllowed(
+    request.url,
+    request.headers.get("origin"),
+    request.headers.get("referer"),
+    { requireHeaders: true },
+  );
 }

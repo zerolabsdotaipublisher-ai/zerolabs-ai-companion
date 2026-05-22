@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { isRequestOriginAllowed } from "@/lib/auth/origin";
+import { isStateChangingAuthRequestAllowed } from "@/lib/auth/origin";
 import {
   normalizeLoginValues,
   type LoginFormErrors,
@@ -48,13 +48,7 @@ function isEmailNotConfirmedError(message: string | undefined): boolean {
 }
 
 export async function POST(request: Request): Promise<Response> {
-  if (
-    !isRequestOriginAllowed(
-      request.url,
-      request.headers.get("origin"),
-      request.headers.get("referer"),
-    )
-  ) {
+  if (!isStateChangingAuthRequestAllowed(request)) {
     return NextResponse.json<LoginRouteResponse>(
       { error: "Origin is not allowed." },
       { status: 403 },

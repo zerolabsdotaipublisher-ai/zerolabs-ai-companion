@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   buildAuthEntryRedirectPath,
+  buildSearchParamsString,
   getSupabaseSessionCookieNames,
   isPublicAuthRoute,
   isStaticAssetPathname,
@@ -33,6 +34,25 @@ test("treats login and auth endpoints as public while keeping protected routes g
   assert.equal(
     buildAuthEntryRedirectPath("/dashboard", "?tab=account", "/login"),
     "/login?next=%2Fdashboard%3Ftab%3Daccount",
+  );
+});
+
+test("serializes dashboard search params before building auth redirects", () => {
+  assert.equal(
+    buildSearchParamsString({
+      tab: "account",
+      filter: ["open", "assigned"],
+      empty: undefined,
+    }),
+    "?tab=account&filter=open&filter=assigned",
+  );
+  assert.equal(
+    buildAuthEntryRedirectPath(
+      "/dashboard",
+      buildSearchParamsString({ tab: "account", filter: ["open", "assigned"] }),
+      "/login",
+    ),
+    "/login?next=%2Fdashboard%3Ftab%3Daccount%26filter%3Dopen%26filter%3Dassigned",
   );
 });
 

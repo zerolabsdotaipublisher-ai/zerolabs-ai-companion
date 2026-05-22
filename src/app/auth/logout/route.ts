@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { isRequestOriginAllowed } from "@/lib/auth/origin";
+import { isStateChangingAuthRequestAllowed } from "@/lib/auth/origin";
 import { AUTH_ENTRY_REDIRECT } from "@/lib/auth/redirects";
 import {
   getSupabaseSessionCookieNames,
@@ -20,13 +20,7 @@ function clearSessionCookies(
 }
 
 export async function POST(request: Request): Promise<Response> {
-  if (
-    !isRequestOriginAllowed(
-      request.url,
-      request.headers.get("origin"),
-      request.headers.get("referer"),
-    )
-  ) {
+  if (!isStateChangingAuthRequestAllowed(request)) {
     return NextResponse.json({ error: "Origin is not allowed." }, { status: 403 });
   }
 
