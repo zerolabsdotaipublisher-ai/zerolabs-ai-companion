@@ -58,9 +58,17 @@ export function isSupabaseSessionCookieName(name: string): boolean {
 export function getSupabaseSessionCookieNames(
   cookies: ReadonlyArray<CookieName>,
 ): string[] {
-  return cookies
-    .map((cookie) => cookie.name)
-    .filter((name, index, names) => {
-      return names.indexOf(name) === index && isSupabaseSessionCookieName(name);
-    });
+  const seenNames = new Set<string>();
+  const sessionCookieNames: string[] = [];
+
+  for (const { name } of cookies) {
+    if (seenNames.has(name) || !isSupabaseSessionCookieName(name)) {
+      continue;
+    }
+
+    seenNames.add(name);
+    sessionCookieNames.push(name);
+  }
+
+  return sessionCookieNames;
 }
