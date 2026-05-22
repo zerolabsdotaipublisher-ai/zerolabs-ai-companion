@@ -40,24 +40,6 @@ test("allows same-origin auth requests when fetch metadata marks them same-origi
   assert.equal(isStateChangingAuthRequestAllowed(request), true);
 });
 
-test("allows auth requests when fetch metadata marks them same-site or browser-initiated", () => {
-  const sameSiteRequest = new Request("https://example.com/auth/logout", {
-    method: "POST",
-    headers: {
-      "sec-fetch-site": "same-site",
-    },
-  });
-  const browserInitiatedRequest = new Request("https://example.com/auth/logout", {
-    method: "POST",
-    headers: {
-      "sec-fetch-site": "none",
-    },
-  });
-
-  assert.equal(isStateChangingAuthRequestAllowed(sameSiteRequest), true);
-  assert.equal(isStateChangingAuthRequestAllowed(browserInitiatedRequest), true);
-});
-
 test("allows state-changing auth requests with the trusted client header", () => {
   const request = new Request("https://example.com/auth/login", {
     method: "POST",

@@ -3,10 +3,10 @@ type RequestOriginValidationOptions = {
 };
 
 export const STATE_CHANGING_AUTH_HEADER = "x-ai-companion-auth-request";
-const STATE_CHANGING_AUTH_HEADER_VALUE = "1";
+export const STATE_CHANGING_AUTH_HEADER_VALUE = "1";
 
 function isTrustedFetchSite(value: string | null): boolean {
-  return value === "same-origin" || value === "same-site" || value === "none";
+  return value === "same-origin";
 }
 
 export function getStateChangingAuthHeaders(): Record<string, string> {

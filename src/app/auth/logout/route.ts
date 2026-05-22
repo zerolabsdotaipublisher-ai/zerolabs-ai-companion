@@ -1,7 +1,11 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { isStateChangingAuthRequestAllowed } from "@/lib/auth/origin";
+import {
+  isStateChangingAuthRequestAllowed,
+  STATE_CHANGING_AUTH_HEADER,
+  STATE_CHANGING_AUTH_HEADER_VALUE,
+} from "@/lib/auth/origin";
 import { AUTH_ENTRY_REDIRECT } from "@/lib/auth/redirects";
 import {
   getSupabaseSessionCookieNames,
@@ -41,6 +45,13 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   clearSessionCookies(cookieStore, sessionCookies);
+
+  if (
+    request.headers.get(STATE_CHANGING_AUTH_HEADER) ===
+    STATE_CHANGING_AUTH_HEADER_VALUE
+  ) {
+    return NextResponse.json({ redirectTo: AUTH_ENTRY_REDIRECT });
+  }
 
   return NextResponse.redirect(new URL(AUTH_ENTRY_REDIRECT, request.url), {
     status: 303,
