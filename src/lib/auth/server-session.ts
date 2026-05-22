@@ -106,7 +106,7 @@ const getCachedServerAuthState = cache(async (): Promise<ServerAuthState> => {
 
   return {
     supabase,
-    session: session.user.id === user.id ? session : { ...session, user },
+    session: { ...session, user },
     user,
   };
 });
