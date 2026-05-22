@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
 import { cache } from "react";
 
@@ -6,8 +8,7 @@ import {
   buildSearchParamsString,
   type RouteSearchParams,
 } from "./session-persistence";
-
-const DEFAULT_AUTH_ENTRY_REDIRECT = "/login";
+import { AUTH_ENTRY_REDIRECT } from "./redirects";
 
 export type ServerAuthState = {
   supabase: SupabaseClient;
@@ -45,14 +46,17 @@ function normalizeSearch(searchParams: RouteSearchParams | string | undefined): 
 export function buildServerAuthRedirectPath({
   pathname,
   searchParams,
-  authEntryPath = DEFAULT_AUTH_ENTRY_REDIRECT,
+  authEntryPath = AUTH_ENTRY_REDIRECT,
 }: ProtectedRouteOptions): string {
   return buildAuthEntryRedirectPath(pathname, normalizeSearch(searchParams), authEntryPath);
 }
 
-export function hasAuthenticatedServerSession(
-  value: Pick<ServerAuthState, "session" | "user">,
-): value is AuthenticatedServerAuthState {
+export function hasAuthenticatedServerSession<
+  T extends {
+    session: Session | null;
+    user: User | null;
+  },
+>(value: T): value is T & { session: Session; user: User } {
   return value.session !== null && value.user !== null;
 }
 
