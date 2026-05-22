@@ -1,14 +1,13 @@
 import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
 import { cache } from "react";
 
-import { AUTH_ENTRY_REDIRECT } from "@/lib/auth/redirects";
 import {
   buildAuthEntryRedirectPath,
   buildSearchParamsString,
   type RouteSearchParams,
-} from "@/lib/auth/session-persistence";
-import { logger } from "@/lib/logger";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+} from "./session-persistence";
+
+const DEFAULT_AUTH_ENTRY_REDIRECT = "/login";
 
 export type ServerAuthState = {
   supabase: SupabaseClient;
@@ -46,7 +45,7 @@ function normalizeSearch(searchParams: RouteSearchParams | string | undefined): 
 export function buildServerAuthRedirectPath({
   pathname,
   searchParams,
-  authEntryPath = AUTH_ENTRY_REDIRECT,
+  authEntryPath = DEFAULT_AUTH_ENTRY_REDIRECT,
 }: ProtectedRouteOptions): string {
   return buildAuthEntryRedirectPath(pathname, normalizeSearch(searchParams), authEntryPath);
 }
@@ -58,6 +57,10 @@ export function hasAuthenticatedServerSession(
 }
 
 const getCachedServerAuthState = cache(async (): Promise<ServerAuthState> => {
+  const [{ logger }, { getSupabaseServerClient }] = await Promise.all([
+    import("../logger"),
+    import("../supabase/server"),
+  ]);
   const supabase = await getSupabaseServerClient();
   const {
     data: { user },
