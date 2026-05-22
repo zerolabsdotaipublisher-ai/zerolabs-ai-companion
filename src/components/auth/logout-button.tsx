@@ -20,6 +20,7 @@ export function LogoutButton({
   pendingLabel,
 }: LogoutButtonProps) {
   const router = useRouter();
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const submitInFlightRef = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -58,12 +59,24 @@ export function LogoutButton({
       return;
     }
 
-    void handleSubmit();
+    const timeoutId = window.setTimeout(() => {
+      buttonRef.current?.click();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
   }, [autoSubmit]);
 
   return (
     <div className="space-y-3">
-      <button className={className} disabled={isSubmitting} onClick={() => void handleSubmit()} type="button">
+      <button
+        className={className}
+        disabled={isSubmitting}
+        onClick={() => void handleSubmit()}
+        ref={buttonRef}
+        type="button"
+      >
         {isSubmitting ? pendingLabel : idleLabel}
       </button>
       {errorMessage ? (

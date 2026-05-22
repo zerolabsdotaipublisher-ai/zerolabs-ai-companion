@@ -2,6 +2,10 @@ type RequestOriginValidationOptions = {
   requireHeaders?: boolean;
 };
 
+function isTrustedFetchSite(value: string | null): boolean {
+  return value === "same-origin";
+}
+
 export function isRequestOriginAllowed(
   requestUrl: string,
   originHeader: string | null,
@@ -38,10 +42,21 @@ export function isRequestOriginAllowed(
 }
 
 export function isStateChangingAuthRequestAllowed(request: Request): boolean {
+  const originHeader = request.headers.get("origin");
+  const refererHeader = request.headers.get("referer");
+
+  if (
+    !originHeader &&
+    !refererHeader &&
+    isTrustedFetchSite(request.headers.get("sec-fetch-site"))
+  ) {
+    return true;
+  }
+
   return isRequestOriginAllowed(
     request.url,
-    request.headers.get("origin"),
-    request.headers.get("referer"),
+    originHeader,
+    refererHeader,
     { requireHeaders: true },
   );
 }

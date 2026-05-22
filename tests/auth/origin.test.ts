@@ -28,6 +28,17 @@ test("allows same-origin auth requests when only the referer header matches", ()
   assert.equal(isStateChangingAuthRequestAllowed(request), true);
 });
 
+test("allows same-origin auth requests when fetch metadata marks them same-origin", () => {
+  const request = new Request("https://example.com/auth/logout", {
+    method: "POST",
+    headers: {
+      "sec-fetch-site": "same-origin",
+    },
+  });
+
+  assert.equal(isStateChangingAuthRequestAllowed(request), true);
+});
+
 test("rejects state-changing auth requests without origin metadata", () => {
   const request = new Request("https://example.com/auth/logout", {
     method: "POST",
