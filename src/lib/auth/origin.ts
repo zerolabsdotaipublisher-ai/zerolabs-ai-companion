@@ -61,8 +61,12 @@ export function isStateChangingAuthRequestAllowed(request: Request): boolean {
   const originHeader = request.headers.get("origin");
   const refererHeader = request.headers.get("referer");
 
-  if (hasTrustedStateChangingAuthHeader(request)) {
-    return true;
+  const hasTrustedHeader = hasTrustedStateChangingAuthHeader(request);
+
+  if (originHeader || refererHeader) {
+    return isRequestOriginAllowed(request.url, originHeader, refererHeader, {
+      requireHeaders: true,
+    });
   }
 
   if (
@@ -73,10 +77,5 @@ export function isStateChangingAuthRequestAllowed(request: Request): boolean {
     return true;
   }
 
-  return isRequestOriginAllowed(
-    request.url,
-    originHeader,
-    refererHeader,
-    { requireHeaders: true },
-  );
+  return hasTrustedHeader;
 }

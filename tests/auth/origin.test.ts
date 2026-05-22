@@ -49,6 +49,30 @@ test("allows state-changing auth requests with the trusted client header", () =>
   assert.equal(isStateChangingAuthRequestAllowed(request), true);
 });
 
+test("allows same-origin auth requests when the trusted client header accompanies matching origin metadata", () => {
+  const request = new Request("https://example.com/auth/logout", {
+    method: "POST",
+    headers: {
+      ...getStateChangingAuthHeaders(),
+      origin: "https://example.com",
+    },
+  });
+
+  assert.equal(isStateChangingAuthRequestAllowed(request), true);
+});
+
+test("rejects cross-origin auth requests even when the trusted client header is present", () => {
+  const request = new Request("https://example.com/auth/logout", {
+    method: "POST",
+    headers: {
+      ...getStateChangingAuthHeaders(),
+      referer: "https://evil.example/logout",
+    },
+  });
+
+  assert.equal(isStateChangingAuthRequestAllowed(request), false);
+});
+
 test("rejects state-changing auth requests without origin metadata", () => {
   const request = new Request("https://example.com/auth/logout", {
     method: "POST",
