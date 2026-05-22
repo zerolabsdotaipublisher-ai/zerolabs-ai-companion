@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": ".test-dist",
+    "rootDir": ".",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "isolatedModules": false,
+    "incremental": false,
+    "types": ["node"],
+    "plugins": []
+  },
+  "include": ["src/lib/auth/session-persistence.ts", "tests/**/*.ts"],
+  "exclude": ["node_modules", ".next", ".test-dist"]
+}

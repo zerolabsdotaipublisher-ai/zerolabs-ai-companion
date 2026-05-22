@@ -2,42 +2,15 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { AUTH_ENTRY_REDIRECT } from "@/lib/auth/redirects";
+import {
+  buildAuthEntryRedirectPath,
+  isPublicAuthRoute,
+  isStaticAssetPathname,
+  normalizeAuthPathname,
+} from "@/lib/auth/session-persistence";
 import { getSupabaseClientConfig } from "@/lib/supabase/config";
 import { logger } from "@/lib/logger";
 import { createSupabaseAuthDiagnostics } from "@/lib/supabase/auth-diagnostics";
-
-const PUBLIC_ROUTES = new Set([
-  "/",
-  "/login",
-  "/signup",
-  "/auth/callback",
-  "/auth/login",
-  "/auth/signup",
-]);
-
-const STATIC_FILE_REGEX =
-  /\.(?:avif|bmp|css|eot|gif|ico|jpeg|jpg|js|json|map|mp4|otf|pdf|png|svg|ttf|txt|webm|webp|woff|woff2|xml)$/i;
-
-function normalizePathname(pathname: string): string {
-  if (pathname === "/") {
-    return pathname;
-  }
-
-  return pathname.replace(/\/+$/, "");
-}
-
-function isStaticAsset(pathname: string): boolean {
-  return (
-    pathname.startsWith("/_next/") ||
-    pathname.startsWith("/static/") ||
-    pathname.startsWith("/favicon.") ||
-    STATIC_FILE_REGEX.test(pathname)
-  );
-}
-
-function isPublicRoute(pathname: string): boolean {
-  return PUBLIC_ROUTES.has(normalizePathname(pathname));
-}
 
 function copyCookies(source: NextResponse, target: NextResponse): void {
   for (const cookie of source.cookies.getAll()) {
@@ -47,10 +20,10 @@ function copyCookies(source: NextResponse, target: NextResponse): void {
 
 export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
-  const normalizedPathname = normalizePathname(pathname);
+  const normalizedPathname = normalizeAuthPathname(pathname);
   const { url, anonKey, global } = getSupabaseClientConfig();
 
-  if (isStaticAsset(pathname)) {
+  if (isStaticAssetPathname(pathname)) {
     return NextResponse.next();
   }
 
@@ -106,13 +79,11 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     });
   }
 
-  if (!user && !isPublicRoute(normalizedPathname)) {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = AUTH_ENTRY_REDIRECT;
-
-    const nextPath = `${pathname}${request.nextUrl.search}`;
-    redirectUrl.searchParams.set("next", nextPath);
-
+  if (!user && !isPublicAuthRoute(normalizedPathname)) {
+    const redirectUrl = new URL(
+      buildAuthEntryRedirectPath(pathname, request.nextUrl.search, AUTH_ENTRY_REDIRECT),
+      request.url,
+    );
     const redirectResponse = NextResponse.redirect(redirectUrl);
     copyCookies(response, redirectResponse);
     return redirectResponse;
