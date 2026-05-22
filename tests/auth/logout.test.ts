@@ -39,5 +39,8 @@ test("falls back to /login when the logout JSON response contains an invalid red
     }),
     "/login",
   );
+});
+
+test("falls back to /login when the logout redirect candidate itself is missing", () => {
   assert.equal(resolveLogoutRedirectPath(undefined), "/login");
 });
