@@ -22,7 +22,7 @@ function clearSessionCookies(
 export async function POST(request: Request): Promise<Response> {
   if (!isStateChangingAuthRequestAllowed(request)) {
     return NextResponse.json(
-      { error: "Origin metadata is missing or not allowed" },
+      { error: "Origin metadata is missing or not allowed." },
       { status: 403 },
     );
   }
