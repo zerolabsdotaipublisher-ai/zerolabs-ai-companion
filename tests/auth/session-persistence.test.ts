@@ -61,7 +61,7 @@ test("preserves only safe post-auth redirects and avoids auth loops", () => {
 test("falls back safely when redirect URL parsing throws", () => {
   const originalUrlConstructor = globalThis.URL;
 
-  globalThis.URL = class BrokenUrl {
+  globalThis.URL = class BrokenURL {
     constructor() {
       throw new TypeError("Invalid URL");
     }

@@ -26,7 +26,9 @@ export const PUBLIC_AUTH_ROUTES = new Set([
   ...AUTH_FLOW_PUBLIC_ROUTES,
 ]);
 
-const DISALLOWED_POST_AUTH_REDIRECT_ROUTES = new Set<string>(AUTH_FLOW_PUBLIC_ROUTES);
+const DISALLOWED_POST_AUTH_REDIRECT_ROUTES: ReadonlySet<string> = new Set(
+  AUTH_FLOW_PUBLIC_ROUTES,
+);
 
 export function normalizeAuthPathname(pathname: string): string {
   if (pathname === "/") {

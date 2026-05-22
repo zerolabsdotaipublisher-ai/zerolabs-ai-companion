@@ -11,9 +11,9 @@ type LoginPageProps = {
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const resolvedSearchParams = (await searchParams) ?? {};
+  const awaitedSearchParams = (await searchParams) ?? {};
   const redirectTo = resolvePostAuthRedirectPath(
-    resolvedSearchParams.next,
+    awaitedSearchParams.next,
     AUTHENTICATED_APP_REDIRECT,
   );
   const user = await getAuthenticatedUser();
