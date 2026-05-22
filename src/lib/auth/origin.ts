@@ -15,6 +15,13 @@ export function getStateChangingAuthHeaders(): Record<string, string> {
   };
 }
 
+export function hasTrustedStateChangingAuthHeader(request: Request): boolean {
+  return (
+    request.headers.get(STATE_CHANGING_AUTH_HEADER) ===
+    STATE_CHANGING_AUTH_HEADER_VALUE
+  );
+}
+
 export function isRequestOriginAllowed(
   requestUrl: string,
   originHeader: string | null,
@@ -54,7 +61,7 @@ export function isStateChangingAuthRequestAllowed(request: Request): boolean {
   const originHeader = request.headers.get("origin");
   const refererHeader = request.headers.get("referer");
 
-  if (request.headers.get(STATE_CHANGING_AUTH_HEADER) === STATE_CHANGING_AUTH_HEADER_VALUE) {
+  if (hasTrustedStateChangingAuthHeader(request)) {
     return true;
   }
 
