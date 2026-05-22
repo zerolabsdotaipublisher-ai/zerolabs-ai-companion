@@ -58,6 +58,22 @@ test("preserves only safe post-auth redirects and avoids auth loops", () => {
   );
 });
 
+test("falls back safely when redirect URL parsing throws", () => {
+  const originalUrlConstructor = globalThis.URL;
+
+  globalThis.URL = class BrokenUrl {
+    constructor() {
+      throw new TypeError("Invalid URL");
+    }
+  } as unknown as typeof URL;
+
+  try {
+    assert.equal(resolvePostAuthRedirectPath("/dashboard", "/dashboard"), "/dashboard");
+  } finally {
+    globalThis.URL = originalUrlConstructor;
+  }
+});
+
 test("serializes dashboard search params before building auth redirects", () => {
   assert.equal(
     buildSearchParamsString({

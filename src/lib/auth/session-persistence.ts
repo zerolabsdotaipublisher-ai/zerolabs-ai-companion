@@ -62,14 +62,18 @@ export function resolvePostAuthRedirectPath(
     return fallbackPath;
   }
 
-  const resolvedUrl = new URL(value, LOCAL_REDIRECT_ORIGIN);
-  const normalizedPathname = normalizeAuthPathname(resolvedUrl.pathname);
+  try {
+    const resolvedUrl = new URL(value, LOCAL_REDIRECT_ORIGIN);
+    const normalizedPathname = normalizeAuthPathname(resolvedUrl.pathname);
 
-  if (DISALLOWED_POST_AUTH_REDIRECT_ROUTES.has(normalizedPathname)) {
+    if (DISALLOWED_POST_AUTH_REDIRECT_ROUTES.has(normalizedPathname)) {
+      return fallbackPath;
+    }
+
+    return `${resolvedUrl.pathname}${resolvedUrl.search}`;
+  } catch {
     return fallbackPath;
   }
-
-  return `${resolvedUrl.pathname}${resolvedUrl.search}`;
 }
 
 export function buildAuthEntryRedirectPath(
