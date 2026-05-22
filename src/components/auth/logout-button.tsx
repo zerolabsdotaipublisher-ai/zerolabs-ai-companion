@@ -3,7 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import { resolveLogoutRedirectPathFromResponseBody } from "@/lib/auth/logout";
 import { getStateChangingAuthHeaders } from "@/lib/auth/origin";
+import { LOGIN_REDIRECT } from "@/lib/auth/redirects";
 
 type LogoutButtonProps = {
   autoSubmit?: boolean;
@@ -47,7 +49,18 @@ export function LogoutButton({
         return;
       }
 
-      router.replace("/login");
+      let redirectTo = LOGIN_REDIRECT;
+
+      try {
+        redirectTo = resolveLogoutRedirectPathFromResponseBody(
+          await response.json(),
+          LOGIN_REDIRECT,
+        );
+      } catch {
+        redirectTo = LOGIN_REDIRECT;
+      }
+
+      router.replace(redirectTo);
       router.refresh();
     } catch {
       setErrorMessage(LOGOUT_ERROR_MESSAGE);
