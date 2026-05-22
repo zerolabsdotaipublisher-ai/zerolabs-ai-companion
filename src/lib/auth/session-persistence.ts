@@ -8,16 +8,27 @@ const STATIC_FILE_REGEX =
   /\.(?:avif|bmp|css|eot|gif|ico|jpeg|jpg|js|json|map|mp4|otf|pdf|png|svg|ttf|txt|webm|webp|woff|woff2|xml)$/i;
 const SUPABASE_SESSION_COOKIE_REGEX =
   /^(?:__Host-)?sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i;
-
-export const PUBLIC_AUTH_ROUTES = new Set([
-  "/",
+const REDIRECT_URL_BASE = "http://localhost";
+const AUTH_FLOW_PUBLIC_ROUTES = [
   "/login",
+  "/logout",
   "/signup",
   "/auth/callback",
   "/auth/login",
   "/auth/logout",
   "/auth/signup",
+] as const;
+
+export const PUBLIC_AUTH_ROUTES = new Set([
+  "/",
+  "/health",
+  "/healthz",
+  ...AUTH_FLOW_PUBLIC_ROUTES,
 ]);
+
+const DISALLOWED_POST_AUTH_REDIRECT_ROUTES: ReadonlySet<string> = new Set(
+  AUTH_FLOW_PUBLIC_ROUTES,
+);
 
 export function normalizeAuthPathname(pathname: string): string {
   if (pathname === "/") {
@@ -43,12 +54,36 @@ export function isPublicAuthRoute(
   return publicRoutes.has(normalizeAuthPathname(pathname));
 }
 
+export function resolvePostAuthRedirectPath(
+  candidatePath: string | string[] | undefined,
+  fallbackPath: string,
+): string {
+  const value = Array.isArray(candidatePath) ? candidatePath[0] : candidatePath;
+
+  if (!value || !value.startsWith("/") || value.startsWith("//")) {
+    return fallbackPath;
+  }
+
+  try {
+    const resolvedUrl = new URL(value, REDIRECT_URL_BASE);
+    const normalizedPathname = normalizeAuthPathname(resolvedUrl.pathname);
+
+    if (DISALLOWED_POST_AUTH_REDIRECT_ROUTES.has(normalizedPathname)) {
+      return fallbackPath;
+    }
+
+    return `${resolvedUrl.pathname}${resolvedUrl.search}`;
+  } catch {
+    return fallbackPath;
+  }
+}
+
 export function buildAuthEntryRedirectPath(
   pathname: string,
   search: string,
   authEntryPath: string,
 ): string {
-  const redirectUrl = new URL(authEntryPath, "http://localhost");
+  const redirectUrl = new URL(authEntryPath, REDIRECT_URL_BASE);
   redirectUrl.searchParams.set("next", `${pathname}${search}`);
   return `${redirectUrl.pathname}${redirectUrl.search}`;
 }

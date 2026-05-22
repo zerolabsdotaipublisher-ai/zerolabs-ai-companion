@@ -6,6 +6,7 @@ import {
   buildSearchParamsString,
   getSupabaseSessionCookieNames,
   isPublicAuthRoute,
+  resolvePostAuthRedirectPath,
   isStaticAssetPathname,
 } from "../../src/lib/auth/session-persistence";
 
@@ -28,13 +29,49 @@ test("detects Supabase session cookies, including chunked cookies used for logou
 });
 
 test("treats login and auth endpoints as public while keeping protected routes guarded", () => {
+  assert.equal(isPublicAuthRoute("/"), true);
+  assert.equal(isPublicAuthRoute("/health"), true);
   assert.equal(isPublicAuthRoute("/login/"), true);
+  assert.equal(isPublicAuthRoute("/logout"), true);
+  assert.equal(isPublicAuthRoute("/auth/callback"), true);
   assert.equal(isPublicAuthRoute("/auth/logout"), true);
   assert.equal(isPublicAuthRoute("/dashboard"), false);
   assert.equal(
     buildAuthEntryRedirectPath("/dashboard", "?tab=account", "/login"),
     "/login?next=%2Fdashboard%3Ftab%3Daccount",
   );
+});
+
+test("preserves only safe post-auth redirects and avoids auth loops", () => {
+  assert.equal(
+    resolvePostAuthRedirectPath("/dashboard?tab=account", "/dashboard"),
+    "/dashboard?tab=account",
+  );
+  assert.equal(resolvePostAuthRedirectPath("/", "/dashboard"), "/");
+  assert.equal(resolvePostAuthRedirectPath(undefined, "/dashboard"), "/dashboard");
+  assert.equal(resolvePostAuthRedirectPath("/login?next=%2Fdashboard", "/dashboard"), "/dashboard");
+  assert.equal(resolvePostAuthRedirectPath("/auth/logout", "/dashboard"), "/dashboard");
+  assert.equal(resolvePostAuthRedirectPath("//evil.example/dashboard", "/dashboard"), "/dashboard");
+  assert.equal(
+    resolvePostAuthRedirectPath("https://evil.example/dashboard", "/dashboard"),
+    "/dashboard",
+  );
+});
+
+test("falls back safely when redirect URL parsing throws", () => {
+  const originalUrlConstructor = globalThis.URL;
+
+  globalThis.URL = class BrokenURL {
+    constructor() {
+      throw new TypeError("Invalid URL");
+    }
+  } as unknown as typeof URL;
+
+  try {
+    assert.equal(resolvePostAuthRedirectPath("/dashboard", "/dashboard"), "/dashboard");
+  } finally {
+    globalThis.URL = originalUrlConstructor;
+  }
 });
 
 test("serializes dashboard search params before building auth redirects", () => {

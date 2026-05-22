@@ -1,16 +1,26 @@
 import { redirect } from "next/navigation";
 
 import { AUTHENTICATED_APP_REDIRECT } from "@/lib/auth/redirects";
+import { resolvePostAuthRedirectPath } from "@/lib/auth/session-persistence";
 import { getAuthenticatedUser } from "@/lib/auth/server";
 
 import { LoginForm } from "./login-form";
 
-export default async function LoginPage() {
+type LoginPageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const awaitedSearchParams = (await searchParams) ?? {};
+  const redirectTo = resolvePostAuthRedirectPath(
+    awaitedSearchParams.next,
+    AUTHENTICATED_APP_REDIRECT,
+  );
   const user = await getAuthenticatedUser();
 
   if (user) {
-    redirect(AUTHENTICATED_APP_REDIRECT);
+    redirect(redirectTo);
   }
 
-  return <LoginForm />;
+  return <LoginForm redirectTo={redirectTo} />;
 }
