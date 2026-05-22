@@ -3,6 +3,7 @@ import {
   type RouteSearchParams,
 } from "@/lib/auth/session-persistence";
 import { requireServerSession } from "@/lib/auth/server";
+import { LogoutButton } from "@/components/auth/logout-button";
 
 type DashboardPageProps = {
   searchParams?: Promise<RouteSearchParams>;
@@ -27,14 +28,11 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             Signed in as <span className="font-medium">{user.email ?? "your account"}</span>.
           </p>
         </div>
-        <form action="/auth/logout" method="post">
-          <button
-            className="inline-flex h-11 items-center justify-center rounded-md border border-zinc-300 px-4 py-2.5 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800"
-            type="submit"
-          >
-            Sign out
-          </button>
-        </form>
+        <LogoutButton
+          className="inline-flex h-11 items-center justify-center rounded-md border border-zinc-300 px-4 py-2.5 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-70 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800"
+          idleLabel="Sign out"
+          pendingLabel="Signing out..."
+        />
       </div>
     </main>
   );

@@ -16,6 +16,19 @@ const tscEntrypoint = path.join(
   "bin",
   "tsc",
 );
+const testEnvDefaults = {
+  NEXT_PUBLIC_APP_URL: "https://example.com",
+  NEXT_PUBLIC_SUPABASE_URL: "https://example.com",
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-anon-key",
+  SUPABASE_SERVICE_ROLE_KEY: "test-service-role-key",
+  OPENAI_API_KEY: "test-openai-key",
+};
+
+for (const [name, value] of Object.entries(testEnvDefaults)) {
+  if (!process.env[name]) {
+    process.env[name] = value;
+  }
+}
 
 function run(command, args) {
   const result = spawnSync(command, args, {
