@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 
 import { isStateChangingAuthRequestAllowed } from "@/lib/auth/origin";
 import {
+  createSignupAuthRollbackHandler,
+  createSignupProfileRepository,
+  provisionSignupIdentityProfile,
+  SignupProfileProvisionError,
+} from "@/lib/auth/signup-profile";
+import {
   normalizeSignupValues,
   type SignupFormErrors,
   type SignupFormValues,
@@ -10,6 +16,7 @@ import {
 import { getAuthCallbackUrl } from "@/lib/auth/redirects";
 import { logger } from "@/lib/logger";
 import { createSupabaseAuthDiagnostics } from "@/lib/supabase/auth-diagnostics";
+import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
 type SignupRouteResponse = {
@@ -39,7 +46,17 @@ function getCallbackUrlOrigin(): string | undefined {
 }
 
 function getSignupFailureLogMessage(error: unknown): string {
-  return error ? "Supabase signup failed with auth error." : "Supabase signup returned no user.";
+  return error
+    ? "Supabase signup failed with auth error."
+    : "Supabase signup returned no user.";
+}
+
+function getRequestPath(request: Request): string | undefined {
+  try {
+    return new URL(request.url).pathname;
+  } catch {
+    return undefined;
+  }
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -50,7 +67,8 @@ function toSignupValues(body: Record<string, unknown>): SignupFormValues {
   return {
     email: typeof body.email === "string" ? body.email : "",
     password: typeof body.password === "string" ? body.password : "",
-    confirmPassword: typeof body.confirmPassword === "string" ? body.confirmPassword : "",
+    confirmPassword:
+      typeof body.confirmPassword === "string" ? body.confirmPassword : "",
   };
 }
 
@@ -72,7 +90,9 @@ function isDuplicateSignupAttempt(
 
   // Supabase can return a user object with no identities when signup is
   // obfuscated for an already-registered email instead of surfacing an error.
-  return !session && Array.isArray(user?.identities) && user.identities.length === 0;
+  return (
+    !session && Array.isArray(user?.identities) && user.identities.length === 0
+  );
 }
 
 export async function POST(request: Request): Promise<Response> {
@@ -103,6 +123,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const values = normalizeSignupValues(toSignupValues(parsedBody));
   const fieldErrors = validateSignupValues(values);
+  const requestPath = getRequestPath(request);
 
   if (Object.keys(fieldErrors).length > 0) {
     return NextResponse.json<SignupRouteResponse>(
@@ -111,6 +132,28 @@ export async function POST(request: Request): Promise<Response> {
         fieldErrors,
       },
       { status: 400 },
+    );
+  }
+
+  let supabaseAdminClient: ReturnType<typeof getSupabaseAdminClient>;
+
+  try {
+    supabaseAdminClient = getSupabaseAdminClient();
+  } catch (error) {
+    logger.error("Supabase signup prerequisites failed.", {
+      context: "auth",
+      source: "auth.signup",
+      metadata: {
+        requestPath,
+      },
+      error,
+    });
+
+    return NextResponse.json<SignupRouteResponse>(
+      {
+        error: "Unable to create account right now. Please try again.",
+      },
+      { status: 500 },
     );
   }
 
@@ -142,7 +185,9 @@ export async function POST(request: Request): Promise<Response> {
       metadata: {
         ...diagnostics,
         authErrorCode:
-          error && "code" in error && typeof error.code === "string" ? error.code : undefined,
+          error && "code" in error && typeof error.code === "string"
+            ? error.code
+            : undefined,
         authErrorStatus:
           error && "status" in error && typeof error.status === "number"
             ? error.status
@@ -153,6 +198,34 @@ export async function POST(request: Request): Promise<Response> {
       },
       error: error ?? "Supabase signup returned no user.",
     });
+
+    return NextResponse.json<SignupRouteResponse>(
+      {
+        error: "Unable to create account right now. Please try again.",
+      },
+      { status: 500 },
+    );
+  }
+
+  try {
+    await provisionSignupIdentityProfile({
+      profileRepository: createSignupProfileRepository(supabaseAdminClient),
+      requestPath,
+      rollbackAuthUser: createSignupAuthRollbackHandler(supabaseAdminClient),
+      userId: data.user.id,
+    });
+  } catch (error) {
+    if (!(error instanceof SignupProfileProvisionError)) {
+      logger.error("Identity profile provisioning failed after auth signup.", {
+        context: "auth",
+        source: "auth.signup",
+        metadata: {
+          requestPath,
+          userId: data.user.id,
+        },
+        error,
+      });
+    }
 
     return NextResponse.json<SignupRouteResponse>(
       {

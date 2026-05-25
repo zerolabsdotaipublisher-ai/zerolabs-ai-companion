@@ -48,6 +48,15 @@ Row Level Security is enabled on `identity_profiles`.
 
 An `updated_at` trigger keeps row timestamps current on every update.
 
+## Signup profile creation workflow
+
+- Registration still creates the Supabase Auth user through the existing server-side signup route.
+- After Auth signup succeeds, the app creates the matching `identity_profiles` row with the same `user_id`.
+- Safe defaults are inserted for the MVP profile fields, relying on table defaults where appropriate.
+- If profile creation fails after Auth signup, the server attempts a service-role rollback by deleting the newly created auth user so orphaned auth users are not intentionally left behind.
+- Duplicate profile creation is avoided by checking for an existing row and respecting the unique `user_id` constraint.
+- No secrets, service-role values, or raw Supabase errors should be exposed to the user-facing response path.
+
 ## Intended JSONB usage
 
 - `personalization`: profile-level traits that influence AI behavior, tone, or defaults
