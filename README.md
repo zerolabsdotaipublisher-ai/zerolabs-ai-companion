@@ -19,6 +19,9 @@ See `/docs/local-development.md` for full setup instructions, including:
 For authentication validation coverage and smoke-check guidance, see
 [`docs/auth-validation.md`](docs/auth-validation.md).
 
+For the application-level identity profile schema layered on top of Supabase Auth, see
+[`docs/identity-profile-schema.md`](docs/identity-profile-schema.md).
+
 ## Vercel deployment (build configuration)
 
 Use the following Vercel project settings:
