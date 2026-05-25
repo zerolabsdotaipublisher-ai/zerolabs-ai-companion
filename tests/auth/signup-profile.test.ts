@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createRequire } from "node:module";
 import test from "node:test";
 
 import type {
@@ -10,6 +11,8 @@ import {
   SignupProfileProvisionError,
   type SignupProfileRepository,
 } from "@/lib/auth/signup-profile";
+
+const requireFromTest = createRequire(__filename);
 
 function createIdentityProfileRecord(userId: string): IdentityProfileRecord {
   return {
@@ -424,11 +427,13 @@ test("returns a consistent failure when auth user rollback throws", async () => 
 });
 
 test("keeps the signup route failure response generic when provisioning fails", async () => {
-  const originModule = require("../../src/lib/auth/origin") as typeof import("../../src/lib/auth/origin");
-  const signupProfileModule = require("../../src/lib/auth/signup-profile") as typeof import("../../src/lib/auth/signup-profile");
-  const adminModule = require("../../src/lib/supabase/admin") as typeof import("../../src/lib/supabase/admin");
-  const serverModule = require("../../src/lib/supabase/server") as typeof import("../../src/lib/supabase/server");
-  const routeModulePath = require.resolve("../../src/app/auth/signup/route");
+  const originModule = requireFromTest("../../src/lib/auth/origin") as typeof import("../../src/lib/auth/origin");
+  const signupProfileModule = requireFromTest("../../src/lib/auth/signup-profile") as typeof import("../../src/lib/auth/signup-profile");
+  const adminModule = requireFromTest("../../src/lib/supabase/admin") as typeof import("../../src/lib/supabase/admin");
+  const serverModule = requireFromTest("../../src/lib/supabase/server") as typeof import("../../src/lib/supabase/server");
+  const routeModulePath = requireFromTest.resolve(
+    "../../src/app/auth/signup/route",
+  );
 
   const originalIsStateChangingAuthRequestAllowed =
     originModule.isStateChangingAuthRequestAllowed;
@@ -448,7 +453,7 @@ test("keeps the signup route failure response generic when provisioning fails", 
       from() {
         throw new Error("profile repository should not be used in this test");
       },
-    }) as ReturnType<typeof adminModule.getSupabaseAdminClient>;
+    }) as unknown as ReturnType<typeof adminModule.getSupabaseAdminClient>;
   serverModule.getSupabaseServerClient = async () =>
     ({
       auth: {
@@ -463,7 +468,9 @@ test("keeps the signup route failure response generic when provisioning fails", 
           error: null,
         }),
       },
-    }) as Awaited<ReturnType<typeof serverModule.getSupabaseServerClient>>;
+    }) as unknown as Awaited<
+      ReturnType<typeof serverModule.getSupabaseServerClient>
+    >;
   signupProfileModule.provisionSignupIdentityProfile = async () => {
     throw new SignupProfileProvisionError(
       "This should never reach the client.",
@@ -477,7 +484,9 @@ test("keeps the signup route failure response generic when provisioning fails", 
   delete require.cache[routeModulePath];
 
   try {
-    const { POST } = require("../../src/app/auth/signup/route") as typeof import("../../src/app/auth/signup/route");
+    const { POST } = requireFromTest(
+      "../../src/app/auth/signup/route",
+    ) as typeof import("../../src/app/auth/signup/route");
     const response = await POST(
       new Request("https://example.com/auth/signup", {
         method: "POST",
