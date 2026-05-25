@@ -38,6 +38,11 @@ type SignupProfileRollbackAttemptParams = {
   workflowLogger: SignupProfileWorkflowLogger;
 };
 
+type SignupProfileRepositoryResult = {
+  data: IdentityProfileRecord | null;
+  error: unknown | null;
+};
+
 type SignupProfileProvisionParams = {
   userId: string;
   defaults?: IdentityProfileDefaults;
@@ -151,6 +156,39 @@ function createSignupProfileLogOptions(
   };
 }
 
+function createSanitizedRollbackErrorMetadata(
+  error: unknown,
+): Record<string, number | string> {
+  const metadata: Record<string, number | string> = {
+    errorType:
+      error instanceof Error
+        ? error.name
+        : typeof error === "object" && error !== null && "name" in error
+          ? String(error.name)
+          : typeof error,
+  };
+
+  if (
+    error &&
+    typeof error === "object" &&
+    "code" in error &&
+    (typeof error.code === "number" || typeof error.code === "string")
+  ) {
+    metadata.code = error.code;
+  }
+
+  if (
+    error &&
+    typeof error === "object" &&
+    "status" in error &&
+    typeof error.status === "number"
+  ) {
+    metadata.status = error.status;
+  }
+
+  return metadata;
+}
+
 function logMissingIdentityProfilesTableDiagnostic(
   userId: string,
   requestPath: string | undefined,
@@ -189,7 +227,28 @@ async function attemptAuthUserRollback({
     createSignupProfileLogOptions(userId, requestPath, source),
   );
 
-  const { error } = await rollbackAuthUser(userId);
+  let rollbackResult: { error: unknown | null };
+
+  try {
+    rollbackResult = await rollbackAuthUser(userId);
+  } catch (error) {
+    workflowLogger.error(
+      "Auth user rollback failed after identity profile creation error.",
+      {
+        context: "auth",
+        source,
+        metadata: {
+          requestPath,
+          rollbackError: createSanitizedRollbackErrorMetadata(error),
+          userId,
+        },
+      },
+    );
+
+    return { attempted: true, succeeded: false };
+  }
+
+  const { error } = rollbackResult;
 
   if (error) {
     workflowLogger.error(
@@ -206,6 +265,28 @@ async function attemptAuthUserRollback({
   );
 
   return { attempted: true, succeeded: true };
+}
+
+async function getSignupProfileByUserId(
+  profileRepository: SignupProfileRepository,
+  userId: string,
+): Promise<SignupProfileRepositoryResult> {
+  try {
+    return await profileRepository.getByUserId(userId);
+  } catch (error) {
+    return { data: null, error };
+  }
+}
+
+async function insertSignupProfile(
+  profileRepository: SignupProfileRepository,
+  values: IdentityProfileUpsertValues,
+): Promise<SignupProfileRepositoryResult> {
+  try {
+    return await profileRepository.insert(values);
+  } catch (error) {
+    return { data: null, error };
+  }
 }
 
 export function createSignupProfileRepository(
@@ -259,7 +340,10 @@ export async function provisionSignupIdentityProfile({
   workflowLogger = logger,
 }: SignupProfileProvisionParams): Promise<SignupProfileProvisionResult> {
   const logOptions = createSignupProfileLogOptions(userId, requestPath, source);
-  const existingProfileResult = await profileRepository.getByUserId(userId);
+  const existingProfileResult = await getSignupProfileByUserId(
+    profileRepository,
+    userId,
+  );
 
   if (existingProfileResult.error) {
     if (isMissingIdentityProfilesTableError(existingProfileResult.error)) {
@@ -311,12 +395,16 @@ export async function provisionSignupIdentityProfile({
     };
   }
 
-  const insertResult = await profileRepository.insert(
+  const insertResult = await insertSignupProfile(
+    profileRepository,
     buildIdentityProfileUpsertValues(userId, defaults),
   );
 
   if (insertResult.error && isUniqueConstraintViolation(insertResult.error)) {
-    const duplicateProfileResult = await profileRepository.getByUserId(userId);
+    const duplicateProfileResult = await getSignupProfileByUserId(
+      profileRepository,
+      userId,
+    );
 
     if (!duplicateProfileResult.error && duplicateProfileResult.data) {
       assertIdentityProfileRelationship(userId, duplicateProfileResult.data);
