@@ -78,10 +78,17 @@ Executed successfully:
 - `npm run typecheck`
 - `npm run build`
 
+## Preview signup dependency note
+
+- Manual signup validation for AIC-205 depends on the Task 5.1 Supabase migration `supabase/migrations/20260525014500_create_identity_profiles.sql`.
+- Apply that migration to the Preview Supabase database before testing `/auth/signup`.
+- If `public.identity_profiles` is missing, signup should still fail safely for the user, log a clear setup diagnostic on the server, and attempt auth-user rollback.
+
 ## Manual smoke-check checklist (for real Supabase creds)
 
 When valid Supabase environment values and auth UI flow are available, run:
 
+0. Apply `supabase/migrations/20260525014500_create_identity_profiles.sql` to the target Preview/local Supabase database and confirm `public.identity_profiles` exists.
 1. Log in with a valid test user and confirm `/dashboard` loads.
 2. Refresh the page and confirm the session remains active.
 3. Close and reopen the browser/tab and confirm the user remains signed in while the session is valid.
@@ -90,3 +97,4 @@ When valid Supabase environment values and auth UI flow are available, run:
 6. Try visiting `/dashboard` while signed out and confirm redirect to `/login?next=%2Fdashboard`.
 7. Retry the signup email callback flow and confirm `/auth/callback` still establishes a valid session.
 8. Confirm no auth/session errors appear in browser console or server/runtime logs during the above checks.
+9. Validate signup creates both the Supabase Auth user and the matching `identity_profiles` row.
