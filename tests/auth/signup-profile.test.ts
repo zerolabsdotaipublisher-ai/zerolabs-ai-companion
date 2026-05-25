@@ -30,22 +30,22 @@ function createIdentityProfileRecord(userId: string): IdentityProfileRecord {
 
 function createLoggerSpy() {
   const entries = {
-    error: [] as Array<{ message: string }>,
-    info: [] as Array<{ message: string }>,
-    warn: [] as Array<{ message: string }>,
+    error: [] as Array<{ message: string; options?: unknown }>,
+    info: [] as Array<{ message: string; options?: unknown }>,
+    warn: [] as Array<{ message: string; options?: unknown }>,
   };
 
   return {
     entries,
     logger: {
-      error(message: string) {
-        entries.error.push({ message });
+      error(message: string, options?: unknown) {
+        entries.error.push({ message, options });
       },
-      info(message: string) {
-        entries.info.push({ message });
+      info(message: string, options?: unknown) {
+        entries.info.push({ message, options });
       },
-      warn(message: string) {
-        entries.warn.push({ message });
+      warn(message: string, options?: unknown) {
+        entries.warn.push({ message, options });
       },
     },
   };
@@ -177,5 +177,72 @@ test("avoids creating duplicate identity profiles when one already exists", asyn
   assert.deepEqual(
     entries.info.map((entry) => entry.message),
     ["Identity profile already existed after auth signup."],
+  );
+});
+
+test("logs a clear migration diagnostic when identity_profiles is missing", async () => {
+  const repository: SignupProfileRepository = {
+    async getByUserId() {
+      return {
+        data: null,
+        error: {
+          code: "PGRST205",
+          message:
+            "Could not find the table 'public.identity_profiles' in the schema cache",
+        },
+      };
+    },
+    async insert() {
+      assert.fail("insert should not be attempted when profile lookup fails");
+    },
+  };
+
+  const { logger, entries } = createLoggerSpy();
+  const rollbackCalls: string[] = [];
+
+  await assert.rejects(
+    () =>
+      provisionSignupIdentityProfile({
+        profileRepository: repository,
+        requestPath: "/auth/signup",
+        rollbackAuthUser: async (userId) => {
+          rollbackCalls.push(userId);
+          return { error: null };
+        },
+        userId: "user-missing-table",
+        workflowLogger: logger,
+      }),
+    SignupProfileProvisionError,
+  );
+
+  assert.deepEqual(rollbackCalls, ["user-missing-table"]);
+  assert.deepEqual(
+    entries.error.map((entry) => entry.message),
+    [
+      "Identity profile provisioning depends on the Task 5.1 migration. Apply the identity_profiles migration to the target Supabase database before validating signup.",
+      "Identity profile lookup failed after auth signup.",
+    ],
+  );
+
+  const diagnosticEntry = entries.error[0];
+  assert.deepEqual(diagnosticEntry.options, {
+    context: "auth",
+    source: "auth.signup",
+    error: {
+      code: "PGRST205",
+      message:
+        "Could not find the table 'public.identity_profiles' in the schema cache",
+    },
+    metadata: {
+      migrationDependency: "AIC-205 Task 5.1",
+      migrationFile:
+        "supabase/migrations/20260525014500_create_identity_profiles.sql",
+      requestPath: "/auth/signup",
+      userId: "user-missing-table",
+    },
+  });
+  assert.deepEqual(
+    entries.warn.map((entry) => entry.message),
+    ["Attempting auth user rollback after identity profile creation failed."],
   );
 });

@@ -76,6 +76,27 @@ export class SignupProfileProvisionError extends Error {
 
 const SIGNUP_PROFILE_FAILURE_MESSAGE =
   "Unable to create account right now. Please try again.";
+const IDENTITY_PROFILES_MIGRATION_FILE =
+  "supabase/migrations/20260525014500_create_identity_profiles.sql";
+const MISSING_IDENTITY_PROFILES_TABLE_LOG_MESSAGE =
+  "Identity profile provisioning depends on the Task 5.1 migration. Apply the identity_profiles migration to the target Supabase database before validating signup.";
+
+function getErrorMessage(error: unknown): string | undefined {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (
+    error &&
+    typeof error === "object" &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+
+  return undefined;
+}
 
 function isUniqueConstraintViolation(error: unknown): boolean {
   return (
@@ -83,6 +104,24 @@ function isUniqueConstraintViolation(error: unknown): boolean {
     typeof error === "object" &&
     "code" in error &&
     error.code === "23505"
+  );
+}
+
+function isMissingIdentityProfilesTableError(error: unknown): boolean {
+  const message = getErrorMessage(error)?.toLowerCase();
+
+  if (!message) {
+    return false;
+  }
+
+  return (
+    (message.includes("identity_profiles") &&
+      message.includes("schema cache")) ||
+    (message.includes("public.identity_profiles") &&
+      message.includes("could not find the table")) ||
+    (message.includes("relation") &&
+      message.includes("identity_profiles") &&
+      message.includes("does not exist"))
   );
 }
 
@@ -110,6 +149,29 @@ function createSignupProfileLogOptions(
       userId,
     },
   };
+}
+
+function logMissingIdentityProfilesTableDiagnostic(
+  userId: string,
+  requestPath: string | undefined,
+  source: string,
+  workflowLogger: SignupProfileWorkflowLogger,
+  error: unknown,
+): void {
+  workflowLogger.error(
+    MISSING_IDENTITY_PROFILES_TABLE_LOG_MESSAGE,
+    {
+      context: "auth",
+      source,
+      error,
+      metadata: {
+        migrationDependency: "AIC-205 Task 5.1",
+        migrationFile: IDENTITY_PROFILES_MIGRATION_FILE,
+        requestPath,
+        userId,
+      },
+    },
+  );
 }
 
 async function attemptAuthUserRollback({
@@ -200,6 +262,16 @@ export async function provisionSignupIdentityProfile({
   const existingProfileResult = await profileRepository.getByUserId(userId);
 
   if (existingProfileResult.error) {
+    if (isMissingIdentityProfilesTableError(existingProfileResult.error)) {
+      logMissingIdentityProfilesTableDiagnostic(
+        userId,
+        requestPath,
+        source,
+        workflowLogger,
+        existingProfileResult.error,
+      );
+    }
+
     workflowLogger.error(
       "Identity profile lookup failed after auth signup.",
       createSignupProfileLogOptions(
@@ -265,6 +337,16 @@ export async function provisionSignupIdentityProfile({
     const insertError =
       insertResult.error ??
       new Error("Identity profile insert returned no data.");
+
+    if (isMissingIdentityProfilesTableError(insertError)) {
+      logMissingIdentityProfilesTableDiagnostic(
+        userId,
+        requestPath,
+        source,
+        workflowLogger,
+        insertError,
+      );
+    }
 
     workflowLogger.error(
       "Identity profile creation failed after auth signup.",

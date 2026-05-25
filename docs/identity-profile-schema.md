@@ -37,6 +37,13 @@ The migration adds:
 
 The JSONB columns default to empty objects so the MVP can evolve without immediate schema churn, while still keeping profile data scoped to a single row per user.
 
+## Migration dependency
+
+- The `identity_profiles` table migration already exists from Task 5.1 in `supabase/migrations/20260525014500_create_identity_profiles.sql`.
+- Task 5.2 signup/profile provisioning depends on that migration already being applied in the target Supabase database.
+- This PR does not add a duplicate profile-table migration because the schema is inherited from Task 5.1.
+- If a Preview or local Supabase database does not have that migration applied, signup will fail safely, log a migration/setup diagnostic, and attempt auth-user rollback to avoid intentional orphaned users.
+
 ## Access model
 
 Row Level Security is enabled on `identity_profiles`.
@@ -56,6 +63,16 @@ An `updated_at` trigger keeps row timestamps current on every update.
 - If profile creation fails after Auth signup, the server attempts a service-role rollback by deleting the newly created auth user so orphaned auth users are not intentionally left behind.
 - Duplicate profile creation is avoided by checking for an existing row and respecting the unique `user_id` constraint.
 - No secrets, service-role values, or raw Supabase errors should be exposed to the user-facing response path.
+
+## Preview/manual validation setup
+
+Before manual signup validation against a Preview Supabase database:
+
+1. Apply the Task 5.1 migration file `supabase/migrations/20260525014500_create_identity_profiles.sql` to that database.
+2. Confirm `public.identity_profiles` exists before testing `/auth/signup`.
+3. Then run the signup flow and verify both the auth user and matching profile row are created.
+
+If the table is missing, server logs should point to the missing migration dependency while the user still receives a generic signup failure message.
 
 ## Intended JSONB usage
 
