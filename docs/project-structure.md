@@ -28,6 +28,10 @@ This project uses a `src/`-based Next.js layout to keep product code grouped in 
   - Project documentation, setup guides, and architecture notes.
   - Keeps operational and design context separate from runtime source code.
 
+- `supabase/`
+  - Database migrations and Supabase-specific schema assets.
+  - Keeps application-owned Postgres changes versioned alongside the app codebase.
+
 ## Separation of concerns
 
 The structure separates routing/UI concerns (`app`, `components`, `hooks`) from shared foundations (`lib`) and domain/integration orchestration (`services`), while all explanatory material stays in `docs`.
