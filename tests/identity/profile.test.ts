@@ -93,6 +93,31 @@ test("preserves provided identity profile defaults", () => {
   );
 });
 
+test("replaces malformed companion preference defaults during upsert normalization", () => {
+  assert.deepEqual(
+    buildIdentityProfileUpsertValues("user-123", {
+      preferences: {
+        companion_preferences: "invalid",
+        daily_summary: true,
+      },
+    }),
+    {
+      user_id: "user-123",
+      display_name: null,
+      preferred_name: null,
+      timezone: null,
+      locale: null,
+      onboarding_status: "not_started",
+      personalization: {},
+      preferences: {
+        companion_preferences: DEFAULT_COMPANION_PREFERENCES,
+        daily_summary: true,
+      },
+      memory_settings: {},
+    },
+  );
+});
+
 test("allows identity profile access only for the authenticated user", () => {
   assert.equal(isIdentityProfileAccessAllowed("user-123", "user-123"), true);
   assert.equal(isIdentityProfileAccessAllowed("user-123", "user-456"), false);

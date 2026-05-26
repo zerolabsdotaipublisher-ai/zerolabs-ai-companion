@@ -4,7 +4,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { getServerAuthState } from "@/lib/auth/server-session";
 import {
-  createDefaultCompanionPreferences,
   getCompanionPreferencesFromProfilePreferences,
   setCompanionPreferencesOnProfilePreferences,
 } from "@/lib/identity/preferences";
@@ -102,8 +101,7 @@ export function buildIdentityProfileUpsertValues(
 ): IdentityProfileUpsertValues {
   const normalizedProfilePreferences = setCompanionPreferencesOnProfilePreferences(
     defaults.preferences ?? {},
-    getCompanionPreferencesFromProfilePreferences(defaults.preferences) ??
-      createDefaultCompanionPreferences(),
+    getCompanionPreferencesFromProfilePreferences(defaults.preferences),
   );
 
   return {
