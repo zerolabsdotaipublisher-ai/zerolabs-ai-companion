@@ -13,9 +13,14 @@ import {
 } from "@/lib/identity/profile-form";
 import {
   createIdentityProfileRepository,
-  IDENTITY_PROFILE_NOT_FOUND_ERROR_MESSAGE,
+  ensureIdentityProfileForUser,
   updateIdentityProfileByUserId,
 } from "@/lib/identity/profile";
+import {
+  getCompanionPreferencesFromProfilePreferences,
+  normalizeCompanionPreferencesInput,
+  setCompanionPreferencesOnProfilePreferences,
+} from "@/lib/identity/preferences";
 import { logger } from "@/lib/logger";
 
 type ProfileRouteResponse = {
@@ -35,9 +40,54 @@ function toIdentityProfileFormRequestValues(body: Record<string, unknown>): Iden
     preferred_name: typeof body.preferred_name === "string" ? body.preferred_name : "",
     timezone: typeof body.timezone === "string" ? body.timezone : "",
     locale: typeof body.locale === "string" ? body.locale : "",
-    personalization: typeof body.personalization === "string" ? body.personalization : "",
-    preferences: typeof body.preferences === "string" ? body.preferences : "",
+    companion_tone: typeof body.companion_tone === "string" ? body.companion_tone : "",
+    suggestion_style: typeof body.suggestion_style === "string" ? body.suggestion_style : "",
+    activity_intensity:
+      typeof body.activity_intensity === "string" ? body.activity_intensity : "",
+    preferred_time_of_day:
+      typeof body.preferred_time_of_day === "string" ? body.preferred_time_of_day : "",
+    location_preference:
+      typeof body.location_preference === "string" ? body.location_preference : "",
+    interests: typeof body.interests === "string" ? body.interests : "",
+    avoidances: typeof body.avoidances === "string" ? body.avoidances : "",
   };
+}
+
+async function getAuthenticatedProfileResponse(): Promise<Response> {
+  const authState = await getServerAuthState();
+
+  if (!hasAuthenticatedServerSession(authState)) {
+    return NextResponse.json<ProfileRouteResponse>(
+      { error: "You must be signed in to manage your profile." },
+      { status: 401 },
+    );
+  }
+
+  try {
+    const profile = await ensureIdentityProfileForUser(authState.user.id);
+
+    return NextResponse.json<ProfileRouteResponse>({
+      profile: toIdentityProfileFormValues(profile),
+    });
+  } catch (error) {
+    logger.error("Identity profile lookup request failed.", {
+      context: "identity",
+      source: "api.profile",
+      metadata: {
+        userId: authState.user.id,
+      },
+      error,
+    });
+
+    return NextResponse.json<ProfileRouteResponse>(
+      { error: "We couldn’t load your profile right now. Please try again." },
+      { status: 500 },
+    );
+  }
+}
+
+export async function GET(): Promise<Response> {
+  return getAuthenticatedProfileResponse();
 }
 
 export async function PATCH(request: Request): Promise<Response> {
@@ -90,11 +140,37 @@ export async function PATCH(request: Request): Promise<Response> {
   }
 
   try {
+    const currentProfile = await ensureIdentityProfileForUser(authState.user.id);
+    const currentCompanionPreferences = getCompanionPreferencesFromProfilePreferences(
+      currentProfile.preferences,
+    );
+    const normalizedCompanionPreferences = normalizeCompanionPreferencesInput(
+      updateValues.data.companionPreferences,
+      currentCompanionPreferences,
+    );
+
+    if (!normalizedCompanionPreferences.data) {
+      return NextResponse.json<ProfileRouteResponse>(
+        {
+          error: "Please correct the highlighted profile fields.",
+          fieldErrors: normalizedCompanionPreferences.fieldErrors as IdentityProfileFormErrors,
+        },
+        { status: 400 },
+      );
+    }
+
     const updatedProfile = await updateIdentityProfileByUserId({
       authenticatedUserId: authState.user.id,
       requestedUserId: authState.user.id,
       repository: createIdentityProfileRepository(authState.supabase),
-      values: updateValues.data,
+      values: {
+        ...updateValues.data.identity,
+        personalization: currentProfile.personalization,
+        preferences: setCompanionPreferencesOnProfilePreferences(
+          currentProfile.preferences,
+          normalizedCompanionPreferences.data,
+        ),
+      },
     });
 
     return NextResponse.json<ProfileRouteResponse>({
@@ -102,16 +178,6 @@ export async function PATCH(request: Request): Promise<Response> {
       profile: toIdentityProfileFormValues(updatedProfile),
     });
   } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message === IDENTITY_PROFILE_NOT_FOUND_ERROR_MESSAGE
-    ) {
-      return NextResponse.json<ProfileRouteResponse>(
-        { error: "We couldn’t find your profile right now. Please try again shortly." },
-        { status: 404 },
-      );
-    }
-
     logger.error("Identity profile update request failed.", {
       context: "identity",
       source: "api.profile",

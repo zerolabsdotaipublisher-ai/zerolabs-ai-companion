@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import test from "node:test";
 
+import { DEFAULT_COMPANION_PREFERENCES } from "@/lib/identity/preferences";
 import type {
   IdentityProfileRecord,
   IdentityProfileUpsertValues,
@@ -24,7 +25,9 @@ function createIdentityProfileRecord(userId: string): IdentityProfileRecord {
     locale: null,
     onboarding_status: "not_started",
     personalization: {},
-    preferences: {},
+    preferences: {
+      companion_preferences: DEFAULT_COMPANION_PREFERENCES,
+    },
     memory_settings: {},
     created_at: "2026-05-25T00:00:00.000Z",
     updated_at: "2026-05-25T00:00:00.000Z",
@@ -88,7 +91,9 @@ test("creates an identity profile after auth signup", async () => {
     locale: null,
     onboarding_status: "not_started",
     personalization: {},
-    preferences: {},
+    preferences: {
+      companion_preferences: DEFAULT_COMPANION_PREFERENCES,
+    },
     memory_settings: {},
   });
   assert.deepEqual(rollbackCalls, []);

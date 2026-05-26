@@ -21,7 +21,18 @@ function createIdentityProfileRecord(): IdentityProfileRecord {
       communication_style: "concise",
     },
     preferences: {
-      daily_summary: true,
+      companion_preferences: {
+        companion_tone: "friendly",
+        suggestion_style: "novel",
+        activity_intensity: "moderate",
+        preferred_time_of_day: "evening",
+        location_preference: "local_area",
+        interests: ["coffee walks", "bookstores"],
+        avoidances: ["crowds"],
+        ai_context: {
+          favorite_weather: "foggy",
+        },
+      },
     },
     memory_settings: {},
     created_at: "2026-05-25T00:00:00.000Z",
@@ -35,8 +46,13 @@ test("maps identity profile records into editable form values", () => {
     preferred_name: "Alex",
     timezone: "America/Los_Angeles",
     locale: "en-US",
-    personalization: '{\n  "communication_style": "concise"\n}',
-    preferences: '{\n  "daily_summary": true\n}',
+    companion_tone: "friendly",
+    suggestion_style: "novel",
+    activity_intensity: "moderate",
+    preferred_time_of_day: "evening",
+    location_preference: "local_area",
+    interests: "coffee walks, bookstores",
+    avoidances: "crowds",
   });
 });
 
@@ -47,15 +63,26 @@ test("rejects invalid profile form values with field errors", () => {
       preferred_name: "",
       timezone: "Mars/Olympus",
       locale: "bad locale",
-      personalization: "[]",
-      preferences: "{invalid}",
+      companion_tone: "energetic",
+      suggestion_style: "surprise",
+      activity_intensity: "extreme",
+      preferred_time_of_day: "night",
+      location_preference: "galaxy",
+      interests: "tea rooms",
+      avoidances: "crowds",
     }),
     {
       display_name: "Display name must be 80 characters or less.",
       timezone: "Timezone must be a valid IANA timezone.",
       locale: "Locale must be a valid locale code.",
-      personalization: "Personalization must be a JSON object.",
-      preferences: "Preferences must be valid JSON.",
+      companion_tone: "Companion tone must be one of: calm, friendly, playful, direct.",
+      suggestion_style:
+        "Suggestion style must be one of: balanced, novel, familiar, outdoor, indoor.",
+      activity_intensity: "Activity intensity must be one of: light, moderate, active.",
+      preferred_time_of_day:
+        "Preferred time of day must be one of: morning, afternoon, evening, anytime.",
+      location_preference:
+        "Location preference must be one of: nearby, local_area, anywhere.",
     },
   );
 });
@@ -66,19 +93,31 @@ test("builds normalized update values for valid profile input", () => {
     preferred_name: " Alex ",
     timezone: " America/Los_Angeles ",
     locale: " en-US ",
-    personalization: ' { "communication_style": "concise" } ',
-    preferences: "",
+    companion_tone: " calm ",
+    suggestion_style: " balanced ",
+    activity_intensity: " light ",
+    preferred_time_of_day: " anytime ",
+    location_preference: " nearby ",
+    interests: " coffee walks, bookstores, coffee walks ",
+    avoidances: " crowds, late nights ",
   });
 
   assert.deepEqual(result.fieldErrors, {});
   assert.deepEqual(result.data, {
-    display_name: "Alex Johnson",
-    preferred_name: "Alex",
-    timezone: "America/Los_Angeles",
-    locale: "en-US",
-    personalization: {
-      communication_style: "concise",
+    identity: {
+      display_name: "Alex Johnson",
+      preferred_name: "Alex",
+      timezone: "America/Los_Angeles",
+      locale: "en-US",
     },
-    preferences: {},
+    companionPreferences: {
+      companion_tone: "calm",
+      suggestion_style: "balanced",
+      activity_intensity: "light",
+      preferred_time_of_day: "anytime",
+      location_preference: "nearby",
+      interests: ["coffee walks", "bookstores"],
+      avoidances: ["crowds", "late nights"],
+    },
   });
 });

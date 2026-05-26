@@ -3,10 +3,7 @@ import Link from "next/link";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { requireServerSession } from "@/lib/auth/server";
 import { toIdentityProfileFormValues } from "@/lib/identity/profile-form";
-import {
-  createIdentityProfileRepository,
-  getIdentityProfileByUserId,
-} from "@/lib/identity/profile";
+import { ensureIdentityProfileForUser } from "@/lib/identity/profile";
 
 import { ProfileForm } from "./profile-form";
 
@@ -19,18 +16,8 @@ export default async function ProfilePage() {
   let initialValues = null;
 
   try {
-    const profile = await getIdentityProfileByUserId({
-      authenticatedUserId: authState.user.id,
-      requestedUserId: authState.user.id,
-      repository: createIdentityProfileRepository(authState.supabase),
-    });
-
-    if (profile) {
-      initialValues = toIdentityProfileFormValues(profile);
-    } else {
-      profileLoadError =
-        "We couldn’t find your profile right now. Sign out and back in, then try again.";
-    }
+    const profile = await ensureIdentityProfileForUser(authState.user.id);
+    initialValues = toIdentityProfileFormValues(profile);
   } catch {
     profileLoadError = "We couldn’t load your profile right now. Please refresh and try again.";
   }

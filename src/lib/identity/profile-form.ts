@@ -1,28 +1,41 @@
 import type {
   IdentityProfileEditableValues,
-  IdentityProfileJson,
   IdentityProfileRecord,
 } from "@/lib/identity/types";
+import {
+  formatCompanionPreferenceList,
+  getCompanionPreferencesFromProfilePreferences,
+  normalizeCompanionPreferencesInput,
+  parseCompanionPreferenceList,
+  type CompanionPreferencesUpdateInput,
+} from "@/lib/identity/preferences";
 
 export type IdentityProfileFormValues = {
   display_name: string;
   preferred_name: string;
   timezone: string;
   locale: string;
-  personalization: string;
-  preferences: string;
+  companion_tone: string;
+  suggestion_style: string;
+  activity_intensity: string;
+  preferred_time_of_day: string;
+  location_preference: string;
+  interests: string;
+  avoidances: string;
 };
 
 export type IdentityProfileFormErrors = Partial<Record<keyof IdentityProfileFormValues, string>>;
+export type IdentityProfileFormSubmission = {
+  identity: Pick<
+    IdentityProfileEditableValues,
+    "display_name" | "preferred_name" | "timezone" | "locale"
+  >;
+  companionPreferences: CompanionPreferencesUpdateInput;
+};
 
 const MAX_NAME_LENGTH = 80;
 const MAX_TIMEZONE_LENGTH = 100;
 const MAX_LOCALE_LENGTH = 35;
-const MAX_JSON_FIELD_LENGTH = 5_000;
-
-function isJsonObject(value: unknown): value is Record<string, IdentityProfileJson> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 function normalizeOptionalText(value: string): string | null {
   const trimmedValue = value.trim();
@@ -48,50 +61,6 @@ function isValidLocale(value: string): boolean {
   }
 }
 
-function parseJsonField(
-  value: string,
-  label: string,
-): {
-  data?: Record<string, IdentityProfileJson>;
-  error?: string;
-} {
-  const trimmedValue = value.trim();
-
-  if (trimmedValue.length > MAX_JSON_FIELD_LENGTH) {
-    return {
-      error: `${label} must be ${MAX_JSON_FIELD_LENGTH.toLocaleString()} characters or less.`,
-    };
-  }
-
-  if (trimmedValue.length === 0) {
-    return {
-      data: {},
-    };
-  }
-
-  try {
-    const parsedValue = JSON.parse(trimmedValue) as unknown;
-
-    if (!isJsonObject(parsedValue)) {
-      return {
-        error: `${label} must be a JSON object.`,
-      };
-    }
-
-    return {
-      data: parsedValue,
-    };
-  } catch {
-    return {
-      error: `${label} must be valid JSON.`,
-    };
-  }
-}
-
-function formatJsonObject(value: Record<string, IdentityProfileJson>): string {
-  return Object.keys(value).length === 0 ? "" : JSON.stringify(value, null, 2);
-}
-
 export function normalizeIdentityProfileFormValues(
   values: IdentityProfileFormValues,
 ): IdentityProfileFormValues {
@@ -100,24 +69,55 @@ export function normalizeIdentityProfileFormValues(
     preferred_name: values.preferred_name.trim(),
     timezone: values.timezone.trim(),
     locale: values.locale.trim(),
-    personalization: values.personalization.trim(),
-    preferences: values.preferences.trim(),
+    companion_tone: values.companion_tone.trim(),
+    suggestion_style: values.suggestion_style.trim(),
+    activity_intensity: values.activity_intensity.trim(),
+    preferred_time_of_day: values.preferred_time_of_day.trim(),
+    location_preference: values.location_preference.trim(),
+    interests: values.interests.trim(),
+    avoidances: values.avoidances.trim(),
   };
 }
 
 export function toIdentityProfileFormValues(
   profile: Pick<
     IdentityProfileRecord,
-    "display_name" | "preferred_name" | "timezone" | "locale" | "personalization" | "preferences"
+    "display_name" | "preferred_name" | "timezone" | "locale" | "preferences"
   >,
 ): IdentityProfileFormValues {
+  const companionPreferences = getCompanionPreferencesFromProfilePreferences(profile.preferences);
+
   return {
     display_name: profile.display_name ?? "",
     preferred_name: profile.preferred_name ?? "",
     timezone: profile.timezone ?? "",
     locale: profile.locale ?? "",
-    personalization: formatJsonObject(profile.personalization),
-    preferences: formatJsonObject(profile.preferences),
+    companion_tone: companionPreferences.companion_tone,
+    suggestion_style: companionPreferences.suggestion_style,
+    activity_intensity: companionPreferences.activity_intensity,
+    preferred_time_of_day: companionPreferences.preferred_time_of_day,
+    location_preference: companionPreferences.location_preference,
+    interests: formatCompanionPreferenceList(companionPreferences.interests),
+    avoidances: formatCompanionPreferenceList(companionPreferences.avoidances),
+  };
+}
+
+function buildCompanionPreferencesUpdateInput(
+  values: IdentityProfileFormValues,
+): CompanionPreferencesUpdateInput {
+  return {
+    companion_tone:
+      values.companion_tone as CompanionPreferencesUpdateInput["companion_tone"],
+    suggestion_style:
+      values.suggestion_style as CompanionPreferencesUpdateInput["suggestion_style"],
+    activity_intensity:
+      values.activity_intensity as CompanionPreferencesUpdateInput["activity_intensity"],
+    preferred_time_of_day:
+      values.preferred_time_of_day as CompanionPreferencesUpdateInput["preferred_time_of_day"],
+    location_preference:
+      values.location_preference as CompanionPreferencesUpdateInput["location_preference"],
+    interests: parseCompanionPreferenceList(values.interests),
+    avoidances: parseCompanionPreferenceList(values.avoidances),
   };
 }
 
@@ -150,14 +150,12 @@ export function validateIdentityProfileFormValues(
     errors.locale = "Locale must be a valid locale code.";
   }
 
-  const personalization = parseJsonField(normalizedValues.personalization, "Personalization");
-  if (personalization.error) {
-    errors.personalization = personalization.error;
-  }
+  const preferenceValidation = normalizeCompanionPreferencesInput(
+    buildCompanionPreferencesUpdateInput(normalizedValues),
+  );
 
-  const preferences = parseJsonField(normalizedValues.preferences, "Preferences");
-  if (preferences.error) {
-    errors.preferences = preferences.error;
+  if (!preferenceValidation.data) {
+    Object.assign(errors, preferenceValidation.fieldErrors);
   }
 
   return errors;
@@ -166,7 +164,7 @@ export function validateIdentityProfileFormValues(
 export function buildIdentityProfileUpdateValues(
   values: IdentityProfileFormValues,
 ): {
-  data?: IdentityProfileEditableValues;
+  data?: IdentityProfileFormSubmission;
   fieldErrors: IdentityProfileFormErrors;
 } {
   const normalizedValues = normalizeIdentityProfileFormValues(values);
@@ -176,27 +174,15 @@ export function buildIdentityProfileUpdateValues(
     return { fieldErrors };
   }
 
-  const personalization = parseJsonField(normalizedValues.personalization, "Personalization");
-  const preferences = parseJsonField(normalizedValues.preferences, "Preferences");
-
-  if (!personalization.data || !preferences.data) {
-    return {
-      fieldErrors: {
-        ...fieldErrors,
-        ...(personalization.error ? { personalization: personalization.error } : {}),
-        ...(preferences.error ? { preferences: preferences.error } : {}),
-      },
-    };
-  }
-
   return {
     data: {
-      display_name: normalizeOptionalText(normalizedValues.display_name),
-      preferred_name: normalizeOptionalText(normalizedValues.preferred_name),
-      timezone: normalizeOptionalText(normalizedValues.timezone),
-      locale: normalizeOptionalText(normalizedValues.locale),
-      personalization: personalization.data,
-      preferences: preferences.data,
+      identity: {
+        display_name: normalizeOptionalText(normalizedValues.display_name),
+        preferred_name: normalizeOptionalText(normalizedValues.preferred_name),
+        timezone: normalizeOptionalText(normalizedValues.timezone),
+        locale: normalizeOptionalText(normalizedValues.locale),
+      },
+      companionPreferences: buildCompanionPreferencesUpdateInput(normalizedValues),
     },
     fieldErrors: {},
   };
