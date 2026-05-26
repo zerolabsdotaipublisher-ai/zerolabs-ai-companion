@@ -106,7 +106,7 @@ export function normalizeCompanionPreferenceList(
       continue;
     }
 
-    const dedupeKey = normalizedValue.toLocaleLowerCase();
+    const dedupeKey = normalizedValue.toLowerCase();
 
     if (seenValues.has(dedupeKey)) {
       continue;

@@ -1,6 +1,9 @@
 update public.identity_profiles
 set preferences = jsonb_set(
-  coalesce(preferences, '{}'::jsonb),
+  case
+    when jsonb_typeof(preferences) = 'object' then preferences
+    else '{}'::jsonb
+  end,
   '{companion_preferences}',
   jsonb_build_object(
     'companion_tone',
