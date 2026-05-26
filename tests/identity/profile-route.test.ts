@@ -95,16 +95,51 @@ test("rejects invalid profile update input before writing to Supabase", async ()
   const originalIsStateChangingAuthRequestAllowed =
     originModule.isStateChangingAuthRequestAllowed;
   const originalGetServerAuthState = serverSessionModule.getServerAuthState;
-  let fromCalls = 0;
+  let updateCalls = 0;
   const user = createAuthenticatedUser("user-123");
+  const storedProfile = {
+    id: "profile-123",
+    user_id: "user-123",
+    display_name: "Alex",
+    preferred_name: "Alex",
+    timezone: "America/Los_Angeles",
+    locale: "en-US",
+    onboarding_status: "completed",
+    personalization: {},
+    preferences: {
+      companion_preferences: DEFAULT_COMPANION_PREFERENCES,
+    },
+    memory_settings: {},
+    created_at: "2026-05-25T00:00:00.000Z",
+    updated_at: "2026-05-25T00:00:00.000Z",
+  };
 
   originModule.isStateChangingAuthRequestAllowed = () => true;
   serverSessionModule.getServerAuthState = async () =>
     ({
       supabase: {
         from() {
-          fromCalls += 1;
-          return {};
+          return {
+            select() {
+              return this;
+            },
+            eq() {
+              return {
+                maybeSingle: async () => ({
+                  data: storedProfile,
+                  error: null,
+                }),
+              };
+            },
+            update() {
+              updateCalls += 1;
+              return {
+                eq() {
+                  throw new Error("update should not be called for invalid input");
+                },
+              };
+            },
+          };
         },
       },
       session: createAuthenticatedSession(user),
@@ -148,7 +183,7 @@ test("rejects invalid profile update input before writing to Supabase", async ()
         timezone: "Timezone must be a valid IANA timezone.",
       },
     });
-    assert.equal(fromCalls, 0);
+    assert.equal(updateCalls, 0);
   } finally {
     originModule.isStateChangingAuthRequestAllowed =
       originalIsStateChangingAuthRequestAllowed;
