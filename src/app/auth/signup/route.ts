@@ -37,9 +37,9 @@ const DUPLICATE_SIGNUP_MESSAGE_FRAGMENTS = [
   "user already",
 ];
 
-function getCallbackUrlOrigin(): string | undefined {
+function getCallbackUrlOrigin(request: Request): string | undefined {
   try {
-    return new URL(getAuthCallbackUrl()).origin;
+    return new URL(getAuthCallbackUrl(request.url)).origin;
   } catch {
     return undefined;
   }
@@ -162,7 +162,7 @@ export async function POST(request: Request): Promise<Response> {
     email: values.email,
     password: values.password,
     options: {
-      emailRedirectTo: getAuthCallbackUrl(),
+      emailRedirectTo: getAuthCallbackUrl(request.url),
     },
   });
 
@@ -194,7 +194,7 @@ export async function POST(request: Request): Promise<Response> {
             : undefined,
         authResponseHasSession: Boolean(data.session),
         authResponseHasUser: Boolean(data.user),
-        callbackUrlOrigin: getCallbackUrlOrigin(),
+        callbackUrlOrigin: getCallbackUrlOrigin(request),
       },
       error: error ?? "Supabase signup returned no user.",
     });

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { getAuthCallbackError } from "@/lib/auth/callback-errors";
 import { AUTHENTICATED_APP_REDIRECT } from "@/lib/auth/redirects";
 import { resolvePostAuthRedirectPath } from "@/lib/auth/session-persistence";
 import { getAuthenticatedUser } from "@/lib/auth/server";
@@ -22,5 +23,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     redirect(redirectTo);
   }
 
-  return <LoginForm redirectTo={redirectTo} />;
+  return (
+    <LoginForm
+      callbackError={getAuthCallbackError(awaitedSearchParams.error)}
+      redirectTo={redirectTo}
+    />
+  );
 }
