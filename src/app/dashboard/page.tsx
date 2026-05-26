@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   buildSearchParamsString,
   type RouteSearchParams,
@@ -28,11 +30,19 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             Signed in as <span className="font-medium">{user.email ?? "your account"}</span>.
           </p>
         </div>
-        <LogoutButton
-          className="inline-flex h-11 items-center justify-center rounded-md border border-zinc-300 px-4 py-2.5 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-70 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800"
-          idleLabel="Sign out"
-          pendingLabel="Signing out..."
-        />
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Link
+            className="inline-flex h-11 items-center justify-center rounded-md border border-zinc-300 px-4 py-2.5 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800"
+            href="/profile"
+          >
+            Profile
+          </Link>
+          <LogoutButton
+            className="inline-flex h-11 items-center justify-center rounded-md border border-zinc-300 px-4 py-2.5 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-70 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800"
+            idleLabel="Sign out"
+            pendingLabel="Signing out..."
+          />
+        </div>
       </div>
     </main>
   );
