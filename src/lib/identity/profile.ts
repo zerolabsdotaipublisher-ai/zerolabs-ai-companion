@@ -3,6 +3,11 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { getServerAuthState } from "@/lib/auth/server-session";
+import {
+  createDefaultCompanionPreferences,
+  getCompanionPreferencesFromProfilePreferences,
+  setCompanionPreferencesOnProfilePreferences,
+} from "@/lib/identity/preferences";
 import { logger } from "@/lib/logger";
 import type {
   IdentityProfileDefaults,
@@ -95,6 +100,12 @@ export function buildIdentityProfileUpsertValues(
   userId: string,
   defaults: IdentityProfileDefaults = {},
 ): IdentityProfileUpsertValues {
+  const normalizedProfilePreferences = setCompanionPreferencesOnProfilePreferences(
+    defaults.preferences ?? {},
+    getCompanionPreferencesFromProfilePreferences(defaults.preferences) ??
+      createDefaultCompanionPreferences(),
+  );
+
   return {
     user_id: userId,
     display_name: defaults.display_name ?? null,
@@ -103,7 +114,7 @@ export function buildIdentityProfileUpsertValues(
     locale: defaults.locale ?? null,
     onboarding_status: defaults.onboarding_status ?? DEFAULT_ONBOARDING_STATUS,
     personalization: defaults.personalization ?? {},
-    preferences: defaults.preferences ?? {},
+    preferences: normalizedProfilePreferences,
     memory_settings: defaults.memory_settings ?? {},
   };
 }
@@ -220,9 +231,24 @@ export async function ensureIdentityProfileForUser(
 
   assertIdentityProfileAccess(user.id, userId);
 
-  const { data, error } = await createIdentityProfileRepository(supabase).upsert(
-    buildIdentityProfileUpsertValues(userId, defaults),
-  );
+  const repository = createIdentityProfileRepository(supabase);
+  const existingProfileResult = await repository.getByUserId(userId);
+
+  if (existingProfileResult.error) {
+    logger.warn("Identity profile lookup failed during ensure.", {
+      context: "identity",
+      source: "identity.profile",
+      error: existingProfileResult.error,
+      metadata: { userId },
+    });
+    throw existingProfileResult.error;
+  }
+
+  if (existingProfileResult.data) {
+    return existingProfileResult.data;
+  }
+
+  const { data, error } = await repository.upsert(buildIdentityProfileUpsertValues(userId, defaults));
 
   if (error || !data) {
     logger.warn("Identity profile upsert failed.", {

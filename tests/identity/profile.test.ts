@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { DEFAULT_COMPANION_PREFERENCES } from "@/lib/identity/preferences";
 import {
   buildIdentityProfileUpsertValues,
   getIdentityProfileByUserId,
@@ -21,7 +22,9 @@ function createIdentityProfileRecord(userId: string): IdentityProfileRecord {
     locale: null,
     onboarding_status: "not_started",
     personalization: {},
-    preferences: {},
+    preferences: {
+      companion_preferences: DEFAULT_COMPANION_PREFERENCES,
+    },
     memory_settings: {},
     created_at: "2026-05-25T00:00:00.000Z",
     updated_at: "2026-05-25T00:00:00.000Z",
@@ -37,7 +40,9 @@ test("builds identity profile upsert values with MVP defaults", () => {
     locale: null,
     onboarding_status: "not_started",
     personalization: {},
-    preferences: {},
+    preferences: {
+      companion_preferences: DEFAULT_COMPANION_PREFERENCES,
+    },
     memory_settings: {},
   });
 });
@@ -54,6 +59,10 @@ test("preserves provided identity profile defaults", () => {
         communication_style: "concise",
       },
       preferences: {
+        companion_preferences: {
+          ...DEFAULT_COMPANION_PREFERENCES,
+          suggestion_style: "novel",
+        },
         daily_summary: true,
       },
       memory_settings: {
@@ -71,6 +80,10 @@ test("preserves provided identity profile defaults", () => {
         communication_style: "concise",
       },
       preferences: {
+        companion_preferences: {
+          ...DEFAULT_COMPANION_PREFERENCES,
+          suggestion_style: "novel",
+        },
         daily_summary: true,
       },
       memory_settings: {
