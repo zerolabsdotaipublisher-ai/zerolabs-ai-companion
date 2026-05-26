@@ -32,6 +32,13 @@ const SAVE_BUTTON_LABEL = "Save profile";
 const SAVE_BUTTON_PENDING_LABEL = "Saving...";
 const SAVE_ERROR_MESSAGE =
   "We couldn’t save your profile right now. Please try again in a moment.";
+const PROFILE_SELECT_CLASS_NAME =
+  "w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none ring-zinc-900/10 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:ring-zinc-100/20 [color-scheme:light] dark:[color-scheme:dark]";
+const PROFILE_SELECT_OPTION_CLASS_NAME = "bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100";
+const PROFILE_SELECT_OPTION_STYLE = {
+  backgroundColor: "rgb(9 9 11)",
+  color: "rgb(244 244 245)",
+};
 
 function formatOptionLabel(value: string): string {
   return value
@@ -301,7 +308,7 @@ export function ProfileForm({ email, initialValues }: ProfileFormProps) {
                   <select
                     aria-describedby={fieldError ? errorId : undefined}
                     aria-invalid={fieldError ? "true" : "false"}
-                    className="w-full rounded-md border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none ring-zinc-900/10 focus:ring-2 dark:border-zinc-700 dark:ring-zinc-100/20"
+                    className={PROFILE_SELECT_CLASS_NAME}
                     disabled={isSubmitting}
                     id={field}
                     name={field}
@@ -314,7 +321,12 @@ export function ProfileForm({ email, initialValues }: ProfileFormProps) {
                     value={values[field as keyof IdentityProfileFormValues]}
                   >
                     {options.map((option) => (
-                      <option key={option} value={option}>
+                      <option
+                        className={PROFILE_SELECT_OPTION_CLASS_NAME}
+                        key={option}
+                        style={PROFILE_SELECT_OPTION_STYLE}
+                        value={option}
+                      >
                         {formatOptionLabel(option)}
                       </option>
                     ))}
