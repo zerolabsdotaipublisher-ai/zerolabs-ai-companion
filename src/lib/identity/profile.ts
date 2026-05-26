@@ -1,57 +1,88 @@
 import "server-only";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { getServerAuthState } from "@/lib/auth/server-session";
 import { logger } from "@/lib/logger";
+import type {
+  IdentityProfileDefaults,
+  IdentityProfileEditableValues,
+  IdentityProfileOnboardingStatus,
+  IdentityProfileRecord,
+  IdentityProfileUpsertValues,
+} from "@/lib/identity/types";
 
-export type IdentityProfileJson =
-  | string
-  | number
-  | boolean
-  | null
-  | IdentityProfileJson[]
-  | { [key: string]: IdentityProfileJson | undefined };
-
-export type IdentityProfileOnboardingStatus = "not_started" | "in_progress" | "completed";
-
-export type IdentityProfileRecord = {
-  id: string;
-  user_id: string;
-  display_name: string | null;
-  preferred_name: string | null;
-  timezone: string | null;
-  locale: string | null;
-  onboarding_status: IdentityProfileOnboardingStatus;
-  personalization: Record<string, IdentityProfileJson>;
-  preferences: Record<string, IdentityProfileJson>;
-  memory_settings: Record<string, IdentityProfileJson>;
-  created_at: string;
-  updated_at: string;
-};
-
-export type IdentityProfileDefaults = Partial<
-  Pick<
-    IdentityProfileRecord,
-    "display_name" | "preferred_name" | "timezone" | "locale" | "onboarding_status"
-  >
-> & {
-  personalization?: Record<string, IdentityProfileJson>;
-  preferences?: Record<string, IdentityProfileJson>;
-  memory_settings?: Record<string, IdentityProfileJson>;
-};
-
-export type IdentityProfileUpsertValues = {
-  user_id: string;
-  display_name: string | null;
-  preferred_name: string | null;
-  timezone: string | null;
-  locale: string | null;
-  onboarding_status: IdentityProfileOnboardingStatus;
-  personalization: Record<string, IdentityProfileJson>;
-  preferences: Record<string, IdentityProfileJson>;
-  memory_settings: Record<string, IdentityProfileJson>;
-};
+export type {
+  IdentityProfileDefaults,
+  IdentityProfileEditableValues,
+  IdentityProfileJson,
+  IdentityProfileOnboardingStatus,
+  IdentityProfileRecord,
+  IdentityProfileUpsertValues,
+} from "@/lib/identity/types";
 
 const DEFAULT_ONBOARDING_STATUS: IdentityProfileOnboardingStatus = "not_started";
+export const IDENTITY_PROFILE_NOT_FOUND_ERROR_MESSAGE = "Identity profile was not found.";
+
+type IdentityProfileMutationResult = {
+  data: IdentityProfileRecord | null;
+  error: unknown;
+};
+
+export type IdentityProfileRepository = {
+  getByUserId(userId: string): Promise<IdentityProfileMutationResult>;
+  updateByUserId(
+    userId: string,
+    values: IdentityProfileEditableValues,
+  ): Promise<IdentityProfileMutationResult>;
+  upsert(values: IdentityProfileUpsertValues): Promise<IdentityProfileMutationResult>;
+};
+
+export function createIdentityProfileRepository(
+  supabase: SupabaseClient,
+): IdentityProfileRepository {
+  return {
+    async getByUserId(userId) {
+      const { data, error } = await supabase
+        .from("identity_profiles")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      return {
+        data: data as IdentityProfileRecord | null,
+        error,
+      };
+    },
+    async updateByUserId(userId, values) {
+      const { data, error } = await supabase
+        .from("identity_profiles")
+        .update(values)
+        .eq("user_id", userId)
+        .select("*")
+        .maybeSingle();
+
+      return {
+        data: data as IdentityProfileRecord | null,
+        error,
+      };
+    },
+    async upsert(values) {
+      const { data, error } = await supabase
+        .from("identity_profiles")
+        .upsert(values, {
+          onConflict: "user_id",
+        })
+        .select("*")
+        .single();
+
+      return {
+        data: data as IdentityProfileRecord | null,
+        error,
+      };
+    },
+  };
+}
 
 export function isIdentityProfileAccessAllowed(
   authenticatedUserId: string | null | undefined,
@@ -86,32 +117,95 @@ function assertIdentityProfileAccess(
   }
 }
 
-export async function getIdentityProfileForUser(userId: string): Promise<IdentityProfileRecord | null> {
-  const { user, supabase } = await getServerAuthState();
+export async function getIdentityProfileByUserId({
+  authenticatedUserId,
+  requestedUserId,
+  repository,
+}: {
+  authenticatedUserId: string | null | undefined;
+  requestedUserId: string;
+  repository: IdentityProfileRepository;
+}): Promise<IdentityProfileRecord | null> {
+  assertIdentityProfileAccess(authenticatedUserId, requestedUserId);
 
-  if (!user) {
-    return null;
-  }
-
-  assertIdentityProfileAccess(user.id, userId);
-
-  const { data, error } = await supabase
-    .from("identity_profiles")
-    .select("*")
-    .eq("user_id", userId)
-    .maybeSingle();
+  const { data, error } = await repository.getByUserId(requestedUserId);
 
   if (error) {
     logger.warn("Identity profile lookup failed.", {
       context: "identity",
       source: "identity.profile",
       error,
-      metadata: { userId },
+      metadata: { userId: requestedUserId },
     });
     throw error;
   }
 
-  return data as IdentityProfileRecord | null;
+  return data;
+}
+
+export async function getIdentityProfileForUser(
+  userId: string,
+): Promise<IdentityProfileRecord | null> {
+  const { user, supabase } = await getServerAuthState();
+
+  if (!user) {
+    return null;
+  }
+
+  return getIdentityProfileByUserId({
+    authenticatedUserId: user.id,
+    requestedUserId: userId,
+    repository: createIdentityProfileRepository(supabase),
+  });
+}
+
+export async function updateIdentityProfileByUserId({
+  authenticatedUserId,
+  requestedUserId,
+  repository,
+  values,
+}: {
+  authenticatedUserId: string | null | undefined;
+  requestedUserId: string;
+  repository: IdentityProfileRepository;
+  values: IdentityProfileEditableValues;
+}): Promise<IdentityProfileRecord> {
+  assertIdentityProfileAccess(authenticatedUserId, requestedUserId);
+
+  const { data, error } = await repository.updateByUserId(requestedUserId, values);
+
+  if (error || !data) {
+    logger.warn("Identity profile update failed.", {
+      context: "identity",
+      source: "identity.profile",
+      error: error ?? IDENTITY_PROFILE_NOT_FOUND_ERROR_MESSAGE,
+      metadata: { userId: requestedUserId },
+    });
+
+    throw error ?? new Error(IDENTITY_PROFILE_NOT_FOUND_ERROR_MESSAGE);
+  }
+
+  return data;
+}
+
+export async function updateIdentityProfileForUser(
+  userId: string,
+  values: IdentityProfileEditableValues,
+): Promise<IdentityProfileRecord> {
+  const { user, supabase } = await getServerAuthState();
+
+  if (!user) {
+    throw new Error("Identity profile access requires an authenticated user.");
+  }
+
+  assertIdentityProfileAccess(user.id, userId);
+
+  return updateIdentityProfileByUserId({
+    authenticatedUserId: user.id,
+    requestedUserId: userId,
+    repository: createIdentityProfileRepository(supabase),
+    values,
+  });
 }
 
 export async function ensureIdentityProfileForUser(
@@ -126,13 +220,9 @@ export async function ensureIdentityProfileForUser(
 
   assertIdentityProfileAccess(user.id, userId);
 
-  const { data, error } = await supabase
-    .from("identity_profiles")
-    .upsert(buildIdentityProfileUpsertValues(userId, defaults), {
-      onConflict: "user_id",
-    })
-    .select("*")
-    .single();
+  const { data, error } = await createIdentityProfileRepository(supabase).upsert(
+    buildIdentityProfileUpsertValues(userId, defaults),
+  );
 
   if (error || !data) {
     logger.warn("Identity profile upsert failed.", {
