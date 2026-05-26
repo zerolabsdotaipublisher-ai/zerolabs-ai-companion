@@ -4,13 +4,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useRef, useState } from "react";
 
+import { AUTH_CALLBACK_ERROR_MESSAGES } from "@/lib/auth/callback-errors";
 import {
   type LoginFormErrors,
   type LoginFormValues,
   validateLoginValues,
 } from "@/lib/auth/login";
 import { getStateChangingAuthHeaders } from "@/lib/auth/origin";
-import { AUTHENTICATED_APP_REDIRECT } from "@/lib/auth/redirects";
+import {
+  AUTHENTICATED_APP_REDIRECT,
+  type AuthCallbackError,
+} from "@/lib/auth/redirects";
 
 type LoginResponse = {
   error?: string;
@@ -20,6 +24,7 @@ type LoginResponse = {
 };
 
 type LoginFormProps = {
+  callbackError?: AuthCallbackError;
   redirectTo: string;
 };
 
@@ -34,7 +39,7 @@ const NETWORK_ERROR_MESSAGE =
 const SUBMIT_BUTTON_LABEL = "Sign in";
 const SUBMIT_BUTTON_PENDING_LABEL = "Signing in...";
 
-export function LoginForm({ redirectTo }: LoginFormProps) {
+export function LoginForm({ callbackError, redirectTo }: LoginFormProps) {
   const router = useRouter();
   const [values, setValues] = useState<LoginFormValues>({
     email: "",
@@ -44,6 +49,10 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
   const [errors, setErrors] = useState<LoginFormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const callbackErrorMessage = callbackError
+    ? AUTH_CALLBACK_ERROR_MESSAGES[callbackError]
+    : null;
+  const displayError = submitError ?? callbackErrorMessage;
 
   function handleChange(field: keyof LoginFormValues, nextValue: string) {
     setValues((previous) => ({ ...previous, [field]: nextValue }));
@@ -208,13 +217,13 @@ export function LoginForm({ redirectTo }: LoginFormProps) {
             ) : null}
           </div>
 
-          {submitError ? (
+          {displayError ? (
             <p
               aria-live="assertive"
               className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300"
               role="alert"
             >
-              {submitError}
+              {displayError}
             </p>
           ) : null}
 

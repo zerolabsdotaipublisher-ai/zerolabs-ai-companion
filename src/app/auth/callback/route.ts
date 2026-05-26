@@ -6,6 +6,7 @@ import {
   SIGNUP_REDIRECT,
   type AuthCallbackError,
 } from "@/lib/auth/redirects";
+import { resolvePostAuthRedirectPath } from "@/lib/auth/session-persistence";
 import { logger } from "@/lib/logger";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -46,6 +47,13 @@ function buildRedirectUrl(
   return redirectUrl;
 }
 
+function getSuccessRedirectPath(request: NextRequest): string {
+  return resolvePostAuthRedirectPath(
+    request.nextUrl.searchParams.get("next"),
+    AUTH_SUCCESS_REDIRECT,
+  );
+}
+
 export async function GET(request: NextRequest): Promise<Response> {
   const code = request.nextUrl.searchParams.get("code");
   const failureRedirectPath = getFailureRedirectPath(request);
@@ -75,5 +83,5 @@ export async function GET(request: NextRequest): Promise<Response> {
     );
   }
 
-  return NextResponse.redirect(buildRedirectUrl(request, AUTH_SUCCESS_REDIRECT));
+  return NextResponse.redirect(buildRedirectUrl(request, getSuccessRedirectPath(request)));
 }

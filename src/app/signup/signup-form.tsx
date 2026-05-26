@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState } from "react";
 
-import type { AuthCallbackError } from "@/lib/auth/redirects";
+import { AUTH_CALLBACK_ERROR_MESSAGES } from "@/lib/auth/callback-errors";
 import { getStateChangingAuthHeaders } from "@/lib/auth/origin";
+import type { AuthCallbackError } from "@/lib/auth/redirects";
 import {
   type SignupFormErrors,
   type SignupFormValues,
@@ -24,13 +25,6 @@ type SignupResponse = {
 };
 
 const REDIRECT_DELAY_MS = 1200;
-const CALLBACK_ERROR_MESSAGES: Record<AuthCallbackError, string> = {
-  link_expired:
-    "Your email confirmation link has expired. Request a new confirmation email to continue.",
-  verification_failed:
-    "We couldn't verify your email link. Please request a new confirmation email.",
-};
-
 export function SignupForm({ callbackError }: SignupFormProps) {
   const router = useRouter();
   const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -43,7 +37,9 @@ export function SignupForm({ callbackError }: SignupFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const callbackErrorMessage = callbackError ? CALLBACK_ERROR_MESSAGES[callbackError] : null;
+  const callbackErrorMessage = callbackError
+    ? AUTH_CALLBACK_ERROR_MESSAGES[callbackError]
+    : null;
   const displayError = successMessage ? null : submitError ?? callbackErrorMessage;
 
   useEffect(() => {
