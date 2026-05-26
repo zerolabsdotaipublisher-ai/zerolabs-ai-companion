@@ -43,7 +43,7 @@ test("blocks unauthenticated profile update requests", async () => {
       supabase: {},
       session: null,
       user: null,
-    }) as Awaited<ReturnType<typeof serverSessionModule.getServerAuthState>>;
+    }) as unknown as Awaited<ReturnType<typeof serverSessionModule.getServerAuthState>>;
 
   delete require.cache[routeModulePath];
 
@@ -103,7 +103,7 @@ test("rejects invalid profile update input before writing to Supabase", async ()
       },
       session: createAuthenticatedSession(user),
       user,
-    }) as Awaited<ReturnType<typeof serverSessionModule.getServerAuthState>>;
+    }) as unknown as Awaited<ReturnType<typeof serverSessionModule.getServerAuthState>>;
 
   delete require.cache[routeModulePath];
 
