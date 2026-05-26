@@ -39,7 +39,7 @@ test("uses the request origin for signup email confirmation callbacks", async ()
       from() {
         throw new Error("profile repository should not be used in this test");
       },
-    }) as ReturnType<typeof adminModule.getSupabaseAdminClient>;
+    }) as unknown as ReturnType<typeof adminModule.getSupabaseAdminClient>;
   serverModule.getSupabaseServerClient = async () =>
     ({
       auth: {
@@ -61,7 +61,9 @@ test("uses the request origin for signup email confirmation callbacks", async ()
           };
         },
       },
-    }) as Awaited<ReturnType<typeof serverModule.getSupabaseServerClient>>;
+    }) as unknown as Awaited<
+      ReturnType<typeof serverModule.getSupabaseServerClient>
+    >;
 
   delete require.cache[routeModulePath];
 
