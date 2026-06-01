@@ -111,6 +111,59 @@ test("updates companion preferences with sanitized values", async () => {
   });
 });
 
+test("creates a missing profile before updating companion preferences", async () => {
+  const createdProfile = createIdentityProfileRecord("user-123");
+  let upsertedUserId: string | undefined;
+  let savedValues: IdentityProfileRecord | undefined;
+  let lookupCalls = 0;
+  const repository: IdentityProfileRepository = {
+    async getByUserId() {
+      lookupCalls += 1;
+      return { data: null, error: null };
+    },
+    async updateByUserId(_userId, values) {
+      savedValues = {
+        ...createdProfile,
+        ...values,
+      };
+
+      return {
+        data: savedValues,
+        error: null,
+      };
+    },
+    async upsert(values) {
+      upsertedUserId = values.user_id;
+      return { data: createdProfile, error: null };
+    },
+  };
+
+  const preferences = await updateCompanionPreferencesByUserId({
+    authenticatedUserId: "user-123",
+    requestedUserId: "user-123",
+    repository,
+    input: {
+      suggestion_style: "novel",
+      interests: [" bookstores ", "coffee walks"],
+    },
+  });
+
+  assert.equal(lookupCalls, 1);
+  assert.equal(upsertedUserId, "user-123");
+  assert.deepEqual(preferences, {
+    ...DEFAULT_COMPANION_PREFERENCES,
+    suggestion_style: "novel",
+    interests: ["bookstores", "coffee walks"],
+  });
+  assert.deepEqual(savedValues?.preferences, {
+    companion_preferences: {
+      ...DEFAULT_COMPANION_PREFERENCES,
+      suggestion_style: "novel",
+      interests: ["bookstores", "coffee walks"],
+    },
+  });
+});
+
 test("rejects invalid companion preference enum values", async () => {
   const repository: IdentityProfileRepository = {
     async getByUserId() {

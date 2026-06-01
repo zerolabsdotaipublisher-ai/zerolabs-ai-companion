@@ -188,6 +188,57 @@ test("avoids creating duplicate identity profiles when one already exists", asyn
   );
 });
 
+test("returns the existing profile when concurrent signup hits a duplicate insert", async () => {
+  const existingProfile = createIdentityProfileRecord("user-collision");
+  const lookedUpUserIds: string[] = [];
+  let insertCalls = 0;
+  const repository: SignupProfileRepository = {
+    async getByUserId(userId) {
+      lookedUpUserIds.push(userId);
+
+      if (lookedUpUserIds.length === 1) {
+        return { data: null, error: null };
+      }
+
+      return { data: existingProfile, error: null };
+    },
+    async insert() {
+      insertCalls += 1;
+      return {
+        data: null,
+        error: {
+          code: "23505",
+          message: "duplicate key value violates unique constraint",
+        },
+      };
+    },
+  };
+
+  const { logger, entries } = createLoggerSpy();
+  const rollbackCalls: string[] = [];
+  const result = await provisionSignupIdentityProfile({
+    profileRepository: repository,
+    rollbackAuthUser: async (userId) => {
+      rollbackCalls.push(userId);
+      return { error: null };
+    },
+    userId: "user-collision",
+    workflowLogger: logger,
+  });
+
+  assert.equal(result.status, "existing");
+  assert.equal(result.profile.id, existingProfile.id);
+  assert.deepEqual(lookedUpUserIds, ["user-collision", "user-collision"]);
+  assert.equal(insertCalls, 1);
+  assert.deepEqual(rollbackCalls, []);
+  assert.deepEqual(entries.error, []);
+  assert.deepEqual(entries.warn, []);
+  assert.deepEqual(
+    entries.info.map((entry) => entry.message),
+    ["Identity profile already existed after auth signup."],
+  );
+});
+
 test("logs a clear migration diagnostic when identity_profiles is missing", async () => {
   const repository: SignupProfileRepository = {
     async getByUserId() {
