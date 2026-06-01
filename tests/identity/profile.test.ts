@@ -206,3 +206,39 @@ test("updates the authenticated user's profile without upserting a duplicate rec
   assert.equal(upsertCalls, 0);
   assert.equal(profile.display_name, "Alex Johnson");
 });
+
+test("rejects profile updates for a different authenticated user", async () => {
+  let updateCalls = 0;
+  const repository: IdentityProfileRepository = {
+    async getByUserId() {
+      assert.fail("getByUserId should not be called while updating");
+    },
+    async updateByUserId() {
+      updateCalls += 1;
+      return {
+        data: createIdentityProfileRecord("user-123"),
+        error: null,
+      };
+    },
+    async upsert() {
+      assert.fail("upsert should not be called while updating");
+    },
+  };
+
+  await assert.rejects(
+    () =>
+      updateIdentityProfileByUserId({
+        authenticatedUserId: "user-456",
+        requestedUserId: "user-123",
+        repository,
+        values: {
+          display_name: "Alex Johnson",
+        },
+      }),
+    {
+      message: "Identity profile access is limited to the authenticated user.",
+    },
+  );
+
+  assert.equal(updateCalls, 0);
+});
