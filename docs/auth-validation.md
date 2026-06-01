@@ -8,6 +8,7 @@ This document records lightweight validation for the existing Supabase authentic
 
 - Supabase auth helper wiring (`src/lib/supabase/client.ts`, `src/lib/supabase/server.ts`)
 - signup form, login route, logout route, and auth callback flow
+- client auth state listener and shared auth navigation
 - middleware auth enforcement and redirect behavior (`middleware.ts`)
 - session cookie detection and clearing helpers (`src/lib/auth/session-persistence.ts`)
 - local/dev runtime sanity checks
@@ -35,6 +36,7 @@ No new auth provider or custom token storage was introduced as part of this task
 - Middleware copies cookies from the Supabase response context onto redirect and pass-through responses, so refreshed sessions survive reloads and protected navigations.
 - Session cookie utilities detect Supabase auth cookies by name, and logout clears those cookies explicitly after the server-side sign-out call.
 - Browser helper remains singleton-scoped in-module and does not introduce manual token persistence.
+- A lightweight client auth listener subscribes to `supabase.auth.onAuthStateChange(...)`, refreshes App Router data on auth changes, and safely redirects between auth-entry routes and protected pages when session state changes.
 
 These checks confirm persistence wiring is cookie-based rather than localStorage-only.
 
@@ -98,3 +100,6 @@ When valid Supabase environment values and auth UI flow are available, run:
 7. Retry the signup email callback flow and confirm `/auth/callback` still establishes a valid session.
 8. Confirm no auth/session errors appear in browser console or server/runtime logs during the above checks.
 9. Validate signup creates both the Supabase Auth user and the matching `identity_profiles` row.
+10. While logged out, confirm the shared header only shows `Log in` and `Sign up`.
+11. After logging in, confirm the shared header switches to `Dashboard`, `Profile`, and `Sign out` without a hard refresh.
+12. After logging out, confirm browser back/new-tab navigation does not restore stale authenticated UI.

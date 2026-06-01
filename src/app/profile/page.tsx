@@ -1,6 +1,3 @@
-import Link from "next/link";
-
-import { LogoutButton } from "@/components/auth/logout-button";
 import { requireServerSession } from "@/lib/auth/server";
 import { toIdentityProfileFormValues } from "@/lib/identity/profile-form";
 import { ensureIdentityProfileForUser } from "@/lib/identity/profile";
@@ -23,27 +20,12 @@ export default async function ProfilePage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 px-4 py-10 sm:px-6 sm:py-12">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-2">
-          <h1 className="text-4xl font-semibold tracking-tight">Profile</h1>
-          <p className="max-w-2xl text-lg text-zinc-600 dark:text-zinc-300">
-            Manage the identity and personalization settings your companion uses.
-          </p>
-        </div>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Link
-            className="inline-flex h-11 items-center justify-center rounded-md border border-zinc-300 px-4 py-2.5 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800"
-            href="/dashboard"
-          >
-            Dashboard
-          </Link>
-          <LogoutButton
-            className="inline-flex h-11 items-center justify-center rounded-md border border-zinc-300 px-4 py-2.5 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-70 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800"
-            idleLabel="Sign out"
-            pendingLabel="Signing out..."
-          />
-        </div>
+    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-4 py-10 sm:px-6 sm:py-12">
+      <div className="space-y-2">
+        <h1 className="text-4xl font-semibold tracking-tight">Profile</h1>
+        <p className="max-w-2xl text-lg text-zinc-600 dark:text-zinc-300">
+          Manage the identity and personalization settings your companion uses.
+        </p>
       </div>
 
       {profileLoadError || !initialValues ? (

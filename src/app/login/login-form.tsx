@@ -152,7 +152,7 @@ export function LoginForm({ callbackError, redirectTo }: LoginFormProps) {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-4 py-10 sm:px-6">
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10 sm:px-6">
       <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6 dark:border-zinc-800 dark:bg-zinc-900">
         <h1 className="text-2xl font-semibold tracking-tight">Welcome back</h1>
         <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
