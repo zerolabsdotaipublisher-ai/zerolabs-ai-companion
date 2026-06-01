@@ -19,7 +19,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   });
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col justify-center gap-6 px-6 py-20">
+    <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col justify-center gap-6 px-6 py-20">
       <div className="flex items-start justify-between gap-6">
         <div className="space-y-2">
           <h1 className="text-4xl font-semibold tracking-tight">Dashboard</h1>

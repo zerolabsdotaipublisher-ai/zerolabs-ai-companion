@@ -2,7 +2,7 @@ import { LogoutButton } from "@/components/auth/logout-button";
 
 export default function LogoutPage() {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center gap-4 px-4 py-10 text-center sm:px-6">
+    <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-4 px-4 py-10 text-center sm:px-6">
       <h1 className="text-2xl font-semibold tracking-tight">Signing you out...</h1>
       <p className="text-sm text-zinc-600 dark:text-zinc-300">
         If you are not redirected automatically, continue below.
