@@ -21,7 +21,7 @@ export function AuthStateListener({ isAuthenticated }: AuthStateListenerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const authStatusRef = useRef<ClientAuthStatus>(getClientAuthStatus(isAuthenticated));
-  const lastRefreshAtRef = useRef(0);
+  const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     authStatusRef.current = getClientAuthStatus(isAuthenticated);
@@ -31,14 +31,14 @@ export function AuthStateListener({ isAuthenticated }: AuthStateListenerProps) {
     const supabase = getSupabaseBrowserClient();
 
     function refreshRoute() {
-      const now = Date.now();
-
-      if (now - lastRefreshAtRef.current < AUTH_REFRESH_DEBOUNCE_MS) {
+      if (refreshTimeoutRef.current !== null) {
         return;
       }
 
-      lastRefreshAtRef.current = now;
-      router.refresh();
+      refreshTimeoutRef.current = setTimeout(() => {
+        refreshTimeoutRef.current = null;
+        router.refresh();
+      }, AUTH_REFRESH_DEBOUNCE_MS);
     }
 
     function handleVisibilityChange() {
@@ -74,6 +74,10 @@ export function AuthStateListener({ isAuthenticated }: AuthStateListenerProps) {
 
     return () => {
       subscription.unsubscribe();
+      if (refreshTimeoutRef.current !== null) {
+        clearTimeout(refreshTimeoutRef.current);
+        refreshTimeoutRef.current = null;
+      }
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("focus", refreshRoute);
     };

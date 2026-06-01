@@ -44,6 +44,7 @@ export function resolveClientAuthTransition({
   const nextStatus = getClientAuthStatus(hasSession);
   const normalizedPathname = normalizeAuthPathname(currentPathname);
   const hasStatusChanged = nextStatus !== previousStatus;
+  const shouldRefreshForEvent = event !== "INITIAL_SESSION";
 
   if (nextStatus === "unauthenticated" && !isPublicAuthRoute(normalizedPathname)) {
     return {
@@ -76,6 +77,6 @@ export function resolveClientAuthTransition({
   return {
     nextStatus,
     redirectTo: null,
-    shouldRefresh: hasStatusChanged || event !== "INITIAL_SESSION",
+    shouldRefresh: hasStatusChanged || shouldRefreshForEvent,
   };
 }
