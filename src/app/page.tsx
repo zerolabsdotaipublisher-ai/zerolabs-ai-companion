@@ -11,8 +11,8 @@ export default async function Home() {
         {publicConfig.appName}
       </h1>
       <p className="max-w-2xl text-lg text-zinc-600 dark:text-zinc-300">
-        AI Companion uses Supabase Auth with App Router-safe session handling for public and protected
-        experiences.
+        {publicConfig.appName} uses Supabase Auth with App Router-safe session handling for public
+        and protected experiences.
       </p>
       <p className="max-w-2xl text-sm text-zinc-500 dark:text-zinc-400">
         Session-aware navigation updates as auth changes, while server-side route protection remains

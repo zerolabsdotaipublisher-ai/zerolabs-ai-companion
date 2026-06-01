@@ -19,7 +19,7 @@ export function AuthStateListener({ isAuthenticated }: AuthStateListenerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const authStatusRef = useRef<ClientAuthStatus>(getClientAuthStatus(isAuthenticated));
-  const refreshInFlightRef = useRef(false);
+  const lastRefreshAtRef = useRef(0);
 
   useEffect(() => {
     authStatusRef.current = getClientAuthStatus(isAuthenticated);
@@ -29,15 +29,14 @@ export function AuthStateListener({ isAuthenticated }: AuthStateListenerProps) {
     const supabase = getSupabaseBrowserClient();
 
     function refreshRoute() {
-      if (refreshInFlightRef.current) {
+      const now = Date.now();
+
+      if (now - lastRefreshAtRef.current < 250) {
         return;
       }
 
-      refreshInFlightRef.current = true;
+      lastRefreshAtRef.current = now;
       router.refresh();
-      queueMicrotask(() => {
-        refreshInFlightRef.current = false;
-      });
     }
 
     function handleVisibilityChange() {
