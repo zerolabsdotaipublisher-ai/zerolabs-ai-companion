@@ -14,7 +14,7 @@ type AuthStateListenerProps = {
   isAuthenticated: boolean;
 };
 
-const REFRESH_DEBOUNCE_MS = 250;
+const AUTH_REFRESH_DEBOUNCE_MS = 250;
 
 export function AuthStateListener({ isAuthenticated }: AuthStateListenerProps) {
   const pathname = usePathname();
@@ -33,7 +33,7 @@ export function AuthStateListener({ isAuthenticated }: AuthStateListenerProps) {
     function refreshRoute() {
       const now = Date.now();
 
-      if (now - lastRefreshAtRef.current < REFRESH_DEBOUNCE_MS) {
+      if (now - lastRefreshAtRef.current < AUTH_REFRESH_DEBOUNCE_MS) {
         return;
       }
 

@@ -21,7 +21,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className="h-full antialiased">
-      <body className="flex min-h-screen flex-col">
+      <body className="flex min-h-full flex-col">
         <WebVitalsReporter />
         <AuthStateListener isAuthenticated={isAuthenticated} />
         <AppHeader isAuthenticated={isAuthenticated} userEmail={user?.email ?? null} />
