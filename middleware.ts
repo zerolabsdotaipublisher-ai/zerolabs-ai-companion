@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { AUTH_ENTRY_REDIRECT } from "@/lib/auth/redirects";
 import {
   buildAuthEntryRedirectPath,
-  isPublicAuthRoute,
+  isProtectedAppRoute,
   isStaticAssetPathname,
   normalizeAuthPathname,
 } from "@/lib/auth/session-persistence";
@@ -81,7 +81,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     });
   }
 
-  if (!user && !isPublicAuthRoute(normalizedPathname)) {
+  if (!user && isProtectedAppRoute(normalizedPathname)) {
     const redirectUrl = new URL(
       buildAuthEntryRedirectPath(pathname, request.nextUrl.search, AUTH_ENTRY_REDIRECT),
       request.url,

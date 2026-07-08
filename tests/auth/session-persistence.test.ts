@@ -5,6 +5,7 @@ import {
   buildAuthEntryRedirectPath,
   buildSearchParamsString,
   getSupabaseSessionCookieNames,
+  isProtectedAppRoute,
   isPublicAuthRoute,
   resolvePostAuthRedirectPath,
   isStaticAssetPathname,
@@ -40,6 +41,17 @@ test("treats login and auth endpoints as public while keeping protected routes g
     buildAuthEntryRedirectPath("/dashboard", "?tab=account", "/login"),
     "/login?next=%2Fdashboard%3Ftab%3Daccount",
   );
+});
+
+test("matches protected app routes without treating unrelated paths as protected", () => {
+  assert.equal(isProtectedAppRoute("/dashboard"), true);
+  assert.equal(isProtectedAppRoute("/dashboard/activity"), true);
+  assert.equal(isProtectedAppRoute("/profile"), true);
+  assert.equal(isProtectedAppRoute("/profile/edit"), true);
+  assert.equal(isProtectedAppRoute("/"), false);
+  assert.equal(isProtectedAppRoute("/login"), false);
+  assert.equal(isProtectedAppRoute("/dashboarding"), false);
+  assert.equal(isProtectedAppRoute("/profiles"), false);
 });
 
 test("preserves only safe post-auth redirects and avoids auth loops", () => {

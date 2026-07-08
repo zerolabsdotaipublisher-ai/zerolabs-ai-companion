@@ -18,6 +18,7 @@ const AUTH_FLOW_PUBLIC_ROUTES = [
   "/auth/logout",
   "/auth/signup",
 ] as const;
+const PROTECTED_APP_ROUTES = ["/dashboard", "/profile"] as const;
 
 export const PUBLIC_AUTH_ROUTES = new Set([
   "/",
@@ -58,6 +59,16 @@ export function isPublicAuthRoute(
   publicRoutes: ReadonlySet<string> = PUBLIC_AUTH_ROUTES,
 ): boolean {
   return publicRoutes.has(normalizeAuthPathname(pathname));
+}
+
+export function isProtectedAppRoute(pathname: string): boolean {
+  const normalizedPathname = normalizeAuthPathname(pathname);
+
+  return PROTECTED_APP_ROUTES.some(
+    (protectedRoute) =>
+      normalizedPathname === protectedRoute ||
+      normalizedPathname.startsWith(`${protectedRoute}/`),
+  );
 }
 
 export function resolvePostAuthRedirectPath(
