@@ -8,7 +8,7 @@ import {
 } from "@/lib/auth/redirects";
 import {
   buildAuthEntryRedirectPath,
-  isPublicAuthRoute,
+  isProtectedAppRoute,
   normalizeAuthPathname,
 } from "@/lib/auth/session-persistence";
 
@@ -46,7 +46,7 @@ export function resolveClientAuthTransition({
   const hasStatusChanged = nextStatus !== previousStatus;
   const shouldRefreshForEvent = event !== "INITIAL_SESSION";
 
-  if (nextStatus === "unauthenticated" && !isPublicAuthRoute(normalizedPathname)) {
+  if (nextStatus === "unauthenticated" && isProtectedAppRoute(normalizedPathname)) {
     return {
       nextStatus,
       redirectTo: buildAuthEntryRedirectPath(

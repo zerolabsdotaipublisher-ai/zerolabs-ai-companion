@@ -28,6 +28,22 @@ test("redirects signed-out users away from protected routes", () => {
   );
 });
 
+test("does not redirect signed-out users away from unrelated public pages", () => {
+  assert.deepEqual(
+    resolveClientAuthTransition({
+      currentPathname: "/pricing",
+      event: "SIGNED_OUT",
+      hasSession: false,
+      previousStatus: "authenticated",
+    }),
+    {
+      nextStatus: "unauthenticated",
+      redirectTo: null,
+      shouldRefresh: true,
+    },
+  );
+});
+
 test("redirects signed-in users away from auth entry routes", () => {
   assert.deepEqual(
     resolveClientAuthTransition({
