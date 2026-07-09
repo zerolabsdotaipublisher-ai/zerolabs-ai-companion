@@ -61,56 +61,111 @@ test("allows same-origin auth requests when the trusted client header accompanie
   assert.equal(isStateChangingAuthRequestAllowed(request), true);
 });
 
-test("allows auth requests when the request origin matches forwarded host metadata", () => {
-  const request = new Request("http://localhost:3000/auth/logout", {
+test("allows auth requests that match the configured canonical app origin in proxy deployments", () => {
+  const request = new Request("https://internal.vercel.local/auth/logout", {
     method: "POST",
     headers: {
-      origin: "http://127.0.0.1:3000",
-      "x-forwarded-host": "127.0.0.1:3000",
-      "x-forwarded-proto": "http",
+      origin: "https://example.com",
     },
   });
 
   assert.equal(isStateChangingAuthRequestAllowed(request), true);
 });
 
-test("allows auth requests when the referer matches forwarded host metadata", () => {
-  const request = new Request("http://localhost:3000/auth/login", {
-    method: "POST",
-    headers: {
-      referer: "http://127.0.0.1:3000/login",
-      "x-forwarded-host": "127.0.0.1:3000",
-      "x-forwarded-proto": "http",
-    },
+test("allows forwarded auth origins only when explicitly trusted", () => {
+  const requestHeaders = new Headers({
+    "x-forwarded-host": "127.0.0.1:3000",
+    "x-forwarded-proto": "http",
   });
 
-  assert.equal(isStateChangingAuthRequestAllowed(request), true);
+  assert.equal(
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://127.0.0.1:3000", null, {
+      requireHeaders: true,
+      requestHeaders,
+    }),
+    false,
+  );
+  assert.equal(
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://127.0.0.1:3000", null, {
+      requireHeaders: true,
+      requestHeaders,
+      trustForwardedOrigin: true,
+    }),
+    true,
+  );
 });
 
-test("accepts the first forwarded host value when later values differ", () => {
-  const request = new Request("http://localhost:3000/auth/logout", {
-    method: "POST",
-    headers: {
-      origin: "http://127.0.0.1:3000",
-      "x-forwarded-host": "127.0.0.1:3000, untrusted.example",
-      "x-forwarded-proto": "http, https",
-    },
-  });
-
-  assert.equal(isStateChangingAuthRequestAllowed(request), true);
+test("rejects spoofed x-forwarded-host metadata", () => {
+  assert.equal(
+    isRequestOriginAllowed("https://example.com/auth/logout", "https://example.com", null, {
+      requireHeaders: true,
+      requestHeaders: new Headers({
+        "x-forwarded-host": "evil.example",
+        "x-forwarded-proto": "https",
+      }),
+    }),
+    false,
+  );
 });
 
-test("ignores later forwarded host values when validating auth requests", () => {
-  const request = new Request("http://localhost:3000/auth/logout", {
-    method: "POST",
-    headers: {
-      origin: "http://127.0.0.1:3000",
-      "x-forwarded-host": "untrusted.example, 127.0.0.1:3000",
-      "x-forwarded-proto": "https, http",
-    },
-  });
+test("rejects spoofed x-forwarded-proto metadata", () => {
+  assert.equal(
+    isRequestOriginAllowed("https://example.com/auth/logout", "https://example.com", null, {
+      requireHeaders: true,
+      requestHeaders: new Headers({
+        "x-forwarded-host": "example.com",
+        "x-forwarded-proto": "http",
+      }),
+    }),
+    false,
+  );
+});
 
-  assert.equal(isStateChangingAuthRequestAllowed(request), false);
+test("rejects malformed forwarded metadata", () => {
+  assert.equal(
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://127.0.0.1:3000", null, {
+      requireHeaders: true,
+      requestHeaders: new Headers({
+        "x-forwarded-host": "bad host",
+        "x-forwarded-proto": "javascript",
+      }),
+      trustForwardedOrigin: true,
+    }),
+    false,
+  );
+  assert.equal(
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://127.0.0.1:3000", null, {
+      requireHeaders: true,
+      requestHeaders: new Headers({
+        "x-forwarded-host": "example.com:3000:extra",
+        "x-forwarded-proto": "http",
+      }),
+      trustForwardedOrigin: true,
+    }),
+    false,
+  );
+  assert.equal(
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://127.0.0.1:3000", null, {
+      requireHeaders: true,
+      requestHeaders: new Headers({
+        "x-forwarded-host": "bad@host",
+        "x-forwarded-proto": "http",
+      }),
+      trustForwardedOrigin: true,
+    }),
+    false,
+  );
+  assert.equal(
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://127.0.0.1:3000", null, {
+      requireHeaders: true,
+      requestHeaders: new Headers({
+        "x-forwarded-host": "http://example.com",
+        "x-forwarded-proto": "http",
+      }),
+      trustForwardedOrigin: true,
+    }),
+    false,
+  );
 });
 
 test("rejects cross-origin auth requests even when the trusted client header is present", () => {
