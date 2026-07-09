@@ -61,6 +61,17 @@ test("allows same-origin auth requests when the trusted client header accompanie
   assert.equal(isStateChangingAuthRequestAllowed(request), true);
 });
 
+test("allows auth requests that match the configured canonical app origin in proxy deployments", () => {
+  const request = new Request("https://internal.vercel.local/auth/logout", {
+    method: "POST",
+    headers: {
+      origin: "https://example.com",
+    },
+  });
+
+  assert.equal(isStateChangingAuthRequestAllowed(request), true);
+});
+
 test("allows forwarded auth origins only when explicitly trusted", () => {
   const requestHeaders = new Headers({
     "x-forwarded-host": "127.0.0.1:3000",

@@ -1,3 +1,5 @@
+import { env } from "@/lib/env";
+
 type RequestOriginValidationOptions = {
   requireHeaders?: boolean;
   requestHeaders?: Headers;
@@ -59,8 +61,10 @@ function getAllowedRequestOrigins(
   requestUrl: string,
   options: RequestOriginValidationOptions,
 ): ReadonlySet<string> | undefined {
-  const requestOrigin = new URL(requestUrl).origin;
-  const allowedOrigins = new Set<string>([requestOrigin]);
+  const allowedOrigins = new Set<string>([
+    new URL(requestUrl).origin,
+    new URL(env.appUrl).origin,
+  ]);
 
   const forwardedOrigin = resolveForwardedOrigin(
     options.requestHeaders,
@@ -144,7 +148,6 @@ export function isStateChangingAuthRequestAllowed(request: Request): boolean {
     return isRequestOriginAllowed(request.url, originHeader, refererHeader, {
       requireHeaders: true,
       requestHeaders: request.headers,
-      trustForwardedOrigin: process.env.VERCEL === "1",
     });
   }
 
