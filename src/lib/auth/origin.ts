@@ -39,7 +39,11 @@ function resolveForwardedOrigin(
     return { status: "absent" };
   }
 
-  if (!trustForwardedOrigin || !forwardedHostHeader || !forwardedProtoHeader) {
+  if (!trustForwardedOrigin) {
+    return { status: "invalid" };
+  }
+
+  if (!forwardedHostHeader || !forwardedProtoHeader) {
     return { status: "invalid" };
   }
 

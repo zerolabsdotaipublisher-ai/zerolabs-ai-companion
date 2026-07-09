@@ -133,6 +133,17 @@ test("rejects malformed forwarded metadata", () => {
     }),
     false,
   );
+  assert.equal(
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://127.0.0.1:3000", null, {
+      requireHeaders: true,
+      requestHeaders: new Headers({
+        "x-forwarded-host": "example.com:3000:extra",
+        "x-forwarded-proto": "http",
+      }),
+      trustForwardedOrigin: true,
+    }),
+    false,
+  );
 });
 
 test("rejects cross-origin auth requests even when the trusted client header is present", () => {
