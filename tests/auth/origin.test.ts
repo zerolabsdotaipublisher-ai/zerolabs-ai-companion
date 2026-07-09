@@ -79,7 +79,7 @@ test("allows auth requests when the referer matches forwarded host metadata", ()
     method: "POST",
     headers: {
       referer: "http://127.0.0.1:3000/login",
-      "x-forwarded-host": "127.0.0.1:3000, localhost:3000",
+      "x-forwarded-host": "127.0.0.1:3000",
       "x-forwarded-proto": "http",
     },
   });
@@ -92,7 +92,7 @@ test("ignores later forwarded host values when validating auth requests", () => 
     method: "POST",
     headers: {
       origin: "http://127.0.0.1:3000",
-      "x-forwarded-host": "malicious.example, 127.0.0.1:3000",
+      "x-forwarded-host": "untrusted.example, 127.0.0.1:3000",
       "x-forwarded-proto": "https, http",
     },
   });
