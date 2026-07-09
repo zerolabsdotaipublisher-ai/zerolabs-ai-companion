@@ -95,6 +95,85 @@ test("allows forwarded auth origins only when explicitly trusted", () => {
   );
 });
 
+test("rejects empty x-forwarded-host metadata when trust is enabled", () => {
+  assert.equal(
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://localhost:3000", null, {
+      requireHeaders: true,
+      requestHeaders: new Headers({
+        "x-forwarded-host": "",
+        "x-forwarded-proto": "http",
+      }),
+      trustForwardedOrigin: true,
+    }),
+    false,
+  );
+});
+
+test("rejects empty x-forwarded-proto metadata when trust is enabled", () => {
+  assert.equal(
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://localhost:3000", null, {
+      requireHeaders: true,
+      requestHeaders: new Headers({
+        "x-forwarded-host": "localhost:3000",
+        "x-forwarded-proto": "",
+      }),
+      trustForwardedOrigin: true,
+    }),
+    false,
+  );
+});
+
+test("rejects x-forwarded-host values that start with a comma", () => {
+  assert.equal(
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://localhost:3000", null, {
+      requireHeaders: true,
+      requestHeaders: new Headers({
+        "x-forwarded-host": ",localhost:3000",
+        "x-forwarded-proto": "http",
+      }),
+      trustForwardedOrigin: true,
+    }),
+    false,
+  );
+});
+
+test("rejects x-forwarded-proto values that start with a comma", () => {
+  assert.equal(
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://localhost:3000", null, {
+      requireHeaders: true,
+      requestHeaders: new Headers({
+        "x-forwarded-host": "localhost:3000",
+        "x-forwarded-proto": ",http",
+      }),
+      trustForwardedOrigin: true,
+    }),
+    false,
+  );
+});
+
+test("rejects partial forwarded metadata when trust is enabled", () => {
+  assert.equal(
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://localhost:3000", null, {
+      requireHeaders: true,
+      requestHeaders: new Headers({
+        "x-forwarded-host": "localhost:3000",
+      }),
+      trustForwardedOrigin: true,
+    }),
+    false,
+  );
+  assert.equal(
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://localhost:3000", null, {
+      requireHeaders: true,
+      requestHeaders: new Headers({
+        "x-forwarded-proto": "http",
+      }),
+      trustForwardedOrigin: true,
+    }),
+    false,
+  );
+});
+
 test("rejects spoofed x-forwarded-host metadata", () => {
   assert.equal(
     isRequestOriginAllowed("https://example.com/auth/logout", "https://example.com", null, {

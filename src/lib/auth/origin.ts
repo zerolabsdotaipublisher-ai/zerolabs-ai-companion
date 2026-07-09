@@ -62,19 +62,26 @@ function resolveForwardedOrigin(
   requestHeaders: Headers | undefined,
   trustForwardedOrigin: boolean,
 ): ForwardedOriginResolution {
+  const hasForwardedHostHeader = requestHeaders?.has("x-forwarded-host") === true;
+  const hasForwardedProtoHeader = requestHeaders?.has("x-forwarded-proto") === true;
+  const hasForwardedMetadata = hasForwardedHostHeader || hasForwardedProtoHeader;
+
+  if (!hasForwardedMetadata) {
+    return { status: "absent" };
+  }
+
   const forwardedHostHeader = getFirstCommaSeparatedHeaderValue(
     requestHeaders?.get("x-forwarded-host") ?? null,
   );
   const forwardedProtoHeader = getFirstCommaSeparatedHeaderValue(
     requestHeaders?.get("x-forwarded-proto") ?? null,
   );
-  const hasForwardedMetadata = forwardedHostHeader !== undefined || forwardedProtoHeader !== undefined;
-
-  if (!hasForwardedMetadata) {
-    return { status: "absent" };
-  }
 
   if (!trustForwardedOrigin) {
+    return { status: "invalid" };
+  }
+
+  if (!hasForwardedHostHeader || !hasForwardedProtoHeader) {
     return { status: "invalid" };
   }
 
