@@ -61,6 +61,58 @@ test("allows same-origin auth requests when the trusted client header accompanie
   assert.equal(isStateChangingAuthRequestAllowed(request), true);
 });
 
+test("allows auth requests when the request origin matches forwarded host metadata", () => {
+  const request = new Request("http://localhost:3000/auth/logout", {
+    method: "POST",
+    headers: {
+      origin: "http://127.0.0.1:3000",
+      "x-forwarded-host": "127.0.0.1:3000",
+      "x-forwarded-proto": "http",
+    },
+  });
+
+  assert.equal(isStateChangingAuthRequestAllowed(request), true);
+});
+
+test("allows auth requests when the referer matches forwarded host metadata", () => {
+  const request = new Request("http://localhost:3000/auth/login", {
+    method: "POST",
+    headers: {
+      referer: "http://127.0.0.1:3000/login",
+      "x-forwarded-host": "127.0.0.1:3000",
+      "x-forwarded-proto": "http",
+    },
+  });
+
+  assert.equal(isStateChangingAuthRequestAllowed(request), true);
+});
+
+test("accepts the first forwarded host value when later values differ", () => {
+  const request = new Request("http://localhost:3000/auth/logout", {
+    method: "POST",
+    headers: {
+      origin: "http://127.0.0.1:3000",
+      "x-forwarded-host": "127.0.0.1:3000, untrusted.example",
+      "x-forwarded-proto": "http, https",
+    },
+  });
+
+  assert.equal(isStateChangingAuthRequestAllowed(request), true);
+});
+
+test("ignores later forwarded host values when validating auth requests", () => {
+  const request = new Request("http://localhost:3000/auth/logout", {
+    method: "POST",
+    headers: {
+      origin: "http://127.0.0.1:3000",
+      "x-forwarded-host": "untrusted.example, 127.0.0.1:3000",
+      "x-forwarded-proto": "https, http",
+    },
+  });
+
+  assert.equal(isStateChangingAuthRequestAllowed(request), false);
+});
+
 test("rejects cross-origin auth requests even when the trusted client header is present", () => {
   const request = new Request("https://example.com/auth/logout", {
     method: "POST",
