@@ -78,6 +78,8 @@ function getAllowedRequestOrigins(
   );
 
   if (forwardedOrigin.status === "invalid") {
+    // Reject requests that present malformed or untrusted forwarded metadata
+    // instead of silently falling back to a broader origin check.
     return undefined;
   }
 
