@@ -123,7 +123,7 @@ test("rejects spoofed x-forwarded-proto metadata", () => {
 
 test("rejects malformed forwarded metadata", () => {
   assert.equal(
-    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://127.0.0.1:3000", null, {
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://localhost:3000", null, {
       requireHeaders: true,
       requestHeaders: new Headers({
         "x-forwarded-host": "bad host",
@@ -134,7 +134,7 @@ test("rejects malformed forwarded metadata", () => {
     false,
   );
   assert.equal(
-    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://127.0.0.1:3000", null, {
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://localhost:3000", null, {
       requireHeaders: true,
       requestHeaders: new Headers({
         "x-forwarded-host": "example.com:3000:extra",
@@ -144,8 +144,61 @@ test("rejects malformed forwarded metadata", () => {
     }),
     false,
   );
+});
+
+test("rejects forwarded host values containing a scheme", () => {
   assert.equal(
-    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://127.0.0.1:3000", null, {
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://localhost:3000", null, {
+      requireHeaders: true,
+      requestHeaders: new Headers({
+        "x-forwarded-host": "http://example.com",
+        "x-forwarded-proto": "http",
+      }),
+      trustForwardedOrigin: true,
+    }),
+    false,
+  );
+});
+
+test("rejects forwarded host values containing path, query, or fragment data", () => {
+  assert.equal(
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://localhost:3000", null, {
+      requireHeaders: true,
+      requestHeaders: new Headers({
+        "x-forwarded-host": "example.com/path",
+        "x-forwarded-proto": "http",
+      }),
+      trustForwardedOrigin: true,
+    }),
+    false,
+  );
+  assert.equal(
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://localhost:3000", null, {
+      requireHeaders: true,
+      requestHeaders: new Headers({
+        "x-forwarded-host": "example.com?next=/dashboard",
+        "x-forwarded-proto": "http",
+      }),
+      trustForwardedOrigin: true,
+    }),
+    false,
+  );
+  assert.equal(
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://localhost:3000", null, {
+      requireHeaders: true,
+      requestHeaders: new Headers({
+        "x-forwarded-host": "example.com#fragment",
+        "x-forwarded-proto": "http",
+      }),
+      trustForwardedOrigin: true,
+    }),
+    false,
+  );
+});
+
+test("rejects forwarded host values containing username or password", () => {
+  assert.equal(
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://localhost:3000", null, {
       requireHeaders: true,
       requestHeaders: new Headers({
         "x-forwarded-host": "bad@host",
@@ -156,11 +209,25 @@ test("rejects malformed forwarded metadata", () => {
     false,
   );
   assert.equal(
-    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://127.0.0.1:3000", null, {
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://localhost:3000", null, {
       requireHeaders: true,
       requestHeaders: new Headers({
-        "x-forwarded-host": "http://example.com",
+        "x-forwarded-host": "user:password@example.com",
         "x-forwarded-proto": "http",
+      }),
+      trustForwardedOrigin: true,
+    }),
+    false,
+  );
+});
+
+test("rejects invalid forwarded proto values even when the origin header is otherwise same-origin", () => {
+  assert.equal(
+    isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://localhost:3000", null, {
+      requireHeaders: true,
+      requestHeaders: new Headers({
+        "x-forwarded-host": "localhost:3000",
+        "x-forwarded-proto": "javascript",
       }),
       trustForwardedOrigin: true,
     }),
