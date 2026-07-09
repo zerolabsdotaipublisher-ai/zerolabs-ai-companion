@@ -1,9 +1,46 @@
 type RequestOriginValidationOptions = {
   requireHeaders?: boolean;
+  requestHeaders?: Headers;
 };
 
 export const STATE_CHANGING_AUTH_HEADER = "x-ai-companion-auth-request";
 export const STATE_CHANGING_AUTH_HEADER_VALUE = "1";
+
+function getFirstHeaderValue(value: string | null): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const [firstValue] = value.split(",");
+  const normalizedValue = firstValue?.trim();
+  return normalizedValue ? normalizedValue : undefined;
+}
+
+function getAllowedRequestOrigins(
+  requestUrl: string,
+  requestHeaders?: Headers,
+): ReadonlySet<string> {
+  const requestOrigin = new URL(requestUrl).origin;
+  const allowedOrigins = new Set<string>([requestOrigin]);
+  const hostHeader =
+    getFirstHeaderValue(requestHeaders?.get("x-forwarded-host") ?? null) ??
+    getFirstHeaderValue(requestHeaders?.get("host") ?? null);
+  const protocol =
+    getFirstHeaderValue(requestHeaders?.get("x-forwarded-proto") ?? null) ??
+    new URL(requestUrl).protocol.slice(0, -1);
+
+  if (!hostHeader) {
+    return allowedOrigins;
+  }
+
+  try {
+    allowedOrigins.add(new URL(`${protocol}://${hostHeader}`).origin);
+  } catch {
+    return allowedOrigins;
+  }
+
+  return allowedOrigins;
+}
 
 function isSameOriginFetchSite(value: string | null): boolean {
   return value === "same-origin";
@@ -32,11 +69,11 @@ export function isRequestOriginAllowed(
     return false;
   }
 
-  const requestOrigin = new URL(requestUrl).origin;
+  const allowedRequestOrigins = getAllowedRequestOrigins(requestUrl, options.requestHeaders);
 
   if (originHeader) {
     try {
-      if (new URL(originHeader).origin !== requestOrigin) {
+      if (!allowedRequestOrigins.has(new URL(originHeader).origin)) {
         return false;
       }
     } catch {
@@ -46,7 +83,7 @@ export function isRequestOriginAllowed(
 
   if (refererHeader) {
     try {
-      if (new URL(refererHeader).origin !== requestOrigin) {
+      if (!allowedRequestOrigins.has(new URL(refererHeader).origin)) {
         return false;
       }
     } catch {
@@ -66,6 +103,7 @@ export function isStateChangingAuthRequestAllowed(request: Request): boolean {
   if (originHeader || refererHeader) {
     return isRequestOriginAllowed(request.url, originHeader, refererHeader, {
       requireHeaders: true,
+      requestHeaders: request.headers,
     });
   }
 
