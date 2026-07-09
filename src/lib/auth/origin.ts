@@ -9,6 +9,8 @@ type RequestOriginValidationOptions = {
 export const STATE_CHANGING_AUTH_HEADER = "x-ai-companion-auth-request";
 export const STATE_CHANGING_AUTH_HEADER_VALUE = "1";
 
+const VALID_FORWARDED_PROTOCOLS = new Set(["http", "https"]);
+
 type ForwardedOriginResolution =
   | { status: "absent" }
   | { status: "present"; origin: string }
@@ -47,7 +49,7 @@ function resolveForwardedOrigin(
     return { status: "invalid" };
   }
 
-  if (!/^(http|https)$/u.test(forwardedProtoHeader)) {
+  if (!VALID_FORWARDED_PROTOCOLS.has(forwardedProtoHeader)) {
     return { status: "invalid" };
   }
 
