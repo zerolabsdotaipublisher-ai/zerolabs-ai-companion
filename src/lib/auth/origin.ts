@@ -10,7 +10,7 @@ export const STATE_CHANGING_AUTH_HEADER = "x-ai-companion-auth-request";
 export const STATE_CHANGING_AUTH_HEADER_VALUE = "1";
 
 const VALID_FORWARDED_PROTOCOLS = new Set(["http", "https"]);
-const FORWARDED_HOST_DISALLOWED_CHARACTERS = /[\s@/?#\\]/u;
+const FORWARDED_HOST_VALIDATION_PROTOCOL = "http";
 const FORWARDED_HOST_WITH_OPTIONAL_PORT_PATTERN = /^[A-Za-z0-9.-]+(?::\d+)?$/u;
 const FORWARDED_IPV6_HOST_WITH_OPTIONAL_PORT_PATTERN = /^\[[0-9A-Fa-f:.]+\](?::\d+)?$/u;
 
@@ -34,9 +34,6 @@ function isValidForwardedProtocol(value: string): value is "http" | "https" {
 
 function isValidForwardedHost(value: string): boolean {
   if (
-    value.length === 0 ||
-    value.includes("://") ||
-    FORWARDED_HOST_DISALLOWED_CHARACTERS.test(value) ||
     !(
       FORWARDED_HOST_WITH_OPTIONAL_PORT_PATTERN.test(value) ||
       FORWARDED_IPV6_HOST_WITH_OPTIONAL_PORT_PATTERN.test(value)
@@ -46,7 +43,7 @@ function isValidForwardedHost(value: string): boolean {
   }
 
   try {
-    const forwardedHostUrl = new URL(`http://${value}`);
+    const forwardedHostUrl = new URL(`${FORWARDED_HOST_VALIDATION_PROTOCOL}://${value}`);
 
     return (
       forwardedHostUrl.username === "" &&
