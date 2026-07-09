@@ -74,12 +74,13 @@ test("allows auth requests when the request origin matches forwarded host metada
   assert.equal(isStateChangingAuthRequestAllowed(request), true);
 });
 
-test("allows auth requests when the request origin matches the host header", () => {
+test("allows auth requests when the referer matches forwarded host metadata", () => {
   const request = new Request("http://localhost:3000/auth/login", {
     method: "POST",
     headers: {
       referer: "http://127.0.0.1:3000/login",
-      host: "127.0.0.1:3000",
+      "x-forwarded-host": "127.0.0.1:3000, localhost:3000",
+      "x-forwarded-proto": "http",
     },
   });
 

@@ -6,7 +6,7 @@ type RequestOriginValidationOptions = {
 export const STATE_CHANGING_AUTH_HEADER = "x-ai-companion-auth-request";
 export const STATE_CHANGING_AUTH_HEADER_VALUE = "1";
 
-function getFirstHeaderValue(value: string | null): string | undefined {
+function getFirstCommaSeparatedHeaderValue(value: string | null): string | undefined {
   if (!value) {
     return undefined;
   }
@@ -22,19 +22,19 @@ function getAllowedRequestOrigins(
 ): ReadonlySet<string> {
   const requestOrigin = new URL(requestUrl).origin;
   const allowedOrigins = new Set<string>([requestOrigin]);
-  const hostHeader =
-    getFirstHeaderValue(requestHeaders?.get("x-forwarded-host") ?? null) ??
-    getFirstHeaderValue(requestHeaders?.get("host") ?? null);
+  const forwardedHostHeader = getFirstCommaSeparatedHeaderValue(
+    requestHeaders?.get("x-forwarded-host") ?? null,
+  );
   const protocol =
-    getFirstHeaderValue(requestHeaders?.get("x-forwarded-proto") ?? null) ??
+    getFirstCommaSeparatedHeaderValue(requestHeaders?.get("x-forwarded-proto") ?? null) ??
     new URL(requestUrl).protocol.slice(0, -1);
 
-  if (!hostHeader) {
+  if (!forwardedHostHeader) {
     return allowedOrigins;
   }
 
   try {
-    allowedOrigins.add(new URL(`${protocol}://${hostHeader}`).origin);
+    allowedOrigins.add(new URL(`${protocol}://${forwardedHostHeader}`).origin);
   } catch {
     return allowedOrigins;
   }
