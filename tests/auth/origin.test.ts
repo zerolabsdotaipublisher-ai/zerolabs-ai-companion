@@ -61,6 +61,31 @@ test("allows same-origin auth requests when the trusted client header accompanie
   assert.equal(isStateChangingAuthRequestAllowed(request), true);
 });
 
+test("allows auth requests when the request origin matches forwarded host metadata", () => {
+  const request = new Request("http://localhost:3000/auth/logout", {
+    method: "POST",
+    headers: {
+      origin: "http://127.0.0.1:3000",
+      "x-forwarded-host": "127.0.0.1:3000",
+      "x-forwarded-proto": "http",
+    },
+  });
+
+  assert.equal(isStateChangingAuthRequestAllowed(request), true);
+});
+
+test("allows auth requests when the request origin matches the host header", () => {
+  const request = new Request("http://localhost:3000/auth/login", {
+    method: "POST",
+    headers: {
+      referer: "http://127.0.0.1:3000/login",
+      host: "127.0.0.1:3000",
+    },
+  });
+
+  assert.equal(isStateChangingAuthRequestAllowed(request), true);
+});
+
 test("rejects cross-origin auth requests even when the trusted client header is present", () => {
   const request = new Request("https://example.com/auth/logout", {
     method: "POST",
