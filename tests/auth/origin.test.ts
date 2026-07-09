@@ -95,6 +95,19 @@ test("allows forwarded auth origins only when explicitly trusted", () => {
   );
 });
 
+test("allows canonical same-origin auth requests when proxy forwarded headers are present but untrusted", () => {
+  const request = new Request("https://example.com/auth/logout", {
+    method: "POST",
+    headers: {
+      origin: "https://example.com",
+      "x-forwarded-host": "evil.example",
+      "x-forwarded-proto": "https",
+    },
+  });
+
+  assert.equal(isStateChangingAuthRequestAllowed(request), true);
+});
+
 test("rejects empty x-forwarded-host metadata when trust is enabled", () => {
   assert.equal(
     isRequestOriginAllowed("http://localhost:3000/auth/logout", "http://localhost:3000", null, {
@@ -174,26 +187,13 @@ test("rejects partial forwarded metadata when trust is enabled", () => {
   );
 });
 
-test("rejects spoofed x-forwarded-host metadata", () => {
+test("does not widen allowed origins from forwarded headers when trust is disabled", () => {
   assert.equal(
-    isRequestOriginAllowed("https://example.com/auth/logout", "https://example.com", null, {
+    isRequestOriginAllowed("https://example.com/auth/logout", "https://evil.example", null, {
       requireHeaders: true,
       requestHeaders: new Headers({
         "x-forwarded-host": "evil.example",
         "x-forwarded-proto": "https",
-      }),
-    }),
-    false,
-  );
-});
-
-test("rejects spoofed x-forwarded-proto metadata", () => {
-  assert.equal(
-    isRequestOriginAllowed("https://example.com/auth/logout", "https://example.com", null, {
-      requireHeaders: true,
-      requestHeaders: new Headers({
-        "x-forwarded-host": "example.com",
-        "x-forwarded-proto": "http",
       }),
     }),
     false,

@@ -70,16 +70,16 @@ function resolveForwardedOrigin(
     return { status: "absent" };
   }
 
+  if (!trustForwardedOrigin) {
+    return { status: "absent" };
+  }
+
   const forwardedHostHeader = getFirstCommaSeparatedHeaderValue(
     requestHeaders?.get("x-forwarded-host") ?? null,
   );
   const forwardedProtoHeader = getFirstCommaSeparatedHeaderValue(
     requestHeaders?.get("x-forwarded-proto") ?? null,
   );
-
-  if (!trustForwardedOrigin) {
-    return { status: "invalid" };
-  }
 
   if (!hasForwardedHostHeader || !hasForwardedProtoHeader) {
     return { status: "invalid" };
