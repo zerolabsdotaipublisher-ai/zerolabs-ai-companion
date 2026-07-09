@@ -12,8 +12,7 @@ function getFirstCommaSeparatedHeaderValue(value: string | null): string | undef
   }
 
   const [firstValue] = value.split(",");
-  const normalizedValue = firstValue?.trim();
-  return normalizedValue ? normalizedValue : undefined;
+  return firstValue?.trim() || undefined;
 }
 
 function getAllowedRequestOrigins(
