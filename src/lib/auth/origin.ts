@@ -36,6 +36,7 @@ function getAllowedRequestOrigins(
   try {
     allowedOrigins.add(new URL(`${protocol}://${forwardedHostHeader}`).origin);
   } catch {
+    // Ignore malformed proxy metadata and fall back to the canonical request origin.
     return allowedOrigins;
   }
 
