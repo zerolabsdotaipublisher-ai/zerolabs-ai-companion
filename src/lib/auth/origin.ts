@@ -10,6 +10,9 @@ export const STATE_CHANGING_AUTH_HEADER = "x-ai-companion-auth-request";
 export const STATE_CHANGING_AUTH_HEADER_VALUE = "1";
 
 const VALID_FORWARDED_PROTOCOLS = new Set(["http", "https"]);
+const FORWARDED_HOST_VALIDATION_PROTOCOL = "http";
+const FORWARDED_HOST_WITH_OPTIONAL_PORT_PATTERN = /^[A-Za-z0-9.-]+(?::\d+)?$/u;
+const FORWARDED_IPV6_HOST_WITH_OPTIONAL_PORT_PATTERN = /^\[[0-9A-Fa-f:.]+\](?::\d+)?$/u;
 
 type ForwardedOriginResolution =
   | { status: "absent" }
@@ -23,6 +26,36 @@ function getFirstCommaSeparatedHeaderValue(value: string | null): string | undef
 
   const [firstValue] = value.split(",");
   return firstValue?.trim() || undefined;
+}
+
+function isValidForwardedProtocol(value: string): value is "http" | "https" {
+  return VALID_FORWARDED_PROTOCOLS.has(value);
+}
+
+function isValidForwardedHost(value: string): boolean {
+  if (
+    !(
+      FORWARDED_HOST_WITH_OPTIONAL_PORT_PATTERN.test(value) ||
+      FORWARDED_IPV6_HOST_WITH_OPTIONAL_PORT_PATTERN.test(value)
+    )
+  ) {
+    return false;
+  }
+
+  try {
+    const forwardedHostUrl = new URL(`${FORWARDED_HOST_VALIDATION_PROTOCOL}://${value}`);
+
+    return (
+      forwardedHostUrl.username === "" &&
+      forwardedHostUrl.password === "" &&
+      forwardedHostUrl.pathname === "/" &&
+      forwardedHostUrl.search === "" &&
+      forwardedHostUrl.hash === "" &&
+      forwardedHostUrl.hostname.length > 0
+    );
+  } catch {
+    return false;
+  }
 }
 
 function resolveForwardedOrigin(
@@ -49,7 +82,7 @@ function resolveForwardedOrigin(
     return { status: "invalid" };
   }
 
-  if (!VALID_FORWARDED_PROTOCOLS.has(forwardedProtoHeader)) {
+  if (!isValidForwardedProtocol(forwardedProtoHeader) || !isValidForwardedHost(forwardedHostHeader)) {
     return { status: "invalid" };
   }
 
