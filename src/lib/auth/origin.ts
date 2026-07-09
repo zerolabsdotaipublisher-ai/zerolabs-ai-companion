@@ -1,10 +1,16 @@
 type RequestOriginValidationOptions = {
   requireHeaders?: boolean;
   requestHeaders?: Headers;
+  trustForwardedOrigin?: boolean;
 };
 
 export const STATE_CHANGING_AUTH_HEADER = "x-ai-companion-auth-request";
 export const STATE_CHANGING_AUTH_HEADER_VALUE = "1";
+
+type ForwardedOriginResolution =
+  | { status: "absent" }
+  | { status: "present"; origin: string }
+  | { status: "invalid" };
 
 function getFirstCommaSeparatedHeaderValue(value: string | null): string | undefined {
   if (!value) {
@@ -15,28 +21,58 @@ function getFirstCommaSeparatedHeaderValue(value: string | null): string | undef
   return firstValue?.trim() || undefined;
 }
 
-function getAllowedRequestOrigins(
-  requestUrl: string,
-  requestHeaders?: Headers,
-): ReadonlySet<string> {
-  const requestOrigin = new URL(requestUrl).origin;
-  const allowedOrigins = new Set<string>([requestOrigin]);
+function resolveForwardedOrigin(
+  requestHeaders: Headers | undefined,
+  trustForwardedOrigin: boolean,
+): ForwardedOriginResolution {
   const forwardedHostHeader = getFirstCommaSeparatedHeaderValue(
     requestHeaders?.get("x-forwarded-host") ?? null,
   );
-  const protocol =
-    getFirstCommaSeparatedHeaderValue(requestHeaders?.get("x-forwarded-proto") ?? null) ??
-    new URL(requestUrl).protocol.slice(0, -1);
+  const forwardedProtoHeader = getFirstCommaSeparatedHeaderValue(
+    requestHeaders?.get("x-forwarded-proto") ?? null,
+  );
+  const hasForwardedMetadata = forwardedHostHeader !== undefined || forwardedProtoHeader !== undefined;
 
-  if (!forwardedHostHeader) {
-    return allowedOrigins;
+  if (!hasForwardedMetadata) {
+    return { status: "absent" };
+  }
+
+  if (!trustForwardedOrigin || !forwardedHostHeader || !forwardedProtoHeader) {
+    return { status: "invalid" };
+  }
+
+  if (!/^(http|https)$/u.test(forwardedProtoHeader)) {
+    return { status: "invalid" };
   }
 
   try {
-    allowedOrigins.add(new URL(`${protocol}://${forwardedHostHeader}`).origin);
+    return {
+      status: "present",
+      origin: new URL(`${forwardedProtoHeader}://${forwardedHostHeader}`).origin,
+    };
   } catch {
-    // Ignore malformed proxy metadata and fall back to the canonical request origin.
-    return allowedOrigins;
+    return { status: "invalid" };
+  }
+}
+
+function getAllowedRequestOrigins(
+  requestUrl: string,
+  options: RequestOriginValidationOptions,
+): ReadonlySet<string> | undefined {
+  const requestOrigin = new URL(requestUrl).origin;
+  const allowedOrigins = new Set<string>([requestOrigin]);
+
+  const forwardedOrigin = resolveForwardedOrigin(
+    options.requestHeaders,
+    options.trustForwardedOrigin === true,
+  );
+
+  if (forwardedOrigin.status === "invalid") {
+    return undefined;
+  }
+
+  if (forwardedOrigin.status === "present") {
+    allowedOrigins.add(forwardedOrigin.origin);
   }
 
   return allowedOrigins;
@@ -69,7 +105,11 @@ export function isRequestOriginAllowed(
     return false;
   }
 
-  const allowedRequestOrigins = getAllowedRequestOrigins(requestUrl, options.requestHeaders);
+  const allowedRequestOrigins = getAllowedRequestOrigins(requestUrl, options);
+
+  if (!allowedRequestOrigins) {
+    return false;
+  }
 
   if (originHeader) {
     try {
@@ -104,6 +144,7 @@ export function isStateChangingAuthRequestAllowed(request: Request): boolean {
     return isRequestOriginAllowed(request.url, originHeader, refererHeader, {
       requireHeaders: true,
       requestHeaders: request.headers,
+      trustForwardedOrigin: process.env.VERCEL === "1",
     });
   }
 
