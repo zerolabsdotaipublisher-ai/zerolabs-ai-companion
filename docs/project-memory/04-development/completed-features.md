@@ -119,6 +119,27 @@ Completed:
 - Protected route validation
 - Auth-origin/forwarded-header hardening through follow-up PRs
 
+## Task 7.2 — Onboarding UI Screens
+
+Completed:
+
+- **Protected `/onboarding` Route:** Configured with server-side check integration and added to the application's protected route list.
+- **Distraction-Free Layout:** Re-organized using Next.js App Router Route Groups `(app)` and `(onboarding)` to provide a clean layout completely isolated from the main dashboard header and navigation menu.
+- **Two-Step Client-Side Flow (`OnboardingFlow`):**
+  - **Step 1:** Welcomes the user and captures/confirms their preferred display name.
+  - **Step 2:** Prompts the user to select their desired companion temperament ("Companion Vibe") with three options: Spontaneous, Reflective, and Creative.
+- **Database & Profile Persistence:** Integrated the Supabase client to merge changes safely into the `identity_profiles` table for the authenticated user (`user.id`):
+  - Updates the `name` column.
+  - Safely updates and merges the `preferences` JSONB column with:
+    - `onboarding_completed: true`
+    - `companion_vibe: "[selected_vibe]"`
+
+Deferred to Task 7.3:
+
+- **Automatic Onboarding Detection:** Background checks to see if a user has finished the flow.
+- **Automatic Redirects:** Automatically forcing unauthorized or un-onboarded users from `/dashboard` (or other protected areas) to `/onboarding`.
+- **Complete Route Guard Logic:** Middleware or server-side restrictions enforcing the flow boundaries.
+
 ## Current status summary
 
-Foundation/authentication/identity platform is complete through AIC-206. Product MVP features such as daily suggestions, captures, memories, and timeline are not yet implemented.
+Foundation/authentication/identity platform is complete through AIC-206. Product MVP features such as daily suggestions, captures, memories, and timeline are not yet implemented. Task 7.2 completed the UI for the onboarding flow, with detection and redirects deferred to Task 7.3.

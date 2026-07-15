@@ -21,13 +21,18 @@ Implemented:
 - Dark UI dropdown readability fix
 - Tests for profile/preference behavior
 
-## Schema Extensions (AIC-207)
+## Schema Extensions (Task 7.2 & AIC-207)
 
 The `identity_profiles` table stores user-specific data.
 
 ### Preferences JSONB
 
-The `preferences` JSONB schema has been extended to include an `onboarding_completed` (boolean) flag. This flag is used to track the initialization state of a user profile after they have completed the initial onboarding journey.
+The `preferences` JSONB schema has been extended to store the updated onboarding payload via the Supabase client safely merging updates:
+
+- `onboarding_completed` (boolean): Flag used to track the initialization state of a user profile after they have completed the initial onboarding journey.
+- `companion_vibe` (string): The selected companion temperament (e.g., "Spontaneous", "Reflective", "Creative").
+
+_Note: Automatic detection of the `onboarding_completed` flag and subsequent redirects or complete route guarding are deferred to Task 7.3._
 
 ## Profile lifecycle
 
