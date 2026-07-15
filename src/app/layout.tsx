@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { AppHeader } from "@/components/auth/app-header";
 import { AuthStateListener } from "@/components/auth/auth-state-listener";
 import { publicConfig } from "@/config/env";
 import { getAuthenticatedUser } from "@/lib/auth/server";
@@ -24,7 +23,6 @@ export default async function RootLayout({
       <body className="flex min-h-full flex-col">
         <WebVitalsReporter />
         <AuthStateListener isAuthenticated={isAuthenticated} />
-        <AppHeader isAuthenticated={isAuthenticated} userEmail={user?.email ?? null} />
         {children}
       </body>
     </html>
