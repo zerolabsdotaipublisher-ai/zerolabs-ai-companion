@@ -488,7 +488,7 @@ test("keeps the signup route failure response generic when provisioning fails", 
   const adminModule = requireFromTest("../../src/lib/supabase/admin") as typeof import("../../src/lib/supabase/admin");
   const serverModule = requireFromTest("../../src/lib/supabase/server") as typeof import("../../src/lib/supabase/server");
   const routeModulePath = requireFromTest.resolve(
-    "../../src/app/auth/signup/route",
+    "../../src/app/(app)/auth/signup/route",
   );
 
   const originalIsStateChangingAuthRequestAllowed =
@@ -541,8 +541,8 @@ test("keeps the signup route failure response generic when provisioning fails", 
 
   try {
     const { POST } = requireFromTest(
-      "../../src/app/auth/signup/route",
-    ) as typeof import("../../src/app/auth/signup/route");
+      "../../src/app/(app)/auth/signup/route",
+    ) as typeof import("../../src/app/(app)/auth/signup/route");
     const response = await POST(
       new Request("https://example.com/auth/signup", {
         method: "POST",

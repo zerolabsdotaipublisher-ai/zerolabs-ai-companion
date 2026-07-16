@@ -9,7 +9,7 @@ test("uses the request origin for signup email confirmation callbacks", async ()
   const signupProfileModule = requireFromTest("../../src/lib/auth/signup-profile") as typeof import("../../src/lib/auth/signup-profile");
   const adminModule = requireFromTest("../../src/lib/supabase/admin") as typeof import("../../src/lib/supabase/admin");
   const serverModule = requireFromTest("../../src/lib/supabase/server") as typeof import("../../src/lib/supabase/server");
-  const routeModulePath = requireFromTest.resolve("../../src/app/auth/signup/route");
+  const routeModulePath = requireFromTest.resolve("../../src/app/(app)/auth/signup/route");
   const originalIsStateChangingAuthRequestAllowed =
     originModule.isStateChangingAuthRequestAllowed;
   const originalProvisionSignupIdentityProfile =
@@ -69,8 +69,8 @@ test("uses the request origin for signup email confirmation callbacks", async ()
 
   try {
     const { POST } = requireFromTest(
-      "../../src/app/auth/signup/route",
-    ) as typeof import("../../src/app/auth/signup/route");
+      "../../src/app/(app)/auth/signup/route",
+    ) as typeof import("../../src/app/(app)/auth/signup/route");
     const response = await POST(
       new Request("https://preview-123.vercel.app/auth/signup", {
         method: "POST",
