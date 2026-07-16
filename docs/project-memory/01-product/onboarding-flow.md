@@ -4,7 +4,7 @@
 
 This document outlines the first-time user onboarding journey for the AI Companion MVP product workflow.
 
-**Status:** UI Implemented (Task 7.2 completed)
+**Status:** Implemented (Task 7.2 & Task 7.3 completed)
 
 ## Onboarding Logic
 
@@ -25,14 +25,9 @@ The final step of the onboarding flow will update the `identity_profiles.prefere
 - **Distraction-Free Layout:** Implemented using Next.js App Router Route Groups `(app)` and `(onboarding)` to isolate the flow from the main dashboard header and navigation menu.
 - **Two-Step Visual Flow:** Managed by the `OnboardingFlow` React component in the `src/app/(onboarding)/onboarding/` route.
 
-## Deferred Scope (Task 7.3)
+## Route Enforcement
 
-The following features were deferred to Task 7.3:
+Route enforcement logic is fully implemented (Task 7.3).
 
-- **Automatic Onboarding Detection:** Background checks to see if a user has finished the flow.
-- **Automatic Redirects:** Automatically forcing unauthorized or un-onboarded users from `/dashboard` (or other protected areas) to `/onboarding`.
-- **Complete Route Guard Logic:** Middleware or server-side restrictions enforcing the flow boundaries.
-
-## Detection Pattern
-
-To avoid performance hits in the edge middleware, the onboarding status check **MUST** occur in the `/dashboard` server component, **NOT** in `middleware.ts`. This detection logic is deferred to Task 7.3.
+- Un-onboarded users are automatically redirected to onboarding.
+- Fully onboarded users are automatically reverse-redirected to the dashboard if they try to access onboarding.

@@ -134,12 +134,19 @@ Completed:
     - `onboarding_completed: true`
     - `companion_vibe: "[selected_vibe]"`
 
-Deferred to Task 7.3:
+## Task 7.3 — Route Guards
 
-- **Automatic Onboarding Detection:** Background checks to see if a user has finished the flow.
-- **Automatic Redirects:** Automatically forcing unauthorized or un-onboarded users from `/dashboard` (or other protected areas) to `/onboarding`.
-- **Complete Route Guard Logic:** Middleware or server-side restrictions enforcing the flow boundaries.
+Completed:
+
+- **Server-Side Route Guards:** Implemented server-side routing guards in `src/app/(app)/dashboard/page.tsx` and `src/app/(onboarding)/onboarding/page.tsx`.
+- **Preference Evaluation:** Route guards are based on the `identity_profiles` JSONB `preferences->onboarding_completed` flag.
+- **Test Suite Cleanup:** Dangling test imports in the `auth` test suite were resolved to ensure clean test runs.
 
 ## Current status summary
 
-Foundation/authentication/identity platform is complete through AIC-206. Product MVP features such as daily suggestions, captures, memories, and timeline are not yet implemented. Task 7.2 completed the UI for the onboarding flow, with detection and redirects deferred to Task 7.3.
+Foundation/authentication/identity platform is complete through AIC-206. Product MVP features such as daily suggestions, captures, memories, and timeline are not yet implemented. Task 7.2 completed the UI for the onboarding flow, and Task 7.3 completed the route guard logic for the onboarding flow.
+
+## Deferred Work for Upcoming Tasks
+
+- **Task 7.4:** Finalizing onboarding completion and setting up the companion initialization state for daily interactions.
+- **Task 7.5:** Full lifecycle validation from signup to companion interaction.
