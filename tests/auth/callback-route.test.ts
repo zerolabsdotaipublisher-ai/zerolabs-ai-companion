@@ -6,7 +6,7 @@ const requireFromTest = createRequire(__filename);
 
 test("exchanges the callback code and redirects to a safe post-auth route", async () => {
   const serverModule = requireFromTest("../../src/lib/supabase/server") as typeof import("../../src/lib/supabase/server");
-  const routeModulePath = requireFromTest.resolve("../../src/app/auth/callback/route");
+  const routeModulePath = requireFromTest.resolve("../../src/app/(app)/auth/callback/route");
   const { NextRequest } = requireFromTest("next/server") as typeof import("next/server");
   const originalGetSupabaseServerClient = serverModule.getSupabaseServerClient;
   let exchangedCode: string | undefined;
@@ -25,8 +25,8 @@ test("exchanges the callback code and redirects to a safe post-auth route", asyn
 
   try {
     const { GET } = requireFromTest(
-      "../../src/app/auth/callback/route",
-    ) as typeof import("../../src/app/auth/callback/route");
+      "../../src/app/(app)/auth/callback/route",
+    ) as typeof import("../../src/app/(app)/auth/callback/route");
     const response = await GET(
       new NextRequest(
         "https://preview-123.vercel.app/auth/callback?code=test-code&next=%2Fprofile",
@@ -42,15 +42,15 @@ test("exchanges the callback code and redirects to a safe post-auth route", asyn
 });
 
 test("redirects signup callback failures back to signup with a safe error", async () => {
-  const routeModulePath = requireFromTest.resolve("../../src/app/auth/callback/route");
+  const routeModulePath = requireFromTest.resolve("../../src/app/(app)/auth/callback/route");
   const { NextRequest } = requireFromTest("next/server") as typeof import("next/server");
 
   delete require.cache[routeModulePath];
 
   try {
     const { GET } = requireFromTest(
-      "../../src/app/auth/callback/route",
-    ) as typeof import("../../src/app/auth/callback/route");
+      "../../src/app/(app)/auth/callback/route",
+    ) as typeof import("../../src/app/(app)/auth/callback/route");
     const response = await GET(
       new NextRequest("https://preview-123.vercel.app/auth/callback?type=signup"),
     );
