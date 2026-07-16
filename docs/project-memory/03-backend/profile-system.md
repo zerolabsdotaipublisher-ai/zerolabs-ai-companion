@@ -32,8 +32,6 @@ The `preferences` JSONB schema has been extended to store the updated onboarding
 - `onboarding_completed` (boolean): Flag used to track the initialization state of a user profile after they have completed the initial onboarding journey.
 - `companion_vibe` (string): The selected companion temperament (e.g., "Spontaneous", "Reflective", "Creative").
 
-_Note: Automatic detection of the `onboarding_completed` flag and subsequent redirects or complete route guarding are deferred to Task 7.3._
-
 ## Profile lifecycle
 
 ```text
@@ -67,6 +65,10 @@ Future additions may include:
 - Memory context preferences
 - Privacy controls
 - Export controls
+
+## Architectural Decisions
+
+Database checks and routing guards are performed inside Next.js Page Server Components rather than `middleware.ts` to completely avoid database fetch performance penalties on the Edge runtime.
 
 ## AI Context
 
