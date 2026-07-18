@@ -28,6 +28,8 @@ export function OnboardingFlow({ initialName }: OnboardingFlowProps) {
   };
 
   const handleComplete = async () => {
+    if (isSubmitting) return;
+
     if (!companionVibe) {
       setError("Please select a Companion Vibe.");
       return;
@@ -60,7 +62,9 @@ export function OnboardingFlow({ initialName }: OnboardingFlowProps) {
       }
 
       const existingPreferences =
-        typeof profile.preferences === "object" && profile.preferences !== null
+        typeof profile.preferences === "object" &&
+        profile.preferences !== null &&
+        !Array.isArray(profile.preferences)
           ? profile.preferences
           : {};
 
@@ -82,7 +86,8 @@ export function OnboardingFlow({ initialName }: OnboardingFlowProps) {
         throw new Error("Failed to update profile.");
       }
 
-      router.push("/dashboard");
+      router.refresh();
+      router.replace("/dashboard");
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
