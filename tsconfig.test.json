@@ -9,8 +9,9 @@
     "isolatedModules": false,
     "incremental": false,
     "types": ["node"],
-    "plugins": []
+    "plugins": [],
+    "jsx": "react-jsx"
   },
-  "include": ["src/lib/auth/session-persistence.ts", "tests/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "tests/**/*.ts", "tests/**/*.tsx"],
   "exclude": ["node_modules", ".next", ".test-dist"]
 }
