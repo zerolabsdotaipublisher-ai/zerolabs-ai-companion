@@ -163,6 +163,82 @@ describe("Context Builder", () => {
     ).getSupabaseServerClient = originalGetSupabaseServerClient;
   });
 
+  it("handles primitive JSON preferences (string, number, boolean) defensively with defaults", async () => {
+    originalGetSupabaseServerClient = supabaseServer.getSupabaseServerClient;
+    (
+      supabaseServer as unknown as {
+        getSupabaseServerClient: () => Promise<unknown>;
+      }
+    ).getSupabaseServerClient = async () =>
+      mockSupabase({
+        data: {
+          display_name: "Bob",
+          preferred_name: null,
+          personalization: null,
+          preferences: "some string instead of object",
+        },
+        error: null,
+      });
+
+    let context = await buildPromptContext("user-5");
+
+    assert.deepEqual(context, {
+      display_name: "Bob",
+      companion_vibe: "Spontaneous",
+      personalization: {},
+    });
+
+    (
+      supabaseServer as unknown as {
+        getSupabaseServerClient: () => Promise<unknown>;
+      }
+    ).getSupabaseServerClient = async () =>
+      mockSupabase({
+        data: {
+          display_name: "Charlie",
+          preferred_name: null,
+          personalization: null,
+          preferences: 12345,
+        },
+        error: null,
+      });
+
+    context = await buildPromptContext("user-6");
+
+    assert.deepEqual(context, {
+      display_name: "Charlie",
+      companion_vibe: "Spontaneous",
+      personalization: {},
+    });
+
+    (
+      supabaseServer as unknown as {
+        getSupabaseServerClient: () => Promise<unknown>;
+      }
+    ).getSupabaseServerClient = async () =>
+      mockSupabase({
+        data: {
+          display_name: "Dave",
+          preferred_name: null,
+          personalization: null,
+          preferences: true,
+        },
+        error: null,
+      });
+
+    context = await buildPromptContext("user-7");
+
+    assert.deepEqual(context, {
+      display_name: "Dave",
+      companion_vibe: "Spontaneous",
+      personalization: {},
+    });
+
+    (
+      supabaseServer as unknown as { getSupabaseServerClient: unknown }
+    ).getSupabaseServerClient = originalGetSupabaseServerClient;
+  });
+
   it("handles missing (null/undefined) JSON preferences with defaults", async () => {
     originalGetSupabaseServerClient = supabaseServer.getSupabaseServerClient;
     (
