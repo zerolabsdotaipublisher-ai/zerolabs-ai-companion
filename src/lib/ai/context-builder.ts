@@ -5,11 +5,34 @@ import { z } from "zod";
 import { logger } from "@/lib/logger";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
+const JsonObjectSchema = z.unknown().transform((val) => {
+  if (typeof val === "object" && val !== null && !Array.isArray(val)) {
+    return val as Record<string, unknown>;
+  }
+  return {};
+});
+
 const PreferencesSchema = z
   .object({
     companion_vibe: z.string().catch("Spontaneous"),
   })
   .catch({ companion_vibe: "Spontaneous" });
+
+const ProfileDataSchema = z
+  .object({
+    display_name: z.string().nullable().optional().catch(null),
+    preferred_name: z.string().nullable().optional().catch(null),
+    personalization: JsonObjectSchema,
+    preferences: JsonObjectSchema.pipe(PreferencesSchema),
+  })
+  .transform((val) => {
+    const name = val.preferred_name || val.display_name || "Friend";
+    return {
+      display_name: name,
+      companion_vibe: val.preferences.companion_vibe,
+      personalization: val.personalization,
+    };
+  });
 
 export type PromptContext = {
   display_name: string;
@@ -45,26 +68,7 @@ export async function buildPromptContext(
     };
   }
 
-  const name = data.preferred_name || data.display_name || "Friend";
-
-  const prefs = PreferencesSchema.parse(
-    typeof data.preferences === "object" &&
-      data.preferences !== null &&
-      !Array.isArray(data.preferences)
-      ? data.preferences
-      : {},
-  );
-
-  const personalization =
-    typeof data.personalization === "object" &&
-    data.personalization !== null &&
-    !Array.isArray(data.personalization)
-      ? data.personalization
-      : {};
-
-  return {
-    display_name: name,
-    companion_vibe: prefs.companion_vibe,
-    personalization,
-  };
+  // Parse the data defensively using Zod, defaulting safely on any failures
+  // It also automatically strips out unmapped raw DB rows/fields if they happen to sneak in
+  return ProfileDataSchema.parse(data);
 }
