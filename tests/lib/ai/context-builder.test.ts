@@ -75,6 +75,7 @@ describe("Context Builder", () => {
           personalization: { key: "value" },
           preferences: { companion_vibe: "Reflective" },
           id: "123e4567-e89b-12d3-a456-426614174000",
+          user_id: "user-123",
           created_at: "2023-01-01T00:00:00Z",
           updated_at: "2023-01-01T00:00:00Z",
           internal_metadata: { secret: "do not leak" },
@@ -92,6 +93,7 @@ describe("Context Builder", () => {
 
     // Explicitly verify the output does NOT contain injected keys
     assert.strictEqual("id" in context, false);
+    assert.strictEqual("user_id" in context, false);
     assert.strictEqual("created_at" in context, false);
     assert.strictEqual("updated_at" in context, false);
     assert.strictEqual("internal_metadata" in context, false);
