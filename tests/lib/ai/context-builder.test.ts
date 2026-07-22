@@ -1,0 +1,153 @@
+import assert from "node:assert/strict";
+import { describe, it } from "node:test";
+
+// Mock server-only to avoid Next.js build errors during tests
+import "server-only";
+
+// Now import the module under test
+import { buildPromptContext } from "@/lib/ai/context-builder";
+// Mock Logger
+import * as loggerModule from "@/lib/logger";
+// Mock Supabase Server Client
+import * as supabaseServer from "@/lib/supabase/server";
+
+describe("Context Builder", () => {
+  let originalGetSupabaseServerClient: unknown;
+  let originalLoggerWarn: unknown;
+
+  // Simple mock helper to mock supabase chain
+  const mockSupabase = (returnValue: unknown) => {
+    return {
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            single: async () => returnValue,
+          }),
+        }),
+      }),
+    };
+  };
+
+  it("returns default context when user is not found or error occurs", async () => {
+    // Override logger to avoid cluttering test output
+    originalLoggerWarn = loggerModule.logger.warn;
+    (loggerModule.logger as unknown as { warn: () => void }).warn = () => {};
+
+    // Override Supabase client
+    originalGetSupabaseServerClient = supabaseServer.getSupabaseServerClient;
+    (
+      supabaseServer as unknown as {
+        getSupabaseServerClient: () => Promise<unknown>;
+      }
+    ).getSupabaseServerClient = async () =>
+      mockSupabase({
+        data: null,
+        error: new Error("Not found"),
+      });
+
+    const context = await buildPromptContext("user-1");
+
+    assert.deepEqual(context, {
+      display_name: "Friend",
+      companion_vibe: "Spontaneous",
+      personalization: {},
+    });
+
+    // Restore
+    (loggerModule.logger as unknown as { warn: unknown }).warn =
+      originalLoggerWarn;
+    (
+      supabaseServer as unknown as { getSupabaseServerClient: unknown }
+    ).getSupabaseServerClient = originalGetSupabaseServerClient;
+  });
+
+  it("translates normal user profiles successfully", async () => {
+    originalGetSupabaseServerClient = supabaseServer.getSupabaseServerClient;
+    (
+      supabaseServer as unknown as {
+        getSupabaseServerClient: () => Promise<unknown>;
+      }
+    ).getSupabaseServerClient = async () =>
+      mockSupabase({
+        data: {
+          display_name: "John Doe",
+          preferred_name: "Johnny",
+          personalization: { key: "value" },
+          preferences: { companion_vibe: "Reflective" },
+        },
+        error: null,
+      });
+
+    const context = await buildPromptContext("user-2");
+
+    assert.deepEqual(context, {
+      display_name: "Johnny", // Preferred name takes precedence
+      companion_vibe: "Reflective",
+      personalization: { key: "value" },
+    });
+
+    (
+      supabaseServer as unknown as { getSupabaseServerClient: unknown }
+    ).getSupabaseServerClient = originalGetSupabaseServerClient;
+  });
+
+  it("handles malformed JSON preferences defensively with defaults", async () => {
+    originalGetSupabaseServerClient = supabaseServer.getSupabaseServerClient;
+    (
+      supabaseServer as unknown as {
+        getSupabaseServerClient: () => Promise<unknown>;
+      }
+    ).getSupabaseServerClient = async () =>
+      mockSupabase({
+        data: {
+          display_name: "Alice",
+          preferred_name: null,
+          personalization: "invalid-json", // String instead of object
+          preferences: [1, 2, 3], // Array instead of object
+        },
+        error: null,
+      });
+
+    const context = await buildPromptContext("user-3");
+
+    assert.deepEqual(context, {
+      display_name: "Alice",
+      companion_vibe: "Spontaneous", // Fallback from z.catch
+      personalization: {}, // Fallback for invalid personalization
+    });
+
+    (
+      supabaseServer as unknown as { getSupabaseServerClient: unknown }
+    ).getSupabaseServerClient = originalGetSupabaseServerClient;
+  });
+
+  it("handles missing (null/undefined) JSON preferences with defaults", async () => {
+    originalGetSupabaseServerClient = supabaseServer.getSupabaseServerClient;
+    (
+      supabaseServer as unknown as {
+        getSupabaseServerClient: () => Promise<unknown>;
+      }
+    ).getSupabaseServerClient = async () =>
+      mockSupabase({
+        data: {
+          display_name: null,
+          preferred_name: null,
+          personalization: null,
+          preferences: null,
+        },
+        error: null,
+      });
+
+    const context = await buildPromptContext("user-4");
+
+    assert.deepEqual(context, {
+      display_name: "Friend", // Fallback for name
+      companion_vibe: "Spontaneous", // Fallback for preferences
+      personalization: {}, // Fallback for personalization
+    });
+
+    (
+      supabaseServer as unknown as { getSupabaseServerClient: unknown }
+    ).getSupabaseServerClient = originalGetSupabaseServerClient;
+  });
+});
