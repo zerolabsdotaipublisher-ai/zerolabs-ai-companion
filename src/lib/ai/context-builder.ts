@@ -1,10 +1,14 @@
-import "server-only";
+import 'server-only';
 
 import { z } from "zod";
 
 import { logger } from "@/lib/logger";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 
+/**
+ * Safely parses any value into a JSON object record.
+ * Rejects nulls, arrays, and primitives, returning an empty object fallback.
+ */
 const JsonObjectSchema = z.unknown().transform((val) => {
   if (typeof val === "object" && val !== null && !Array.isArray(val)) {
     return val as Record<string, unknown>;
@@ -12,12 +16,23 @@ const JsonObjectSchema = z.unknown().transform((val) => {
   return {};
 });
 
+/**
+ * Validates companion preferences, defaulting to "Spontaneous" vibe.
+ * Handles missing fields and malformed preference objects gracefully.
+ */
 const PreferencesSchema = z
   .object({
     companion_vibe: z.string().catch("Spontaneous"),
   })
   .catch({ companion_vibe: "Spontaneous" });
 
+/**
+ * Validates raw profile database data, mapping it safely into the PromptContext shape.
+ * Fallbacks:
+ * - display_name resolves to preferred_name, display_name, or "Friend"
+ * - preferences resolves gracefully handling primitive, array, or null payloads
+ * Strips out unmapped fields (like IDs or timestamps).
+ */
 const ProfileDataSchema = z
   .object({
     display_name: z.string().nullable().optional().catch(null),
@@ -44,6 +59,13 @@ export type PromptContext = {
   personalization: Record<string, unknown>;
 };
 
+/**
+ * Retrieves and maps an identity profile into an AI-ready context object.
+ * Acts as an isolation layer preventing raw database models from bleeding to the AI prompt.
+ *
+ * @param userId - The user ID to load context for
+ * @returns {Promise<PromptContext>} The mapped prompt context, defaulting to base defaults on error ("Friend", "Spontaneous").
+ */
 export async function buildPromptContext(
   userId: string,
 ): Promise<PromptContext> {

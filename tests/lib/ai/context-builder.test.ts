@@ -15,7 +15,10 @@ describe("Context Builder", () => {
   let originalGetSupabaseServerClient: unknown;
   let originalLoggerWarn: unknown;
 
-  // Simple mock helper to mock supabase chain
+  /**
+   * Simple mock helper to mock supabase chain.
+   * Allows returning specific data payloads to simulate database query results.
+   */
   const mockSupabase = (returnValue: unknown) => {
     return {
       from: () => ({
@@ -62,6 +65,8 @@ describe("Context Builder", () => {
   });
 
   it("strips raw database fields and internal metadata from the context output", async () => {
+    // Verifies that unmapped keys like IDs, timestamps, and metadata
+    // are strictly excluded from the PromptContext object.
     originalGetSupabaseServerClient = supabaseServer.getSupabaseServerClient;
     (
       supabaseServer as unknown as {
@@ -104,6 +109,7 @@ describe("Context Builder", () => {
   });
 
   it("translates normal user profiles successfully", async () => {
+    // Valid profile payload maps correctly to context
     originalGetSupabaseServerClient = supabaseServer.getSupabaseServerClient;
     (
       supabaseServer as unknown as {
@@ -240,6 +246,7 @@ describe("Context Builder", () => {
   });
 
   it("handles missing (null/undefined) JSON preferences with defaults", async () => {
+    // Null, undefined, or empty profile input returning default fallbacks
     originalGetSupabaseServerClient = supabaseServer.getSupabaseServerClient;
     (
       supabaseServer as unknown as {
