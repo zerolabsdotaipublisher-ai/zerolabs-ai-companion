@@ -75,6 +75,7 @@ describe("Context Builder", () => {
           personalization: { key: "value" },
           preferences: { companion_vibe: "Reflective" },
           id: "123e4567-e89b-12d3-a456-426614174000",
+          user_id: "user-123",
           created_at: "2023-01-01T00:00:00Z",
           updated_at: "2023-01-01T00:00:00Z",
           internal_metadata: { secret: "do not leak" },
@@ -92,6 +93,7 @@ describe("Context Builder", () => {
 
     // Explicitly verify the output does NOT contain injected keys
     assert.strictEqual("id" in context, false);
+    assert.strictEqual("user_id" in context, false);
     assert.strictEqual("created_at" in context, false);
     assert.strictEqual("updated_at" in context, false);
     assert.strictEqual("internal_metadata" in context, false);
@@ -154,6 +156,82 @@ describe("Context Builder", () => {
       display_name: "Alice",
       companion_vibe: "Spontaneous", // Fallback from z.catch
       personalization: {}, // Fallback for invalid personalization
+    });
+
+    (
+      supabaseServer as unknown as { getSupabaseServerClient: unknown }
+    ).getSupabaseServerClient = originalGetSupabaseServerClient;
+  });
+
+  it("handles primitive JSON preferences (string, number, boolean) defensively with defaults", async () => {
+    originalGetSupabaseServerClient = supabaseServer.getSupabaseServerClient;
+    (
+      supabaseServer as unknown as {
+        getSupabaseServerClient: () => Promise<unknown>;
+      }
+    ).getSupabaseServerClient = async () =>
+      mockSupabase({
+        data: {
+          display_name: "Bob",
+          preferred_name: null,
+          personalization: null,
+          preferences: "some string instead of object",
+        },
+        error: null,
+      });
+
+    let context = await buildPromptContext("user-5");
+
+    assert.deepEqual(context, {
+      display_name: "Bob",
+      companion_vibe: "Spontaneous",
+      personalization: {},
+    });
+
+    (
+      supabaseServer as unknown as {
+        getSupabaseServerClient: () => Promise<unknown>;
+      }
+    ).getSupabaseServerClient = async () =>
+      mockSupabase({
+        data: {
+          display_name: "Charlie",
+          preferred_name: null,
+          personalization: null,
+          preferences: 12345,
+        },
+        error: null,
+      });
+
+    context = await buildPromptContext("user-6");
+
+    assert.deepEqual(context, {
+      display_name: "Charlie",
+      companion_vibe: "Spontaneous",
+      personalization: {},
+    });
+
+    (
+      supabaseServer as unknown as {
+        getSupabaseServerClient: () => Promise<unknown>;
+      }
+    ).getSupabaseServerClient = async () =>
+      mockSupabase({
+        data: {
+          display_name: "Dave",
+          preferred_name: null,
+          personalization: null,
+          preferences: true,
+        },
+        error: null,
+      });
+
+    context = await buildPromptContext("user-7");
+
+    assert.deepEqual(context, {
+      display_name: "Dave",
+      companion_vibe: "Spontaneous",
+      personalization: {},
     });
 
     (

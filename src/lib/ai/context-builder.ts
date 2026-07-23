@@ -34,6 +34,10 @@ const ProfileDataSchema = z
     };
   });
 
+/**
+ * Represents the strictly sanitized context payload provided to the AI.
+ * Guaranteed to exclude raw database rows, IDs, and internal metadata.
+ */
 export type PromptContext = {
   display_name: string;
   companion_vibe: string;
