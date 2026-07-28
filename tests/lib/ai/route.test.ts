@@ -17,10 +17,10 @@ class MockNextResponse {
 
 // Ensure the module is properly required
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const originalRequire = require('module').prototype.require;
+const originalRequire = require("module").prototype.require;
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-require('module').prototype.require = function(path: string) {
-  if (path === 'next/server') {
+require("module").prototype.require = function (path: string) {
+  if (path === "next/server") {
     return { NextResponse: MockNextResponse };
   }
   return originalRequire.call(this, path);
@@ -42,13 +42,19 @@ describe("POST /api/ai/conversation", () => {
       body: JSON.stringify({}),
     });
 
-    const response = await POST(request) as unknown as { status: number, json: () => Promise<Record<string, unknown>> };
+    const response = (await POST(request)) as unknown as {
+      status: number;
+      json: () => Promise<Record<string, unknown>>;
+    };
     assert.strictEqual(response.status, 403);
 
     const body = await response.json();
     assert.strictEqual(body.error, true);
     assert.strictEqual(body.code, "INVALID_REQUEST");
-    assert.strictEqual(body.message, "Origin metadata is missing or not allowed.");
+    assert.strictEqual(
+      body.message,
+      "Origin metadata is missing or not allowed.",
+    );
   });
 
   it("should return 401 if user is not authenticated", async () => {
@@ -61,18 +67,26 @@ describe("POST /api/ai/conversation", () => {
       body: JSON.stringify({}),
     });
 
-    const response = await POST(request) as unknown as { status: number, json: () => Promise<Record<string, unknown>> };
+    const response = (await POST(request)) as unknown as {
+      status: number;
+      json: () => Promise<Record<string, unknown>>;
+    };
     assert.strictEqual(response.status, 401);
 
     const body = await response.json();
     assert.strictEqual(body.error, true);
     assert.strictEqual(body.code, "INVALID_REQUEST");
-    assert.strictEqual(body.message, "You must be signed in to start a conversation.");
+    assert.strictEqual(
+      body.message,
+      "You must be signed in to start a conversation.",
+    );
   });
 
   it("should return 400 on invalid JSON payload", async () => {
     mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
-    mock.method(serverSessionLib, "getServerAuthState", async () => ({ user: { id: "user1" } }));
+    mock.method(serverSessionLib, "getServerAuthState", async () => ({
+      user: { id: "user1" },
+    }));
     mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
 
     const request = new Request("https://example.com/api/ai/conversation", {
@@ -80,7 +94,10 @@ describe("POST /api/ai/conversation", () => {
       body: "{ invalid_json }",
     });
 
-    const response = await POST(request) as unknown as { status: number, json: () => Promise<Record<string, unknown>> };
+    const response = (await POST(request)) as unknown as {
+      status: number;
+      json: () => Promise<Record<string, unknown>>;
+    };
     assert.strictEqual(response.status, 400);
 
     const body = await response.json();
@@ -89,9 +106,80 @@ describe("POST /api/ai/conversation", () => {
     assert.strictEqual(body.message, "Invalid JSON payload.");
   });
 
+  it("should return 400 on primitive JSON payloads", async () => {
+    mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
+    mock.method(serverSessionLib, "getServerAuthState", async () => ({
+      user: { id: "user1" },
+    }));
+    mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
+
+    const request = new Request("https://example.com/api/ai/conversation", {
+      method: "POST",
+      body: "123",
+    });
+
+    const response = (await POST(request)) as unknown as {
+      status: number;
+      json: () => Promise<Record<string, unknown>>;
+    };
+    assert.strictEqual(response.status, 400);
+
+    const body = await response.json();
+    assert.strictEqual(body.error, true);
+    assert.strictEqual(body.code, "INVALID_REQUEST");
+  });
+
+  it("should return 400 on array JSON payloads", async () => {
+    mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
+    mock.method(serverSessionLib, "getServerAuthState", async () => ({
+      user: { id: "user1" },
+    }));
+    mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
+
+    const request = new Request("https://example.com/api/ai/conversation", {
+      method: "POST",
+      body: "[1, 2, 3]",
+    });
+
+    const response = (await POST(request)) as unknown as {
+      status: number;
+      json: () => Promise<Record<string, unknown>>;
+    };
+    assert.strictEqual(response.status, 400);
+
+    const body = await response.json();
+    assert.strictEqual(body.error, true);
+    assert.strictEqual(body.code, "INVALID_REQUEST");
+  });
+
+  it("should return 400 on null JSON payloads", async () => {
+    mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
+    mock.method(serverSessionLib, "getServerAuthState", async () => ({
+      user: { id: "user1" },
+    }));
+    mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
+
+    const request = new Request("https://example.com/api/ai/conversation", {
+      method: "POST",
+      body: "null",
+    });
+
+    const response = (await POST(request)) as unknown as {
+      status: number;
+      json: () => Promise<Record<string, unknown>>;
+    };
+    assert.strictEqual(response.status, 400);
+
+    const body = await response.json();
+    assert.strictEqual(body.error, true);
+    assert.strictEqual(body.code, "INVALID_REQUEST");
+  });
+
   it("should return 400 on invalid schema payload", async () => {
     mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
-    mock.method(serverSessionLib, "getServerAuthState", async () => ({ user: { id: "user1" } }));
+    mock.method(serverSessionLib, "getServerAuthState", async () => ({
+      user: { id: "user1" },
+    }));
     mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
 
     const request = new Request("https://example.com/api/ai/conversation", {
@@ -99,7 +187,10 @@ describe("POST /api/ai/conversation", () => {
       body: JSON.stringify({ messages: [] }), // Invalid because min(1)
     });
 
-    const response = await POST(request) as unknown as { status: number, json: () => Promise<Record<string, unknown>> };
+    const response = (await POST(request)) as unknown as {
+      status: number;
+      json: () => Promise<Record<string, unknown>>;
+    };
     assert.strictEqual(response.status, 400);
 
     const body = await response.json();
@@ -110,13 +201,15 @@ describe("POST /api/ai/conversation", () => {
 
   it("should handle error responses from processConversation", async () => {
     mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
-    mock.method(serverSessionLib, "getServerAuthState", async () => ({ user: { id: "user1" } }));
+    mock.method(serverSessionLib, "getServerAuthState", async () => ({
+      user: { id: "user1" },
+    }));
     mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
 
     mock.method(orchestratorLib, "processConversation", async () => ({
       error: true,
       code: "RATE_LIMIT_EXCEEDED",
-      message: "Rate limit exceeded"
+      message: "Rate limit exceeded",
     }));
 
     const request = new Request("https://example.com/api/ai/conversation", {
@@ -124,7 +217,10 @@ describe("POST /api/ai/conversation", () => {
       body: JSON.stringify({ messages: [{ role: "user", content: "Hello" }] }),
     });
 
-    const response = await POST(request) as unknown as { status: number, json: () => Promise<Record<string, unknown>> };
+    const response = (await POST(request)) as unknown as {
+      status: number;
+      json: () => Promise<Record<string, unknown>>;
+    };
     assert.strictEqual(response.status, 429);
 
     const body = await response.json();
@@ -134,11 +230,13 @@ describe("POST /api/ai/conversation", () => {
 
   it("should return 500 if outgoing response fails schema validation", async () => {
     mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
-    mock.method(serverSessionLib, "getServerAuthState", async () => ({ user: { id: "user1" } }));
+    mock.method(serverSessionLib, "getServerAuthState", async () => ({
+      user: { id: "user1" },
+    }));
     mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
 
     mock.method(orchestratorLib, "processConversation", async () => ({
-      message: { role: "invalid", content: "Hello" } // Invalid role
+      message: { role: "invalid", content: "Hello" }, // Invalid role
     }));
 
     const request = new Request("https://example.com/api/ai/conversation", {
@@ -146,36 +244,82 @@ describe("POST /api/ai/conversation", () => {
       body: JSON.stringify({ messages: [{ role: "user", content: "Hello" }] }),
     });
 
-    const response = await POST(request) as unknown as { status: number, json: () => Promise<Record<string, unknown>> };
+    const response = (await POST(request)) as unknown as {
+      status: number;
+      json: () => Promise<Record<string, unknown>>;
+    };
     assert.strictEqual(response.status, 500);
 
     const body = await response.json();
     assert.strictEqual(body.error, true);
     assert.strictEqual(body.code, "INTERNAL_ERROR");
-    assert.strictEqual(body.message, "The AI produced an invalid response format.");
+    assert.strictEqual(
+      body.message,
+      "The AI produced an invalid response format.",
+    );
   });
 
   it("should return 200 and the valid response on success", async () => {
     mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
-    mock.method(serverSessionLib, "getServerAuthState", async () => ({ user: { id: "user1" } }));
+    mock.method(serverSessionLib, "getServerAuthState", async () => ({
+      user: { id: "user1" },
+    }));
     mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
 
     const validResponse = {
       message: { role: "assistant", content: "Hi there!" },
-      metadata: { model: "test-model" }
+      metadata: { model: "test-model" },
     };
 
-    mock.method(orchestratorLib, "processConversation", async () => validResponse);
+    mock.method(
+      orchestratorLib,
+      "processConversation",
+      async () => validResponse,
+    );
 
     const request = new Request("https://example.com/api/ai/conversation", {
       method: "POST",
       body: JSON.stringify({ messages: [{ role: "user", content: "Hello" }] }),
     });
 
-    const response = await POST(request) as unknown as { status: number, json: () => Promise<Record<string, unknown>> };
+    const response = (await POST(request)) as unknown as {
+      status: number;
+      json: () => Promise<Record<string, unknown>>;
+    };
     assert.strictEqual(response.status, 200);
 
     const body = await response.json();
     assert.deepStrictEqual(body, validResponse);
+  });
+
+  it("should return 500 and a structured ConversationError if an unexpected exception is thrown", async () => {
+    mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
+    mock.method(serverSessionLib, "getServerAuthState", async () => ({
+      user: { id: "user1" },
+    }));
+    mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
+
+    mock.method(orchestratorLib, "processConversation", async () => {
+      throw new Error("Simulated runtime crash");
+    });
+
+    const request = new Request("https://example.com/api/ai/conversation", {
+      method: "POST",
+      body: JSON.stringify({ messages: [{ role: "user", content: "Hello" }] }),
+    });
+
+    const response = (await POST(request)) as unknown as {
+      status: number;
+      json: () => Promise<Record<string, unknown>>;
+    };
+    assert.strictEqual(response.status, 500);
+
+    const body = await response.json();
+    assert.strictEqual(body.error, true);
+    assert.strictEqual(body.code, "INTERNAL_ERROR");
+    assert.strictEqual(
+      body.message,
+      "An unexpected error occurred while processing your request.",
+    );
   });
 });
