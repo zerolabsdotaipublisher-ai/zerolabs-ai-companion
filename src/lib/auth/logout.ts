@@ -25,10 +25,7 @@ export function resolveLogoutRedirectPath(
   candidatePath: unknown,
   fallbackPath: string = LOGIN_REDIRECT,
 ): string {
-  if (
-    typeof candidatePath !== "string" ||
-    !isSafeInternalAppPath(candidatePath)
-  ) {
+  if (typeof candidatePath !== "string" || !isSafeInternalAppPath(candidatePath)) {
     return fallbackPath;
   }
 

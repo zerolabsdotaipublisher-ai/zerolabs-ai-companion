@@ -60,33 +60,18 @@ test("preserves only safe post-auth redirects and avoids auth loops", () => {
     "/dashboard?tab=account",
   );
   assert.equal(
-    resolvePostAuthRedirectPath(
-      ["/dashboard?tab=account", "/login"],
-      "/dashboard",
-    ),
+    resolvePostAuthRedirectPath(["/dashboard?tab=account", "/login"], "/dashboard"),
     "/dashboard?tab=account",
   );
   assert.equal(resolvePostAuthRedirectPath("/", "/dashboard"), "/");
-  assert.equal(
-    resolvePostAuthRedirectPath(undefined, "/dashboard"),
-    "/dashboard",
-  );
+  assert.equal(resolvePostAuthRedirectPath(undefined, "/dashboard"), "/dashboard");
   assert.equal(resolvePostAuthRedirectPath(null, "/dashboard"), "/dashboard");
   assert.equal(resolvePostAuthRedirectPath([], "/dashboard"), "/dashboard");
   assert.equal(resolvePostAuthRedirectPath(42, "/dashboard"), "/dashboard");
   assert.equal(resolvePostAuthRedirectPath(true, "/dashboard"), "/dashboard");
-  assert.equal(
-    resolvePostAuthRedirectPath(Symbol("next"), "/dashboard"),
-    "/dashboard",
-  );
-  assert.equal(
-    resolvePostAuthRedirectPath(() => "/dashboard", "/dashboard"),
-    "/dashboard",
-  );
-  assert.equal(
-    resolvePostAuthRedirectPath({ path: "/dashboard" }, "/dashboard"),
-    "/dashboard",
-  );
+  assert.equal(resolvePostAuthRedirectPath(Symbol("next"), "/dashboard"), "/dashboard");
+  assert.equal(resolvePostAuthRedirectPath(() => "/dashboard", "/dashboard"), "/dashboard");
+  assert.equal(resolvePostAuthRedirectPath({ path: "/dashboard" }, "/dashboard"), "/dashboard");
   assert.equal(
     resolvePostAuthRedirectPath([null] as unknown as string[], "/dashboard"),
     "/dashboard",
@@ -100,31 +85,16 @@ test("preserves only safe post-auth redirects and avoids auth loops", () => {
     "/dashboard",
   );
   assert.equal(
-    resolvePostAuthRedirectPath(
-      ["//evil.example/dashboard", "/dashboard"],
-      "/dashboard",
-    ),
+    resolvePostAuthRedirectPath(["//evil.example/dashboard", "/dashboard"], "/dashboard"),
     "/dashboard",
   );
   assert.equal(
-    resolvePostAuthRedirectPath(
-      ["//evil.example/dashboard", "//still-evil.example"],
-      "/dashboard",
-    ),
+    resolvePostAuthRedirectPath(["//evil.example/dashboard", "//still-evil.example"], "/dashboard"),
     "/dashboard",
   );
-  assert.equal(
-    resolvePostAuthRedirectPath("/login?next=%2Fdashboard", "/dashboard"),
-    "/dashboard",
-  );
-  assert.equal(
-    resolvePostAuthRedirectPath("/auth/logout", "/dashboard"),
-    "/dashboard",
-  );
-  assert.equal(
-    resolvePostAuthRedirectPath("//evil.example/dashboard", "/dashboard"),
-    "/dashboard",
-  );
+  assert.equal(resolvePostAuthRedirectPath("/login?next=%2Fdashboard", "/dashboard"), "/dashboard");
+  assert.equal(resolvePostAuthRedirectPath("/auth/logout", "/dashboard"), "/dashboard");
+  assert.equal(resolvePostAuthRedirectPath("//evil.example/dashboard", "/dashboard"), "/dashboard");
   assert.equal(
     resolvePostAuthRedirectPath("https://evil.example/dashboard", "/dashboard"),
     "/dashboard",
@@ -141,10 +111,7 @@ test("falls back safely when redirect URL parsing throws", () => {
   } as unknown as typeof URL;
 
   try {
-    assert.equal(
-      resolvePostAuthRedirectPath("/dashboard", "/dashboard"),
-      "/dashboard",
-    );
+    assert.equal(resolvePostAuthRedirectPath("/dashboard", "/dashboard"), "/dashboard");
   } finally {
     globalThis.URL = originalUrlConstructor;
   }

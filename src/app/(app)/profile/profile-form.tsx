@@ -34,8 +34,7 @@ const SAVE_ERROR_MESSAGE =
   "We couldn’t save your profile right now. Please try again in a moment.";
 const PROFILE_SELECT_CLASS_NAME =
   "w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none ring-zinc-900/10 focus:ring-2 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:ring-zinc-100/20 [color-scheme:light] dark:[color-scheme:dark]";
-const PROFILE_SELECT_OPTION_CLASS_NAME =
-  "bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100";
+const PROFILE_SELECT_OPTION_CLASS_NAME = "bg-white text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100";
 const PROFILE_SELECT_OPTION_STYLE = {
   backgroundColor: "rgb(9 9 11)",
   color: "rgb(244 244 245)",
@@ -52,26 +51,21 @@ function hasChanges(
   currentValues: IdentityProfileFormValues,
   savedValues: IdentityProfileFormValues,
 ): boolean {
-  return (
-    Object.keys(currentValues) as Array<keyof IdentityProfileFormValues>
-  ).some((key) => currentValues[key] !== savedValues[key]);
+  return (Object.keys(currentValues) as Array<keyof IdentityProfileFormValues>).some(
+    (key) => currentValues[key] !== savedValues[key],
+  );
 }
 
 export function ProfileForm({ email, initialValues }: ProfileFormProps) {
-  const [values, setValues] =
-    useState<IdentityProfileFormValues>(initialValues);
-  const [savedValues, setSavedValues] =
-    useState<IdentityProfileFormValues>(initialValues);
+  const [values, setValues] = useState<IdentityProfileFormValues>(initialValues);
+  const [savedValues, setSavedValues] = useState<IdentityProfileFormValues>(initialValues);
   const [errors, setErrors] = useState<IdentityProfileFormErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSaveDisabled = isSubmitting || !hasChanges(values, savedValues);
 
-  function handleChange(
-    field: keyof IdentityProfileFormValues,
-    nextValue: string,
-  ) {
+  function handleChange(field: keyof IdentityProfileFormValues, nextValue: string) {
     setValues((previousValues) => ({
       ...previousValues,
       [field]: nextValue,
@@ -144,25 +138,16 @@ export function ProfileForm({ email, initialValues }: ProfileFormProps) {
   return (
     <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6 dark:border-zinc-800 dark:bg-zinc-900">
       <div className="space-y-2">
-        <h2 className="text-2xl font-semibold tracking-tight">
-          Profile settings
-        </h2>
+        <h2 className="text-2xl font-semibold tracking-tight">Profile settings</h2>
         <p className="text-sm text-zinc-600 dark:text-zinc-300">
-          Update the identity details and quiet companion preferences your
-          companion uses.
+          Update the identity details and quiet companion preferences your companion uses.
         </p>
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          Signed in as{" "}
-          <span className="font-medium">{email ?? "your account"}</span>.
+          Signed in as <span className="font-medium">{email ?? "your account"}</span>.
         </p>
       </div>
 
-      <form
-        aria-busy={isSubmitting}
-        className="mt-6 space-y-5"
-        noValidate
-        onSubmit={handleSubmit}
-      >
+      <form aria-busy={isSubmitting} className="mt-6 space-y-5" noValidate onSubmit={handleSubmit}>
         <p aria-live="polite" className="sr-only" role="status">
           {isSubmitting ? "Saving your profile. Please wait." : ""}
         </p>
@@ -173,9 +158,7 @@ export function ProfileForm({ email, initialValues }: ProfileFormProps) {
               Display name
             </label>
             <input
-              aria-describedby={
-                errors.display_name ? "profile-display-name-error" : undefined
-              }
+              aria-describedby={errors.display_name ? "profile-display-name-error" : undefined}
               aria-invalid={errors.display_name ? "true" : "false"}
               autoComplete="name"
               className="w-full rounded-md border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none ring-zinc-900/10 placeholder:text-zinc-400 focus:ring-2 dark:border-zinc-700 dark:ring-zinc-100/20"
@@ -190,10 +173,7 @@ export function ProfileForm({ email, initialValues }: ProfileFormProps) {
               value={values.display_name}
             />
             {errors.display_name ? (
-              <p
-                className="text-sm text-red-600 dark:text-red-400"
-                id="profile-display-name-error"
-              >
+              <p className="text-sm text-red-600 dark:text-red-400" id="profile-display-name-error">
                 {errors.display_name}
               </p>
             ) : null}
@@ -204,11 +184,7 @@ export function ProfileForm({ email, initialValues }: ProfileFormProps) {
               Preferred name
             </label>
             <input
-              aria-describedby={
-                errors.preferred_name
-                  ? "profile-preferred-name-error"
-                  : undefined
-              }
+              aria-describedby={errors.preferred_name ? "profile-preferred-name-error" : undefined}
               aria-invalid={errors.preferred_name ? "true" : "false"}
               autoComplete="nickname"
               className="w-full rounded-md border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none ring-zinc-900/10 placeholder:text-zinc-400 focus:ring-2 dark:border-zinc-700 dark:ring-zinc-100/20"
@@ -239,9 +215,7 @@ export function ProfileForm({ email, initialValues }: ProfileFormProps) {
               Timezone
             </label>
             <input
-              aria-describedby={
-                errors.timezone ? "profile-timezone-error" : undefined
-              }
+              aria-describedby={errors.timezone ? "profile-timezone-error" : undefined}
               aria-invalid={errors.timezone ? "true" : "false"}
               className="w-full rounded-md border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none ring-zinc-900/10 placeholder:text-zinc-400 focus:ring-2 dark:border-zinc-700 dark:ring-zinc-100/20"
               disabled={isSubmitting}
@@ -255,10 +229,7 @@ export function ProfileForm({ email, initialValues }: ProfileFormProps) {
               value={values.timezone}
             />
             {errors.timezone ? (
-              <p
-                className="text-sm text-red-600 dark:text-red-400"
-                id="profile-timezone-error"
-              >
+              <p className="text-sm text-red-600 dark:text-red-400" id="profile-timezone-error">
                 {errors.timezone}
               </p>
             ) : null}
@@ -269,9 +240,7 @@ export function ProfileForm({ email, initialValues }: ProfileFormProps) {
               Locale
             </label>
             <input
-              aria-describedby={
-                errors.locale ? "profile-locale-error" : undefined
-              }
+              aria-describedby={errors.locale ? "profile-locale-error" : undefined}
               aria-invalid={errors.locale ? "true" : "false"}
               className="w-full rounded-md border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none ring-zinc-900/10 placeholder:text-zinc-400 focus:ring-2 dark:border-zinc-700 dark:ring-zinc-100/20"
               disabled={isSubmitting}
@@ -285,10 +254,7 @@ export function ProfileForm({ email, initialValues }: ProfileFormProps) {
               value={values.locale}
             />
             {errors.locale ? (
-              <p
-                className="text-sm text-red-600 dark:text-red-400"
-                id="profile-locale-error"
-              >
+              <p className="text-sm text-red-600 dark:text-red-400" id="profile-locale-error">
                 {errors.locale}
               </p>
             ) : null}
@@ -297,9 +263,7 @@ export function ProfileForm({ email, initialValues }: ProfileFormProps) {
 
         <div className="space-y-2">
           <div className="space-y-1">
-            <h3 className="text-lg font-semibold tracking-tight">
-              Companion preferences
-            </h3>
+            <h3 className="text-lg font-semibold tracking-tight">Companion preferences</h3>
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
               Keep suggestions calm, useful, and tailored to your day.
             </p>
@@ -333,8 +297,7 @@ export function ProfileForm({ email, initialValues }: ProfileFormProps) {
                 options: LOCATION_PREFERENCE_OPTIONS,
               },
             ].map(({ field, label, options }) => {
-              const fieldError =
-                errors[field as keyof IdentityProfileFormValues];
+              const fieldError = errors[field as keyof IdentityProfileFormValues];
               const errorId = `profile-${field}-error`;
 
               return (
@@ -369,10 +332,7 @@ export function ProfileForm({ email, initialValues }: ProfileFormProps) {
                     ))}
                   </select>
                   {fieldError ? (
-                    <p
-                      className="text-sm text-red-600 dark:text-red-400"
-                      id={errorId}
-                    >
+                    <p className="text-sm text-red-600 dark:text-red-400" id={errorId}>
                       {fieldError}
                     </p>
                   ) : null}
@@ -387,11 +347,7 @@ export function ProfileForm({ email, initialValues }: ProfileFormProps) {
                 Interests
               </label>
               <input
-                aria-describedby={
-                  errors.interests
-                    ? "profile-interests-error"
-                    : "profile-interests-help"
-                }
+                aria-describedby={errors.interests ? "profile-interests-error" : "profile-interests-help"}
                 aria-invalid={errors.interests ? "true" : "false"}
                 className="w-full rounded-md border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none ring-zinc-900/10 placeholder:text-zinc-400 focus:ring-2 dark:border-zinc-700 dark:ring-zinc-100/20"
                 disabled={isSubmitting}
@@ -404,17 +360,11 @@ export function ProfileForm({ email, initialValues }: ProfileFormProps) {
                 type="text"
                 value={values.interests}
               />
-              <p
-                className="text-sm text-zinc-500 dark:text-zinc-400"
-                id="profile-interests-help"
-              >
+              <p className="text-sm text-zinc-500 dark:text-zinc-400" id="profile-interests-help">
                 Separate items with commas.
               </p>
               {errors.interests ? (
-                <p
-                  className="text-sm text-red-600 dark:text-red-400"
-                  id="profile-interests-error"
-                >
+                <p className="text-sm text-red-600 dark:text-red-400" id="profile-interests-error">
                   {errors.interests}
                 </p>
               ) : null}
@@ -425,11 +375,7 @@ export function ProfileForm({ email, initialValues }: ProfileFormProps) {
                 Avoidances
               </label>
               <input
-                aria-describedby={
-                  errors.avoidances
-                    ? "profile-avoidances-error"
-                    : "profile-avoidances-help"
-                }
+                aria-describedby={errors.avoidances ? "profile-avoidances-error" : "profile-avoidances-help"}
                 aria-invalid={errors.avoidances ? "true" : "false"}
                 className="w-full rounded-md border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none ring-zinc-900/10 placeholder:text-zinc-400 focus:ring-2 dark:border-zinc-700 dark:ring-zinc-100/20"
                 disabled={isSubmitting}
@@ -442,10 +388,7 @@ export function ProfileForm({ email, initialValues }: ProfileFormProps) {
                 type="text"
                 value={values.avoidances}
               />
-              <p
-                className="text-sm text-zinc-500 dark:text-zinc-400"
-                id="profile-avoidances-help"
-              >
+              <p className="text-sm text-zinc-500 dark:text-zinc-400" id="profile-avoidances-help">
                 Separate items with commas.
               </p>
               {errors.avoidances ? (

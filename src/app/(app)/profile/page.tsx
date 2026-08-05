@@ -16,8 +16,7 @@ export default async function ProfilePage() {
     const profile = await ensureIdentityProfileForUser(authState.user.id);
     initialValues = toIdentityProfileFormValues(profile);
   } catch {
-    profileLoadError =
-      "We couldn’t load your profile right now. Please refresh and try again.";
+    profileLoadError = "We couldn’t load your profile right now. Please refresh and try again.";
   }
 
   return (
@@ -34,10 +33,7 @@ export default async function ProfilePage() {
           {profileLoadError ?? "We couldn’t load your profile right now."}
         </section>
       ) : (
-        <ProfileForm
-          email={authState.user.email ?? null}
-          initialValues={initialValues}
-        />
+        <ProfileForm email={authState.user.email ?? null} initialValues={initialValues} />
       )}
     </main>
   );

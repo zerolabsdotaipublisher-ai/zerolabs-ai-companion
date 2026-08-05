@@ -15,9 +15,7 @@ export default function GlobalError({ error, reset }: GlobalErrorProps) {
             An unexpected error occurred. Please try again.
           </p>
           {error.digest ? (
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Error reference: {error.digest}
-            </p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Error reference: {error.digest}</p>
           ) : null}
           <button
             className="w-fit rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
