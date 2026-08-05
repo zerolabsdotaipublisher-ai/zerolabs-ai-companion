@@ -7,7 +7,12 @@ type ChatInputProps = {
   disabled?: boolean;
 };
 
-export function ChatInput({ value, onChange, onSubmit, disabled }: ChatInputProps) {
+export function ChatInput({
+  value,
+  onChange,
+  onSubmit,
+  disabled,
+}: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -15,7 +20,7 @@ export function ChatInput({ value, onChange, onSubmit, disabled }: ChatInputProp
 
     // Auto-resize
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = "auto";
       textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
     }
   };
@@ -26,7 +31,7 @@ export function ChatInput({ value, onChange, onSubmit, disabled }: ChatInputProp
       if (!disabled && value.trim()) {
         onSubmit();
         if (textareaRef.current) {
-          textareaRef.current.style.height = 'auto';
+          textareaRef.current.style.height = "auto";
         }
       }
     }

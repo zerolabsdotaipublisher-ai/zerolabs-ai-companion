@@ -12,14 +12,17 @@ export const STATE_CHANGING_AUTH_HEADER_VALUE = "1";
 const VALID_FORWARDED_PROTOCOLS = new Set(["http", "https"]);
 const FORWARDED_HOST_VALIDATION_PROTOCOL = "http";
 const FORWARDED_HOST_WITH_OPTIONAL_PORT_PATTERN = /^[A-Za-z0-9.-]+(?::\d+)?$/u;
-const FORWARDED_IPV6_HOST_WITH_OPTIONAL_PORT_PATTERN = /^\[[0-9A-Fa-f:.]+\](?::\d+)?$/u;
+const FORWARDED_IPV6_HOST_WITH_OPTIONAL_PORT_PATTERN =
+  /^\[[0-9A-Fa-f:.]+\](?::\d+)?$/u;
 
 type ForwardedOriginResolution =
   | { status: "absent" }
   | { status: "present"; origin: string }
   | { status: "invalid" };
 
-function getFirstCommaSeparatedHeaderValue(value: string | null): string | undefined {
+function getFirstCommaSeparatedHeaderValue(
+  value: string | null,
+): string | undefined {
   if (!value) {
     return undefined;
   }
@@ -43,7 +46,9 @@ function isValidForwardedHost(value: string): boolean {
   }
 
   try {
-    const forwardedHostUrl = new URL(`${FORWARDED_HOST_VALIDATION_PROTOCOL}://${value}`);
+    const forwardedHostUrl = new URL(
+      `${FORWARDED_HOST_VALIDATION_PROTOCOL}://${value}`,
+    );
 
     return (
       forwardedHostUrl.username === "" &&
@@ -62,9 +67,12 @@ function resolveForwardedOrigin(
   requestHeaders: Headers | undefined,
   trustForwardedOrigin: boolean,
 ): ForwardedOriginResolution {
-  const hasForwardedHostHeader = requestHeaders?.has("x-forwarded-host") === true;
-  const hasForwardedProtoHeader = requestHeaders?.has("x-forwarded-proto") === true;
-  const hasForwardedMetadata = hasForwardedHostHeader || hasForwardedProtoHeader;
+  const hasForwardedHostHeader =
+    requestHeaders?.has("x-forwarded-host") === true;
+  const hasForwardedProtoHeader =
+    requestHeaders?.has("x-forwarded-proto") === true;
+  const hasForwardedMetadata =
+    hasForwardedHostHeader || hasForwardedProtoHeader;
 
   if (!hasForwardedMetadata) {
     return { status: "absent" };
@@ -89,14 +97,18 @@ function resolveForwardedOrigin(
     return { status: "invalid" };
   }
 
-  if (!isValidForwardedProtocol(forwardedProtoHeader) || !isValidForwardedHost(forwardedHostHeader)) {
+  if (
+    !isValidForwardedProtocol(forwardedProtoHeader) ||
+    !isValidForwardedHost(forwardedHostHeader)
+  ) {
     return { status: "invalid" };
   }
 
   try {
     return {
       status: "present",
-      origin: new URL(`${forwardedProtoHeader}://${forwardedHostHeader}`).origin,
+      origin: new URL(`${forwardedProtoHeader}://${forwardedHostHeader}`)
+        .origin,
     };
   } catch {
     return { status: "invalid" };

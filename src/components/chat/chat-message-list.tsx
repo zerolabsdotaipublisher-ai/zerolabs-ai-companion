@@ -40,7 +40,9 @@ export function ChatMessageList({ messages, isLoading }: ChatMessageListProps) {
                   : "bg-white text-zinc-900 border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:text-zinc-100 dark:border-zinc-800 rounded-bl-none"
               }`}
             >
-              <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+              <p className="whitespace-pre-wrap leading-relaxed">
+                {message.content}
+              </p>
             </div>
           </div>
         );
@@ -48,13 +50,22 @@ export function ChatMessageList({ messages, isLoading }: ChatMessageListProps) {
 
       {isLoading && (
         <div className="flex w-full justify-start">
-           <div className="max-w-[85%] rounded-2xl px-5 py-3 text-sm sm:max-w-[75%] sm:text-base bg-white text-zinc-900 border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:text-zinc-100 dark:border-zinc-800 rounded-bl-none">
-              <div className="flex space-x-1.5 items-center h-6">
-                 <div className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                 <div className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                 <div className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce" style={{ animationDelay: '300ms' }} />
-              </div>
-           </div>
+          <div className="max-w-[85%] rounded-2xl px-5 py-3 text-sm sm:max-w-[75%] sm:text-base bg-white text-zinc-900 border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:text-zinc-100 dark:border-zinc-800 rounded-bl-none">
+            <div className="flex space-x-1.5 items-center h-6">
+              <div
+                className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce"
+                style={{ animationDelay: "0ms" }}
+              />
+              <div
+                className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce"
+                style={{ animationDelay: "150ms" }}
+              />
+              <div
+                className="w-1.5 h-1.5 rounded-full bg-zinc-400 animate-bounce"
+                style={{ animationDelay: "300ms" }}
+              />
+            </div>
+          </div>
         </div>
       )}
 

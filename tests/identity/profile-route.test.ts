@@ -29,11 +29,15 @@ function createAuthenticatedSession(user: User): Session {
 }
 
 test("blocks unauthenticated profile update requests", async () => {
-  const originModule = requireFromTest("../../src/lib/auth/origin") as typeof import("../../src/lib/auth/origin");
+  const originModule = requireFromTest(
+    "../../src/lib/auth/origin",
+  ) as typeof import("../../src/lib/auth/origin");
   const serverSessionModule = requireFromTest(
     "../../src/lib/auth/server-session",
   ) as typeof import("../../src/lib/auth/server-session");
-  const routeModulePath = requireFromTest.resolve("../../src/app/api/profile/route");
+  const routeModulePath = requireFromTest.resolve(
+    "../../src/app/api/profile/route",
+  );
   const originalIsStateChangingAuthRequestAllowed =
     originModule.isStateChangingAuthRequestAllowed;
   const originalGetServerAuthState = serverSessionModule.getServerAuthState;
@@ -44,7 +48,9 @@ test("blocks unauthenticated profile update requests", async () => {
       supabase: {},
       session: null,
       user: null,
-    }) as unknown as Awaited<ReturnType<typeof serverSessionModule.getServerAuthState>>;
+    }) as unknown as Awaited<
+      ReturnType<typeof serverSessionModule.getServerAuthState>
+    >;
 
   delete require.cache[routeModulePath];
 
@@ -87,11 +93,15 @@ test("blocks unauthenticated profile update requests", async () => {
 });
 
 test("rejects invalid profile update input before writing to Supabase", async () => {
-  const originModule = requireFromTest("../../src/lib/auth/origin") as typeof import("../../src/lib/auth/origin");
+  const originModule = requireFromTest(
+    "../../src/lib/auth/origin",
+  ) as typeof import("../../src/lib/auth/origin");
   const serverSessionModule = requireFromTest(
     "../../src/lib/auth/server-session",
   ) as typeof import("../../src/lib/auth/server-session");
-  const routeModulePath = requireFromTest.resolve("../../src/app/api/profile/route");
+  const routeModulePath = requireFromTest.resolve(
+    "../../src/app/api/profile/route",
+  );
   const originalIsStateChangingAuthRequestAllowed =
     originModule.isStateChangingAuthRequestAllowed;
   const originalGetServerAuthState = serverSessionModule.getServerAuthState;
@@ -135,7 +145,9 @@ test("rejects invalid profile update input before writing to Supabase", async ()
               updateCalls += 1;
               return {
                 eq() {
-                  throw new Error("update should not be called for invalid input");
+                  throw new Error(
+                    "update should not be called for invalid input",
+                  );
                 },
               };
             },
@@ -144,7 +156,9 @@ test("rejects invalid profile update input before writing to Supabase", async ()
       },
       session: createAuthenticatedSession(user),
       user,
-    }) as unknown as Awaited<ReturnType<typeof serverSessionModule.getServerAuthState>>;
+    }) as unknown as Awaited<
+      ReturnType<typeof serverSessionModule.getServerAuthState>
+    >;
 
   delete require.cache[routeModulePath];
 
@@ -193,11 +207,15 @@ test("rejects invalid profile update input before writing to Supabase", async ()
 });
 
 test("ignores client user_id overrides when updating profile preferences", async () => {
-  const originModule = requireFromTest("../../src/lib/auth/origin") as typeof import("../../src/lib/auth/origin");
+  const originModule = requireFromTest(
+    "../../src/lib/auth/origin",
+  ) as typeof import("../../src/lib/auth/origin");
   const serverSessionModule = requireFromTest(
     "../../src/lib/auth/server-session",
   ) as typeof import("../../src/lib/auth/server-session");
-  const routeModulePath = requireFromTest.resolve("../../src/app/api/profile/route");
+  const routeModulePath = requireFromTest.resolve(
+    "../../src/app/api/profile/route",
+  );
   const originalIsStateChangingAuthRequestAllowed =
     originModule.isStateChangingAuthRequestAllowed;
   const originalGetServerAuthState = serverSessionModule.getServerAuthState;
@@ -266,7 +284,9 @@ test("ignores client user_id overrides when updating profile preferences", async
       },
       session: createAuthenticatedSession(user),
       user,
-    }) as unknown as Awaited<ReturnType<typeof serverSessionModule.getServerAuthState>>;
+    }) as unknown as Awaited<
+      ReturnType<typeof serverSessionModule.getServerAuthState>
+    >;
 
   delete require.cache[routeModulePath];
 
@@ -321,11 +341,15 @@ test("ignores client user_id overrides when updating profile preferences", async
 });
 
 test("preserves omitted companion preference fields during partial profile updates", async () => {
-  const originModule = requireFromTest("../../src/lib/auth/origin") as typeof import("../../src/lib/auth/origin");
+  const originModule = requireFromTest(
+    "../../src/lib/auth/origin",
+  ) as typeof import("../../src/lib/auth/origin");
   const serverSessionModule = requireFromTest(
     "../../src/lib/auth/server-session",
   ) as typeof import("../../src/lib/auth/server-session");
-  const routeModulePath = requireFromTest.resolve("../../src/app/api/profile/route");
+  const routeModulePath = requireFromTest.resolve(
+    "../../src/app/api/profile/route",
+  );
   const originalIsStateChangingAuthRequestAllowed =
     originModule.isStateChangingAuthRequestAllowed;
   const originalGetServerAuthState = serverSessionModule.getServerAuthState;
@@ -400,7 +424,9 @@ test("preserves omitted companion preference fields during partial profile updat
       },
       session: createAuthenticatedSession(user),
       user,
-    }) as unknown as Awaited<ReturnType<typeof serverSessionModule.getServerAuthState>>;
+    }) as unknown as Awaited<
+      ReturnType<typeof serverSessionModule.getServerAuthState>
+    >;
 
   delete require.cache[routeModulePath];
 

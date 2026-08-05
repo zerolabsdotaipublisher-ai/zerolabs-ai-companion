@@ -18,7 +18,10 @@ export default function ChatPage() {
     if (!trimmedInput || isLoading) return;
 
     setError(null);
-    const userMessage: ConversationMessage = { role: "user", content: trimmedInput };
+    const userMessage: ConversationMessage = {
+      role: "user",
+      content: trimmedInput,
+    };
     const updatedMessages = [...messages, userMessage];
 
     setMessages(updatedMessages);
@@ -45,9 +48,8 @@ export default function ChatPage() {
       if (data && data.message) {
         setMessages((prev) => [...prev, data.message]);
       } else {
-         throw new Error("Invalid response format");
+        throw new Error("Invalid response format");
       }
-
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);

@@ -10,7 +10,10 @@ import {
   type ProtectedRouteOptions,
 } from "@/lib/auth/server-session";
 
-export { getAuthenticatedUser, getServerSession } from "@/lib/auth/server-session";
+export {
+  getAuthenticatedUser,
+  getServerSession,
+} from "@/lib/auth/server-session";
 
 export async function requireServerSession(
   options: ProtectedRouteOptions,

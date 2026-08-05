@@ -32,12 +32,10 @@ describe("generateConversationResponse", () => {
       companion_vibe: "Supportive",
       personalization: { topic: "Science" },
     },
-    messages: [
-      { role: "user", content: "Hello" }
-    ],
+    messages: [{ role: "user", content: "Hello" }],
     settings: {
       temperature: 0.7,
-    }
+    },
   };
 
   const validOptions = {
@@ -62,27 +60,39 @@ describe("generateConversationResponse", () => {
     global.fetch = async (input, init) => {
       url = input;
       fetchOptions = init;
-      return new Response(JSON.stringify({
-        model: "gpt-4o-mini-2024-07-18",
-        choices: [
-          {
-            message: { role: "assistant", content: "Hi Alice!" },
-            finish_reason: "stop"
-          }
-        ],
-        usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 }
-      }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" }
-      });
+      return new Response(
+        JSON.stringify({
+          model: "gpt-4o-mini-2024-07-18",
+          choices: [
+            {
+              message: { role: "assistant", content: "Hi Alice!" },
+              finish_reason: "stop",
+            },
+          ],
+          usage: { prompt_tokens: 10, completion_tokens: 5, total_tokens: 15 },
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
     };
 
-    const response = await generateConversationResponse(validRequest, validOptions);
+    const response = await generateConversationResponse(
+      validRequest,
+      validOptions,
+    );
 
     assert.equal(url, "https://api.openai.com/v1/chat/completions");
     assert.equal(fetchOptions?.method, "POST");
-    assert.equal((fetchOptions?.headers as Record<string, string>)["Authorization"], "Bearer override-key");
-    assert.equal((fetchOptions?.headers as Record<string, string>)["Content-Type"], "application/json");
+    assert.equal(
+      (fetchOptions?.headers as Record<string, string>)["Authorization"],
+      "Bearer override-key",
+    );
+    assert.equal(
+      (fetchOptions?.headers as Record<string, string>)["Content-Type"],
+      "application/json",
+    );
 
     assert.ok(fetchOptions?.body);
     const body = JSON.parse(fetchOptions.body as string);
@@ -178,7 +188,10 @@ describe("generateConversationResponse", () => {
 
   it("handles malformed responses lacking choices/message", async () => {
     global.fetch = async () => {
-      return new Response(JSON.stringify({ some_other_data: true }), { status: 200, headers: { "Content-Type": "application/json" }});
+      return new Response(JSON.stringify({ some_other_data: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     };
 
     const response = await generateConversationResponse(validRequest);
@@ -200,8 +213,9 @@ describe("generateConversationResponse", () => {
     assert.deepEqual(response, {
       error: true,
       code: "INTERNAL_ERROR",
-      message: "An unexpected error occurred while communicating with the AI provider",
-      details: { error: "Network offline" }
+      message:
+        "An unexpected error occurred while communicating with the AI provider",
+      details: { error: "Network offline" },
     });
   });
 });

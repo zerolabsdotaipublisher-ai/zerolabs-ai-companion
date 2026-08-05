@@ -46,7 +46,10 @@ test("treats only a validated user and session pair as an authenticated server s
     user,
   };
 
-  assert.equal(hasAuthenticatedServerSession({ session: null, user: null }), false);
+  assert.equal(
+    hasAuthenticatedServerSession({ session: null, user: null }),
+    false,
+  );
   assert.equal(hasAuthenticatedServerSession({ session: null, user }), false);
   assert.equal(hasAuthenticatedServerSession({ session, user: null }), false);
   assert.equal(hasAuthenticatedServerSession({ session, user }), true);

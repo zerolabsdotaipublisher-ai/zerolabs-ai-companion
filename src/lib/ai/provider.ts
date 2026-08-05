@@ -1,4 +1,4 @@
-import 'server-only';
+import "server-only";
 
 import { logger } from "@/lib/logger";
 import {
@@ -15,7 +15,12 @@ const TIMEOUT_MS = 15000;
 
 export async function generateConversationResponse(
   request: ConversationRequest,
-  options?: { apiKey?: string; timeoutMs?: number; apiUrl?: string; model?: string }
+  options?: {
+    apiKey?: string;
+    timeoutMs?: number;
+    apiUrl?: string;
+    model?: string;
+  },
 ): Promise<ConversationResponse | ConversationError> {
   const apiKey = options?.apiKey || process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -51,21 +56,29 @@ export async function generateConversationResponse(
     const requestBody = {
       model,
       messages: apiMessages,
-      ...(settings?.temperature !== undefined && { temperature: settings.temperature }),
-      ...(settings?.max_tokens !== undefined && { max_tokens: settings.max_tokens }),
+      ...(settings?.temperature !== undefined && {
+        temperature: settings.temperature,
+      }),
+      ...(settings?.max_tokens !== undefined && {
+        max_tokens: settings.max_tokens,
+      }),
       ...(settings?.top_p !== undefined && { top_p: settings.top_p }),
-      ...(settings?.frequency_penalty !== undefined && { frequency_penalty: settings.frequency_penalty }),
-      ...(settings?.presence_penalty !== undefined && { presence_penalty: settings.presence_penalty }),
+      ...(settings?.frequency_penalty !== undefined && {
+        frequency_penalty: settings.frequency_penalty,
+      }),
+      ...(settings?.presence_penalty !== undefined && {
+        presence_penalty: settings.presence_penalty,
+      }),
     };
 
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify(requestBody),
-      signal: controller.signal
+      signal: controller.signal,
     });
 
     clearTimeout(timeoutId);
@@ -129,21 +142,23 @@ export async function generateConversationResponse(
         model: data.model || model,
         finish_reason: data.choices?.[0]?.finish_reason,
       },
-      usage: data.usage ? {
-        prompt_tokens: data.usage.prompt_tokens,
-        completion_tokens: data.usage.completion_tokens,
-        total_tokens: data.usage.total_tokens,
-      } : undefined
+      usage: data.usage
+        ? {
+            prompt_tokens: data.usage.prompt_tokens,
+            completion_tokens: data.usage.completion_tokens,
+            total_tokens: data.usage.total_tokens,
+          }
+        : undefined,
     };
 
     const validated = ConversationResponseSchema.safeParse(parsedData);
     if (!validated.success) {
-       return {
-         error: true,
-         code: "INTERNAL_ERROR",
-         message: "Malformed response from AI provider",
-         details: { issues: validated.error.issues }
-       };
+      return {
+        error: true,
+        code: "INTERNAL_ERROR",
+        message: "Malformed response from AI provider",
+        details: { issues: validated.error.issues },
+      };
     }
 
     return validated.data;
@@ -162,8 +177,9 @@ export async function generateConversationResponse(
     return {
       error: true,
       code: "INTERNAL_ERROR",
-      message: "An unexpected error occurred while communicating with the AI provider",
-      details: error instanceof Error ? { error: error.message } : undefined
+      message:
+        "An unexpected error occurred while communicating with the AI provider",
+      details: error instanceof Error ? { error: error.message } : undefined,
     };
   }
 }
