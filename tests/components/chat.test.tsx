@@ -2,16 +2,16 @@ import { test, describe, afterEach } from "node:test";
 import assert from "node:assert";
 import { JSDOM } from "jsdom";
 import React from "react";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 // Setup JSDOM
 const dom = new JSDOM("<!DOCTYPE html><html><body></body></html>");
-global.window = dom.window as any;
+global.window = dom.window as unknown as Window & typeof globalThis;
 global.document = dom.window.document;
 
 // Mock requestAnimationFrame for React
-global.requestAnimationFrame = (callback) => setTimeout(callback, 0) as any;
+global.requestAnimationFrame = (callback) => setTimeout(callback, 0) as unknown as number;
 global.cancelAnimationFrame = (id) => clearTimeout(id);
 
 // Mock scrollIntoView
@@ -25,7 +25,7 @@ import { SendButton } from "../../src/components/chat/send-button";
 
 describe("Chat Components", () => {
   afterEach(() => {
-    global.fetch = undefined as any;
+    global.fetch = undefined as unknown as typeof fetch;
     document.body.innerHTML = '';
   });
 
@@ -53,7 +53,6 @@ describe("Chat Components", () => {
     let changedValue = "";
     let submitted = false;
 
-    const user = userEvent.setup({ document: dom.window.document });
     const { getByPlaceholderText, unmount } = render(
       <ChatInput
         value=""
@@ -62,7 +61,7 @@ describe("Chat Components", () => {
       />
     );
 
-    const input = getByPlaceholderText("Type a message...");
+    getByPlaceholderText("Type a message...");
 
     // Workaround for pure JSDOM environments where React controlled inputs
     // don't always propagate onChange correctly to internal test state
@@ -103,7 +102,7 @@ describe("Chat Components", () => {
         json: async () => ({
           message: { role: "assistant", content: "Hello from AI" },
         }),
-      } as any;
+      } as unknown as Response;
     };
 
     const user = userEvent.setup({ document: dom.window.document });
@@ -138,7 +137,7 @@ describe("Chat Components", () => {
           code: "INVALID_REQUEST",
           message: "You must be signed in",
         }),
-      } as any;
+      } as unknown as Response;
     };
 
     const user = userEvent.setup({ document: dom.window.document });
