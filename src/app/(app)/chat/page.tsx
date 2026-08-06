@@ -35,20 +35,25 @@ export default function ChatPage() {
         body: JSON.stringify({ messages: updatedMessages }),
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error("Failed to parse response from server.");
+      }
 
       if (!response.ok) {
         const errorData = data as ConversationError;
         if (errorData.error) {
           throw new Error(errorData.message || "An error occurred");
         }
-        throw new Error("Failed to get response");
+        throw new Error(`Failed to get response: ${response.status} ${response.statusText}`);
       }
 
       if (data && data.message) {
         setMessages((prev) => [...prev, data.message]);
       } else {
-        throw new Error("Invalid response format");
+        throw new Error("Invalid response format received from server.");
       }
     } catch (err) {
       if (err instanceof Error) {
