@@ -24,19 +24,8 @@ export default function ChatPage() {
     }
   };
 
-  const handleSubmit = async () => {
-    const trimmedInput = input.trim();
-    if (!trimmedInput || isLoading || isStreaming) return;
-
+  const dispatchRequest = async (updatedMessages: ConversationMessage[]) => {
     setError(null);
-    const userMessage: ConversationMessage = {
-      role: "user",
-      content: trimmedInput,
-    };
-    const updatedMessages = [...messages, userMessage];
-
-    setMessages(updatedMessages);
-    setInput("");
     setIsLoading(true);
 
     const controller = new AbortController();
@@ -138,14 +127,49 @@ export default function ChatPage() {
     }
   };
 
+  const handleSubmit = async () => {
+    const trimmedInput = input.trim();
+    if (!trimmedInput || isLoading || isStreaming) return;
+
+    const userMessage: ConversationMessage = {
+      role: "user",
+      content: trimmedInput,
+    };
+    const updatedMessages = [...messages, userMessage];
+
+    setMessages(updatedMessages);
+    setInput("");
+
+    await dispatchRequest(updatedMessages);
+  };
+
+  const handleRetry = async () => {
+    if (isLoading || isStreaming) return;
+
+    // Remove any incomplete assistant message from the end
+    const cleanedMessages = [...messages];
+    if (cleanedMessages.length > 0 && cleanedMessages[cleanedMessages.length - 1].role === "assistant") {
+      cleanedMessages.pop();
+      setMessages(cleanedMessages);
+    }
+
+    await dispatchRequest(cleanedMessages);
+  };
+
   return (
     <ChatLayout>
       <ChatMessageList messages={messages} isLoading={isLoading} />
 
       <div className="border-t border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950 sm:p-6">
         {error && (
-          <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-900 dark:bg-red-900/50 dark:text-red-200">
-            {error}
+          <div className="mb-4 rounded-md bg-red-50 p-3 text-sm text-red-900 dark:bg-red-900/50 dark:text-red-200 flex items-center justify-between">
+            <span>{error}</span>
+            <button
+              onClick={handleRetry}
+              className="ml-4 rounded-md bg-red-100 px-3 py-1 text-xs font-medium text-red-900 hover:bg-red-200 dark:bg-red-900 dark:text-red-100 dark:hover:bg-red-800 transition-colors"
+            >
+              Retry
+            </button>
           </div>
         )}
         <div className="flex items-end gap-3">

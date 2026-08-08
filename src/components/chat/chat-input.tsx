@@ -26,7 +26,12 @@ export function ChatInput({
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter") {
+      if (e.shiftKey) {
+        // Allow newline insertion natively
+        return;
+      }
+
       e.preventDefault();
       if (!disabled && value.trim()) {
         onSubmit();
