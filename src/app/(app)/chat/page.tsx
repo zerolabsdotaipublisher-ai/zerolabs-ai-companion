@@ -13,8 +13,7 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [abortController, setAbortController] =
-    useState<AbortController | null>(null);
+  const [abortController, setAbortController] = useState<AbortController | null>(null);
 
   const handleStop = () => {
     if (abortController) {
@@ -45,16 +44,12 @@ export default function ChatPage() {
         try {
           errorData = await response.json();
         } catch {
-          throw new Error(
-            `Failed to get response: ${response.status} ${response.statusText}`,
-          );
+          throw new Error(`Failed to get response: ${response.status} ${response.statusText}`);
         }
         if (errorData && errorData.error) {
           throw new Error(errorData.message || "An error occurred");
         }
-        throw new Error(
-          `Failed to get response: ${response.status} ${response.statusText}`,
-        );
+        throw new Error(`Failed to get response: ${response.status} ${response.statusText}`);
       }
 
       if (!response.body) {
@@ -153,10 +148,7 @@ export default function ChatPage() {
 
     // Remove any incomplete assistant message from the end
     const cleanedMessages = [...messages];
-    if (
-      cleanedMessages.length > 0 &&
-      cleanedMessages[cleanedMessages.length - 1].role === "assistant"
-    ) {
+    if (cleanedMessages.length > 0 && cleanedMessages[cleanedMessages.length - 1].role === "assistant") {
       cleanedMessages.pop();
       setMessages(cleanedMessages);
     }

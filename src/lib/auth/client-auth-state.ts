@@ -46,10 +46,7 @@ export function resolveClientAuthTransition({
   const hasStatusChanged = nextStatus !== previousStatus;
   const shouldRefreshForEvent = event !== "INITIAL_SESSION";
 
-  if (
-    nextStatus === "unauthenticated" &&
-    isProtectedAppRoute(normalizedPathname)
-  ) {
+  if (nextStatus === "unauthenticated" && isProtectedAppRoute(normalizedPathname)) {
     return {
       nextStatus,
       redirectTo: buildAuthEntryRedirectPath(
@@ -61,10 +58,7 @@ export function resolveClientAuthTransition({
     };
   }
 
-  if (
-    nextStatus === "authenticated" &&
-    AUTH_ENTRY_ROUTES.has(normalizedPathname)
-  ) {
+  if (nextStatus === "authenticated" && AUTH_ENTRY_ROUTES.has(normalizedPathname)) {
     return {
       nextStatus,
       redirectTo: AUTHENTICATED_APP_REDIRECT,

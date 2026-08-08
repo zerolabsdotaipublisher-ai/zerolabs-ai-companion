@@ -13,10 +13,7 @@ export function AppHeader({ isAuthenticated, userEmail }: AppHeaderProps) {
     <header className="border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/90">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
         <div className="space-y-1">
-          <Link
-            className="text-sm font-semibold tracking-tight text-zinc-950 dark:text-zinc-50"
-            href="/"
-          >
+          <Link className="text-sm font-semibold tracking-tight text-zinc-950 dark:text-zinc-50" href="/">
             {publicConfig.appName}
           </Link>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -27,10 +24,7 @@ export function AppHeader({ isAuthenticated, userEmail }: AppHeaderProps) {
         </div>
 
         {isAuthenticated ? (
-          <nav
-            aria-label="Authenticated navigation"
-            className="flex flex-wrap items-center gap-3"
-          >
+          <nav aria-label="Authenticated navigation" className="flex flex-wrap items-center gap-3">
             <Link
               className="inline-flex h-10 items-center justify-center rounded-md border border-zinc-300 px-4 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800"
               href="/dashboard"
@@ -50,10 +44,7 @@ export function AppHeader({ isAuthenticated, userEmail }: AppHeaderProps) {
             />
           </nav>
         ) : (
-          <nav
-            aria-label="Public navigation"
-            className="flex flex-wrap items-center gap-3"
-          >
+          <nav aria-label="Public navigation" className="flex flex-wrap items-center gap-3">
             <Link
               className="inline-flex h-10 items-center justify-center rounded-md border border-zinc-300 px-4 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800"
               href="/login"

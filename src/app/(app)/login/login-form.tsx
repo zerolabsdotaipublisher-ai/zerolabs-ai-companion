@@ -136,9 +136,7 @@ export function LoginForm({ callbackError, redirectTo }: LoginFormProps) {
         const nextFieldErrors = result.fieldErrors ?? {};
 
         setErrors(nextFieldErrors);
-        setSubmitError(
-          getSubmitErrorMessage(response, result, nextFieldErrors),
-        );
+        setSubmitError(getSubmitErrorMessage(response, result, nextFieldErrors));
         return;
       }
 
@@ -161,12 +159,7 @@ export function LoginForm({ callbackError, redirectTo }: LoginFormProps) {
           Log in to AI Companion with your email and password.
         </p>
 
-        <form
-          aria-busy={isSubmitting}
-          className="mt-6 space-y-4"
-          noValidate
-          onSubmit={handleSubmit}
-        >
+        <form aria-busy={isSubmitting} className="mt-6 space-y-4" noValidate onSubmit={handleSubmit}>
           <p aria-live="polite" className="sr-only" role="status">
             {isSubmitting ? "Signing in. Please wait." : ""}
           </p>
@@ -192,10 +185,7 @@ export function LoginForm({ callbackError, redirectTo }: LoginFormProps) {
               value={values.email}
             />
             {errors.email ? (
-              <p
-                className="text-sm text-red-600 dark:text-red-400"
-                id="login-email-error"
-              >
+              <p className="text-sm text-red-600 dark:text-red-400" id="login-email-error">
                 {errors.email}
               </p>
             ) : null}
@@ -206,9 +196,7 @@ export function LoginForm({ callbackError, redirectTo }: LoginFormProps) {
               Password
             </label>
             <input
-              aria-describedby={
-                errors.password ? "login-password-error" : undefined
-              }
+              aria-describedby={errors.password ? "login-password-error" : undefined}
               aria-invalid={errors.password ? "true" : "false"}
               autoComplete="current-password"
               className="w-full rounded-md border border-zinc-300 bg-transparent px-3 py-2 text-sm outline-none ring-zinc-900/10 placeholder:text-zinc-400 focus:ring-2 dark:border-zinc-700 dark:ring-zinc-100/20"
@@ -223,10 +211,7 @@ export function LoginForm({ callbackError, redirectTo }: LoginFormProps) {
               value={values.password}
             />
             {errors.password ? (
-              <p
-                className="text-sm text-red-600 dark:text-red-400"
-                id="login-password-error"
-              >
+              <p className="text-sm text-red-600 dark:text-red-400" id="login-password-error">
                 {errors.password}
               </p>
             ) : null}
@@ -253,10 +238,7 @@ export function LoginForm({ callbackError, redirectTo }: LoginFormProps) {
 
         <p className="mt-5 text-center text-sm text-zinc-600 dark:text-zinc-300">
           Need an account?{" "}
-          <Link
-            className="font-medium text-zinc-900 underline dark:text-zinc-100"
-            href="/signup"
-          >
+          <Link className="font-medium text-zinc-900 underline dark:text-zinc-100" href="/signup">
             Sign up
           </Link>
         </p>

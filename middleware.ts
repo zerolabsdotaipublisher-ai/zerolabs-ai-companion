@@ -83,11 +83,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
   if (!user && isProtectedAppRoute(normalizedPathname)) {
     const redirectUrl = new URL(
-      buildAuthEntryRedirectPath(
-        pathname,
-        request.nextUrl.search,
-        AUTH_ENTRY_REDIRECT,
-      ),
+      buildAuthEntryRedirectPath(pathname, request.nextUrl.search, AUTH_ENTRY_REDIRECT),
       request.url,
     );
     const redirectResponse = NextResponse.redirect(redirectUrl);

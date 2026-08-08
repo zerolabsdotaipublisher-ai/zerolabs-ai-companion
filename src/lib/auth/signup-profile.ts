@@ -196,17 +196,20 @@ function logMissingIdentityProfilesTableDiagnostic(
   workflowLogger: SignupProfileWorkflowLogger,
   error: unknown,
 ): void {
-  workflowLogger.error(MISSING_IDENTITY_PROFILES_TABLE_LOG_MESSAGE, {
-    context: "auth",
-    source,
-    error,
-    metadata: {
-      migrationDependency: "AIC-205 Task 5.1",
-      migrationFile: IDENTITY_PROFILES_MIGRATION_FILE,
-      requestPath,
-      userId,
+  workflowLogger.error(
+    MISSING_IDENTITY_PROFILES_TABLE_LOG_MESSAGE,
+    {
+      context: "auth",
+      source,
+      error,
+      metadata: {
+        migrationDependency: "AIC-205 Task 5.1",
+        migrationFile: IDENTITY_PROFILES_MIGRATION_FILE,
+        requestPath,
+        userId,
+      },
     },
-  });
+  );
 }
 
 async function attemptAuthUserRollback({

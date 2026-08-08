@@ -75,12 +75,10 @@ test("rejects invalid profile form values with field errors", () => {
       display_name: "Display name must be 80 characters or less.",
       timezone: "Timezone must be a valid IANA timezone.",
       locale: "Locale must be a valid locale code.",
-      companion_tone:
-        "Companion tone must be one of: calm, friendly, playful, direct.",
+      companion_tone: "Companion tone must be one of: calm, friendly, playful, direct.",
       suggestion_style:
         "Suggestion style must be one of: balanced, novel, familiar, outdoor, indoor.",
-      activity_intensity:
-        "Activity intensity must be one of: light, moderate, active.",
+      activity_intensity: "Activity intensity must be one of: light, moderate, active.",
       preferred_time_of_day:
         "Preferred time of day must be one of: morning, afternoon, evening, anytime.",
       location_preference:

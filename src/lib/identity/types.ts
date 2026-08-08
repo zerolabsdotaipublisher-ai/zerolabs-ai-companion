@@ -6,10 +6,7 @@ export type IdentityProfileJson =
   | IdentityProfileJson[]
   | { [key: string]: IdentityProfileJson | undefined };
 
-export type IdentityProfileOnboardingStatus =
-  | "not_started"
-  | "in_progress"
-  | "completed";
+export type IdentityProfileOnboardingStatus = "not_started" | "in_progress" | "completed";
 
 export type IdentityProfileRecord = {
   id: string;
@@ -29,11 +26,7 @@ export type IdentityProfileRecord = {
 export type IdentityProfileDefaults = Partial<
   Pick<
     IdentityProfileRecord,
-    | "display_name"
-    | "preferred_name"
-    | "timezone"
-    | "locale"
-    | "onboarding_status"
+    "display_name" | "preferred_name" | "timezone" | "locale" | "onboarding_status"
   >
 > & {
   personalization?: Record<string, IdentityProfileJson>;
@@ -55,10 +48,5 @@ export type IdentityProfileUpsertValues = {
 
 export type IdentityProfileEditableValues = Pick<
   IdentityProfileRecord,
-  | "display_name"
-  | "preferred_name"
-  | "timezone"
-  | "locale"
-  | "personalization"
-  | "preferences"
+  "display_name" | "preferred_name" | "timezone" | "locale" | "personalization" | "preferences"
 >;

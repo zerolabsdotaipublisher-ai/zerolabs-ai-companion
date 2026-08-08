@@ -21,9 +21,7 @@ function isExpiredAuthError(value: string | undefined): boolean {
 }
 
 function determineAuthErrorType(request: NextRequest): AuthCallbackError {
-  const errorCode = request.nextUrl.searchParams
-    .get("error_code")
-    ?.toLowerCase();
+  const errorCode = request.nextUrl.searchParams.get("error_code")?.toLowerCase();
   const error = request.nextUrl.searchParams.get("error")?.toLowerCase();
 
   if (isExpiredAuthError(errorCode) || isExpiredAuthError(error)) {
@@ -62,11 +60,7 @@ export async function GET(request: NextRequest): Promise<Response> {
 
   if (!code) {
     return NextResponse.redirect(
-      buildRedirectUrl(
-        request,
-        failureRedirectPath,
-        determineAuthErrorType(request),
-      ),
+      buildRedirectUrl(request, failureRedirectPath, determineAuthErrorType(request)),
     );
   }
 
@@ -85,15 +79,9 @@ export async function GET(request: NextRequest): Promise<Response> {
     });
 
     return NextResponse.redirect(
-      buildRedirectUrl(
-        request,
-        failureRedirectPath,
-        determineAuthErrorType(request),
-      ),
+      buildRedirectUrl(request, failureRedirectPath, determineAuthErrorType(request)),
     );
   }
 
-  return NextResponse.redirect(
-    buildRedirectUrl(request, getSuccessRedirectPath(request)),
-  );
+  return NextResponse.redirect(buildRedirectUrl(request, getSuccessRedirectPath(request)));
 }

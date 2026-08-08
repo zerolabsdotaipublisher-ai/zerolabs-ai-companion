@@ -25,10 +25,8 @@ export type {
   IdentityProfileUpsertValues,
 } from "@/lib/identity/types";
 
-const DEFAULT_ONBOARDING_STATUS: IdentityProfileOnboardingStatus =
-  "not_started";
-export const IDENTITY_PROFILE_NOT_FOUND_ERROR_MESSAGE =
-  "Identity profile was not found.";
+const DEFAULT_ONBOARDING_STATUS: IdentityProfileOnboardingStatus = "not_started";
+export const IDENTITY_PROFILE_NOT_FOUND_ERROR_MESSAGE = "Identity profile was not found.";
 
 type IdentityProfileMutationResult = {
   data: IdentityProfileRecord | null;
@@ -41,9 +39,7 @@ export type IdentityProfileRepository = {
     userId: string,
     values: IdentityProfileEditableValues,
   ): Promise<IdentityProfileMutationResult>;
-  upsert(
-    values: IdentityProfileUpsertValues,
-  ): Promise<IdentityProfileMutationResult>;
+  upsert(values: IdentityProfileUpsertValues): Promise<IdentityProfileMutationResult>;
 };
 
 export function createIdentityProfileRepository(
@@ -103,11 +99,10 @@ export function buildIdentityProfileUpsertValues(
   userId: string,
   defaults: IdentityProfileDefaults = {},
 ): IdentityProfileUpsertValues {
-  const normalizedProfilePreferences =
-    setCompanionPreferencesOnProfilePreferences(
-      defaults.preferences ?? {},
-      getCompanionPreferencesFromProfilePreferences(defaults.preferences),
-    );
+  const normalizedProfilePreferences = setCompanionPreferencesOnProfilePreferences(
+    defaults.preferences ?? {},
+    getCompanionPreferencesFromProfilePreferences(defaults.preferences),
+  );
 
   return {
     user_id: userId,
@@ -127,9 +122,7 @@ function assertIdentityProfileAccess(
   requestedUserId: string,
 ): void {
   if (!isIdentityProfileAccessAllowed(authenticatedUserId, requestedUserId)) {
-    throw new Error(
-      "Identity profile access is limited to the authenticated user.",
-    );
+    throw new Error("Identity profile access is limited to the authenticated user.");
   }
 }
 
@@ -188,10 +181,7 @@ export async function updateIdentityProfileByUserId({
 }): Promise<IdentityProfileRecord> {
   assertIdentityProfileAccess(authenticatedUserId, requestedUserId);
 
-  const { data, error } = await repository.updateByUserId(
-    requestedUserId,
-    values,
-  );
+  const { data, error } = await repository.updateByUserId(requestedUserId, values);
 
   if (error || !data) {
     logger.warn("Identity profile update failed.", {
@@ -256,9 +246,7 @@ export async function ensureIdentityProfileForUser(
     return existingProfileResult.data;
   }
 
-  const { data, error } = await repository.upsert(
-    buildIdentityProfileUpsertValues(userId, defaults),
-  );
+  const { data, error } = await repository.upsert(buildIdentityProfileUpsertValues(userId, defaults));
 
   if (error || !data) {
     logger.warn("Identity profile upsert failed.", {
@@ -267,9 +255,7 @@ export async function ensureIdentityProfileForUser(
       error: error ?? "Supabase identity profile upsert returned no data.",
       metadata: { userId },
     });
-    throw (
-      error ?? new Error("Supabase identity profile upsert returned no data.")
-    );
+    throw error ?? new Error("Supabase identity profile upsert returned no data.");
   }
 
   return data as IdentityProfileRecord;

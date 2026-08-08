@@ -27,9 +27,7 @@ export type ProtectedRouteOptions = {
   authEntryPath?: string;
 };
 
-function normalizeSearch(
-  searchParams: RouteSearchParams | string | undefined,
-): string {
+function normalizeSearch(searchParams: RouteSearchParams | string | undefined): string {
   if (!searchParams) {
     return "";
   }
@@ -50,11 +48,7 @@ export function buildServerAuthRedirectPath({
   searchParams,
   authEntryPath = AUTH_ENTRY_REDIRECT,
 }: ProtectedRouteOptions): string {
-  return buildAuthEntryRedirectPath(
-    pathname,
-    normalizeSearch(searchParams),
-    authEntryPath,
-  );
+  return buildAuthEntryRedirectPath(pathname, normalizeSearch(searchParams), authEntryPath);
 }
 
 export function hasAuthenticatedServerSession<

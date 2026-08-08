@@ -8,10 +8,7 @@ const currentDirectoryPath = path.dirname(currentFilePath);
 const repoRoot = path.resolve(currentDirectoryPath, "..");
 const testDistPath = path.join(repoRoot, ".test-dist");
 const compiledTestsRoot = path.join(testDistPath, "tests");
-const serverOnlyRegisterPath = path.join(
-  testDistPath,
-  "server-only-register.cjs",
-);
+const serverOnlyRegisterPath = path.join(testDistPath, "server-only-register.cjs");
 const tscEntrypoint = path.join(
   repoRoot,
   "node_modules",
@@ -81,7 +78,7 @@ fs.writeFileSync(
     "const originalResolveFilename = Module._resolveFilename;",
     "Module._resolveFilename = function resolveFilename(request, parent, isMain, options) {",
     '  if (request.startsWith("@/")) {',
-    "    const compiledRequest = path.join(testDistSrcPath, request.slice(2));",
+    '    const compiledRequest = path.join(testDistSrcPath, request.slice(2));',
     "    return originalResolveFilename.call(this, compiledRequest, parent, isMain, options);",
     "  }",
     '  if (request === "server-only") {',
@@ -106,9 +103,4 @@ if (compiledTestFiles.length === 0) {
   process.exit(1);
 }
 
-run(process.execPath, [
-  "--require",
-  serverOnlyRegisterPath,
-  "--test",
-  ...compiledTestFiles,
-]);
+run(process.execPath, ["--require", serverOnlyRegisterPath, "--test", ...compiledTestFiles]);

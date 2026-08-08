@@ -54,9 +54,7 @@ function decodeSupabaseAnonKey(): DecodedAnonKey {
   try {
     // This is diagnostic-only metadata extraction; auth still relies on
     // Supabase request/response validation rather than local JWT trust.
-    const payload = JSON.parse(
-      Buffer.from(keyParts[1], "base64url").toString("utf8"),
-    ) as {
+    const payload = JSON.parse(Buffer.from(keyParts[1], "base64url").toString("utf8")) as {
       iss?: unknown;
       ref?: unknown;
       role?: unknown;
@@ -138,17 +136,14 @@ async function getAuthSettingsSignal(): Promise<AuthSettingsSignal> {
   };
 
   try {
-    const response = await fetch(
-      new URL("/auth/v1/settings", env.supabaseUrl),
-      {
-        headers: {
-          apikey: env.supabaseAnonKey,
-          Authorization: `Bearer ${env.supabaseAnonKey}`,
-        },
-        cache: "no-store",
-        signal: AbortSignal.timeout(AUTH_SETTINGS_TIMEOUT_MS),
+    const response = await fetch(new URL("/auth/v1/settings", env.supabaseUrl), {
+      headers: {
+        apikey: env.supabaseAnonKey,
+        Authorization: `Bearer ${env.supabaseAnonKey}`,
       },
-    );
+      cache: "no-store",
+      signal: AbortSignal.timeout(AUTH_SETTINGS_TIMEOUT_MS),
+    });
 
     let body: unknown;
 
@@ -162,12 +157,7 @@ async function getAuthSettingsSignal(): Promise<AuthSettingsSignal> {
       reachable: true,
       responseStatus: response.status,
       disableSignup: getNestedBoolean(body, "disable_signup"),
-      emailProviderEnabled: getNestedBoolean(
-        body,
-        "external",
-        "email",
-        "enabled",
-      ),
+      emailProviderEnabled: getNestedBoolean(body, "external", "email", "enabled"),
       mailerAutoConfirmEnabled: getNestedBoolean(body, "mailer_autoconfirm"),
     });
   } catch (error) {
@@ -196,8 +186,6 @@ export async function createSupabaseAuthDiagnostics(
       Boolean(supabaseUrlProjectRef) &&
       Boolean(decodedAnonKey.projectRef) &&
       supabaseUrlProjectRef === decodedAnonKey.projectRef,
-    ...(options.includeAuthSettings
-      ? { authSettings: await getAuthSettingsSignal() }
-      : {}),
+    ...(options.includeAuthSettings ? { authSettings: await getAuthSettingsSignal() } : {}),
   };
 }
