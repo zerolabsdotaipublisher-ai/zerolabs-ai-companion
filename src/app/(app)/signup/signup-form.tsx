@@ -40,7 +40,9 @@ export function SignupForm({ callbackError }: SignupFormProps) {
   const callbackErrorMessage = callbackError
     ? AUTH_CALLBACK_ERROR_MESSAGES[callbackError]
     : null;
-  const displayError = successMessage ? null : submitError ?? callbackErrorMessage;
+  const displayError = successMessage
+    ? null
+    : (submitError ?? callbackErrorMessage);
 
   useEffect(() => {
     return () => {
@@ -111,7 +113,9 @@ export function SignupForm({ callbackError }: SignupFormProps) {
   return (
     <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-10 sm:px-6">
       <section className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm sm:p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <h1 className="text-2xl font-semibold tracking-tight">Create your account</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Create your account
+        </h1>
         <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
           Sign up for AI Companion to get started.
         </p>
@@ -129,14 +133,19 @@ export function SignupForm({ callbackError }: SignupFormProps) {
               name="email"
               disabled={isSubmitting}
               onChange={(event) =>
-                setValues((previous) => ({ ...previous, email: event.target.value }))
+                setValues((previous) => ({
+                  ...previous,
+                  email: event.target.value,
+                }))
               }
               placeholder="you@example.com"
               type="email"
               value={values.email}
             />
             {errors.email ? (
-              <p className="text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {errors.email}
+              </p>
             ) : null}
           </div>
 
@@ -151,14 +160,19 @@ export function SignupForm({ callbackError }: SignupFormProps) {
               name="password"
               disabled={isSubmitting}
               onChange={(event) =>
-                setValues((previous) => ({ ...previous, password: event.target.value }))
+                setValues((previous) => ({
+                  ...previous,
+                  password: event.target.value,
+                }))
               }
               placeholder="At least 8 characters"
               type="password"
               value={values.password}
             />
             {errors.password ? (
-              <p className="text-sm text-red-600 dark:text-red-400">{errors.password}</p>
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {errors.password}
+              </p>
             ) : null}
           </div>
 
@@ -212,7 +226,10 @@ export function SignupForm({ callbackError }: SignupFormProps) {
 
         <p className="mt-5 text-center text-sm text-zinc-600 dark:text-zinc-300">
           Already have an account?{" "}
-          <Link className="font-medium text-zinc-900 underline dark:text-zinc-100" href="/login">
+          <Link
+            className="font-medium text-zinc-900 underline dark:text-zinc-100"
+            href="/login"
+          >
             Log in
           </Link>
         </p>

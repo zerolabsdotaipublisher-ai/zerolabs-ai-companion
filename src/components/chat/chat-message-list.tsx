@@ -8,12 +8,24 @@ type ChatMessageListProps = {
 
 export function ChatMessageList({ messages, isLoading }: ChatMessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!containerRef.current || !bottomRef.current) return;
+
+    const container = containerRef.current;
+    // Calculate fold threshold (e.g., within 100px of bottom)
+    const isNearBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight <=
+      100;
+
+    // Auto-scroll if near bottom or if this is the very first message
+    if (isNearBottom || messages.length <= 1) {
+      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages, isLoading]);
 
-  if (messages.length === 0) {
+  if (messages.length === 0 && !isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center p-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
         Start a conversation with your AI Companion.
@@ -22,7 +34,10 @@ export function ChatMessageList({ messages, isLoading }: ChatMessageListProps) {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
+    <div
+      ref={containerRef}
+      className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6"
+    >
       {messages.map((message, i) => {
         const isUser = message.role === "user";
         // Ignore system messages from UI
