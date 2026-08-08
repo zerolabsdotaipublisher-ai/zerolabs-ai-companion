@@ -15,8 +15,8 @@ const TIMEOUT_MS = 15000;
 
 export async function generateConversationResponse(
   request: ConversationRequest,
-  options?: { apiKey?: string; timeoutMs?: number; apiUrl?: string; model?: string }
-): Promise<ConversationResponse | ConversationError> {
+  options?: { apiKey?: string; timeoutMs?: number; apiUrl?: string; model?: string; stream?: boolean; abortSignal?: AbortSignal }
+): Promise<ConversationResponse | ConversationError | Response> {
   const apiKey = options?.apiKey || process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return {
@@ -51,12 +51,17 @@ export async function generateConversationResponse(
     const requestBody = {
       model,
       messages: apiMessages,
+      ...(options?.stream !== undefined && { stream: options.stream }),
       ...(settings?.temperature !== undefined && { temperature: settings.temperature }),
       ...(settings?.max_tokens !== undefined && { max_tokens: settings.max_tokens }),
       ...(settings?.top_p !== undefined && { top_p: settings.top_p }),
       ...(settings?.frequency_penalty !== undefined && { frequency_penalty: settings.frequency_penalty }),
       ...(settings?.presence_penalty !== undefined && { presence_penalty: settings.presence_penalty }),
     };
+
+    if (options?.abortSignal) {
+        options.abortSignal.addEventListener('abort', () => controller.abort());
+    }
 
     const response = await fetch(apiUrl, {
       method: "POST",
@@ -68,7 +73,13 @@ export async function generateConversationResponse(
       signal: controller.signal
     });
 
-    clearTimeout(timeoutId);
+    if (!options?.stream) {
+      clearTimeout(timeoutId);
+    }
+
+    if (options?.stream && response.ok) {
+      return response;
+    }
 
     if (!response.ok) {
       if (response.status === 429) {

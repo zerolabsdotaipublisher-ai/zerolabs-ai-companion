@@ -54,7 +54,21 @@ export async function POST(request: Request): Promise<Response> {
   const { messages, settings } = validationResult.data;
 
   try {
-    const response = await processConversation(authState.user.id, messages, settings);
+    const response = await processConversation(authState.user.id, messages, settings, {
+      stream: true,
+      abortSignal: request.signal,
+    });
+
+    if (response instanceof Response) {
+      return new NextResponse(response.body, {
+        status: response.status,
+        headers: {
+          'Content-Type': 'text/event-stream',
+          'Cache-Control': 'no-cache, no-transform',
+          'Connection': 'keep-alive',
+        },
+      });
+    }
 
     // Check if the response is already an error response from the orchestrator
     if ('error' in response && response.error === true) {

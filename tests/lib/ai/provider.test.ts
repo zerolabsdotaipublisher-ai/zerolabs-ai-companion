@@ -4,7 +4,7 @@ import { describe, it, beforeEach, afterEach } from "node:test";
 import "server-only";
 
 import { generateConversationResponse } from "@/lib/ai/provider";
-import { ConversationRequest } from "@/lib/ai/types";
+import { ConversationRequest, ConversationResponse } from "@/lib/ai/types";
 import * as loggerModule from "@/lib/logger";
 
 describe("generateConversationResponse", () => {
@@ -96,11 +96,12 @@ describe("generateConversationResponse", () => {
 
     assert.strictEqual("error" in response, false);
     if (!("error" in response)) {
-      assert.equal(response.message.role, "assistant");
-      assert.equal(response.message.content, "Hi Alice!");
-      assert.equal(response.metadata?.model, "gpt-4o-mini-2024-07-18");
-      assert.equal(response.metadata?.finish_reason, "stop");
-      assert.equal(response.usage?.prompt_tokens, 10);
+      const res = response as ConversationResponse;
+      assert.equal(res.message.role, "assistant");
+      assert.equal(res.message.content, "Hi Alice!");
+      assert.equal(res.metadata?.model, "gpt-4o-mini-2024-07-18");
+      assert.equal(res.metadata?.finish_reason, "stop");
+      assert.equal(res.usage?.prompt_tokens, 10);
     }
   });
 

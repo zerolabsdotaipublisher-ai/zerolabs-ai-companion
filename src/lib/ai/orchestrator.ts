@@ -24,8 +24,8 @@ export async function processConversation(
   userId: string,
   messages: ConversationMessage[],
   settings?: ConversationModelSettings,
-  options?: { apiKey?: string; timeoutMs?: number; apiUrl?: string; model?: string }
-): Promise<ConversationResponse | ConversationError> {
+  options?: { apiKey?: string; timeoutMs?: number; apiUrl?: string; model?: string; stream?: boolean; abortSignal?: AbortSignal }
+): Promise<ConversationResponse | ConversationError | Response> {
   try {
     const context = await buildPromptContext(userId);
 
