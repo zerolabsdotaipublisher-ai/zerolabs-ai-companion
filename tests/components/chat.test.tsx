@@ -2,7 +2,7 @@ import { test, describe, afterEach } from "node:test";
 import assert from "node:assert";
 import { JSDOM } from "jsdom";
 import React from "react";
-import { render, waitFor, act, fireEvent } from "@testing-library/react";
+import { render, act, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 // Setup JSDOM
