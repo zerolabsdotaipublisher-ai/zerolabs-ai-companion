@@ -161,7 +161,10 @@ export async function GET(request: Request): Promise<Response> {
         throw new Error(latestError);
       }
       if (!latestConversation) {
-        return NextResponse.json({ conversationId: null, messages: [] });
+        return NextResponse.json(
+          { conversationId: null, messages: [] },
+          { status: 200 },
+        );
       }
       conversationId = latestConversation.id;
     }

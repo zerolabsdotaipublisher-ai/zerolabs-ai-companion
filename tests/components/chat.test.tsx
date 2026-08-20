@@ -332,6 +332,37 @@ describe("Chat Components", () => {
     unmount();
   });
 
+  test("ChatPage integration - handles empty history hydration on mount", async () => {
+    let fetchCallCount = 0;
+
+    global.fetch = async (url) => {
+      fetchCallCount++;
+      if (url === "/api/ai/conversation") {
+        return {
+          ok: true,
+          json: async () => ({
+            conversationId: null,
+            messages: [],
+          }),
+        } as unknown as Response;
+      }
+      return { ok: true, json: async () => ({}) } as unknown as Response;
+    };
+
+    const { findByText, unmount } = render(<ChatPage />);
+
+    // Wait for the empty history to be rendered, should show empty state
+    const emptyStateText = await findByText(
+      /Start a conversation with your AI Companion/i,
+      {},
+      { timeout: 3000 },
+    );
+    assert.ok(emptyStateText);
+    assert.strictEqual(fetchCallCount, 1);
+
+    unmount();
+  });
+
   test("ChatPage integration - handles history hydration on mount", async () => {
     let fetchCallCount = 0;
 

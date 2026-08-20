@@ -30,11 +30,13 @@ export default function ChatPage() {
         const data = await res.json();
 
         if (isMounted) {
-          if (data.conversationId) {
-            setConversationId(data.conversationId);
-          }
+          setConversationId(
+            data.conversationId !== undefined ? data.conversationId : null,
+          );
           if (data.messages && Array.isArray(data.messages)) {
             setMessages(data.messages);
+          } else {
+            setMessages([]);
           }
         }
       } catch {
