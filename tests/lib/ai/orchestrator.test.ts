@@ -7,8 +7,15 @@ import "server-only";
 const originalRequire = Module.prototype.require;
 
 describe("processConversation", () => {
-  let contextBuilderMock: { buildPromptContext: (userId: string) => Promise<unknown> };
-  let providerMock: { generateConversationResponse: (req: unknown, opts: unknown) => Promise<unknown> };
+  let contextBuilderMock: {
+    buildPromptContext: (userId: string) => Promise<unknown>;
+  };
+  let providerMock: {
+    generateConversationResponse: (
+      req: unknown,
+      opts: unknown,
+    ) => Promise<unknown>;
+  };
   let loggerMock: { error: (msg: string, meta?: unknown) => void };
 
   beforeEach(() => {
@@ -31,7 +38,11 @@ describe("processConversation", () => {
     };
 
     // Intercept requires
-    (Module.prototype as unknown as { require: (id: string, ...args: unknown[]) => unknown }).require = function (id: string) {
+    (
+      Module.prototype as unknown as {
+        require: (id: string, ...args: unknown[]) => unknown;
+      }
+    ).require = function (id: string) {
       if (id.endsWith("context-builder")) {
         return contextBuilderMock;
       }
@@ -76,7 +87,10 @@ describe("processConversation", () => {
 
     let providerReq: unknown = null;
     let providerOpts: unknown = null;
-    providerMock.generateConversationResponse = async (req: unknown, opts: unknown) => {
+    providerMock.generateConversationResponse = async (
+      req: unknown,
+      opts: unknown,
+    ) => {
       providerReq = req;
       providerOpts = opts;
       return { message: { role: "assistant", content: "TestResponse" } };
@@ -86,11 +100,20 @@ describe("processConversation", () => {
     const settings = { temperature: 0.5 };
     const options = { model: "test-model" };
 
-    const result = await processConversation("user123", messages, settings, options);
+    const result = await processConversation(
+      "user123",
+      messages,
+      settings,
+      options,
+    );
 
     assert.equal(contextUserId, "user123");
 
-    const castedReq = providerReq as { context: unknown; messages: unknown; settings: unknown };
+    const castedReq = providerReq as {
+      context: unknown;
+      messages: unknown;
+      settings: unknown;
+    };
     assert.deepEqual(castedReq.context, {
       display_name: "TestUser",
       companion_vibe: "TestVibe",
@@ -100,7 +123,9 @@ describe("processConversation", () => {
     assert.deepEqual(castedReq.settings, settings);
     assert.deepEqual(providerOpts, options);
 
-    assert.deepEqual(result, { message: { role: "assistant", content: "TestResponse" } });
+    assert.deepEqual(result, {
+      message: { role: "assistant", content: "TestResponse" },
+    });
   });
 
   it("handles errors from buildPromptContext", async () => {
@@ -131,7 +156,10 @@ describe("processConversation", () => {
     if (loggedError !== null) {
       const e = loggedError as { msg: string; meta: unknown };
       assert.equal(e.msg, "Unexpected error in processConversation");
-      assert.equal((e.meta as { error: Error }).error.message, "Context failed");
+      assert.equal(
+        (e.meta as { error: Error }).error.message,
+        "Context failed",
+      );
     }
   });
 

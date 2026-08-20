@@ -4,16 +4,18 @@ import { JSDOM } from "jsdom";
 import React from "react";
 import { render, act, fireEvent } from "@testing-library/react";
 
-const dom = new JSDOM("<!DOCTYPE html><html><body></body></html>", { url: "http://localhost/" });
+const dom = new JSDOM("<!DOCTYPE html><html><body></body></html>", {
+  url: "http://localhost/",
+});
 global.window = dom.window as unknown as Window & typeof globalThis;
 global.document = dom.window.document;
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-global.TextEncoder = require('util').TextEncoder;
+global.TextEncoder = require("util").TextEncoder;
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-global.TextDecoder = require('util').TextDecoder;
+global.TextDecoder = require("util").TextDecoder;
 
-import { ReadableStream as NodeReadableStream } from 'node:stream/web';
+import { ReadableStream as NodeReadableStream } from "node:stream/web";
 global.ReadableStream = NodeReadableStream as unknown as typeof ReadableStream;
 
 import ChatPage from "../../src/app/(app)/chat/page";
@@ -24,29 +26,41 @@ import { ChatInput } from "../../src/components/chat/chat-input";
 export function createFlushableMockStream() {
   let controllerRef: ReadableStreamDefaultController<Uint8Array> | null = null;
   const encoder = new TextEncoder();
-  const stream = new ReadableStream<Uint8Array>({ start(c) { controllerRef = c; } });
+  const stream = new ReadableStream<Uint8Array>({
+    start(c) {
+      controllerRef = c;
+    },
+  });
   return {
     stream,
     pushChunk(text: string) {
       if (!controllerRef) return;
-      controllerRef.enqueue(encoder.encode(`data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`));
+      controllerRef.enqueue(
+        encoder.encode(
+          `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n`,
+        ),
+      );
     },
     close() {
       if (!controllerRef) return;
-      controllerRef.enqueue(encoder.encode('data: [DONE]\n\n'));
+      controllerRef.enqueue(encoder.encode("data: [DONE]\n\n"));
       controllerRef.close();
     },
   };
 }
 
-global.requestAnimationFrame = (callback) => setTimeout(callback, 0) as unknown as number;
+global.requestAnimationFrame = (callback) =>
+  setTimeout(callback, 0) as unknown as number;
 global.cancelAnimationFrame = (id) => clearTimeout(id);
-window.HTMLElement.prototype.scrollIntoView = function() {};
+window.HTMLElement.prototype.scrollIntoView = function () {};
 
 const flushMicrotasks = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 async function setNativeValue(input: HTMLTextAreaElement, value: string) {
-  const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set;
+  const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+    window.HTMLTextAreaElement.prototype,
+    "value",
+  )?.set;
   nativeInputValueSetter?.call(input, value);
   input.dispatchEvent(new window.Event("input", { bubbles: true }));
   await flushMicrotasks();
@@ -55,30 +69,58 @@ async function setNativeValue(input: HTMLTextAreaElement, value: string) {
 describe("Chat Components", () => {
   afterEach(() => {
     global.fetch = undefined as unknown as typeof fetch;
-    document.body.innerHTML = '';
+    document.body.innerHTML = "";
   });
 
   test("ChatMessageList renders empty state", () => {
     const { container, rerender } = render(<ChatMessageList messages={[]} />);
-    assert.ok(container.textContent?.includes("Start a conversation with your AI Companion."));
+    assert.ok(
+      container.textContent?.includes(
+        "Start a conversation with your AI Companion.",
+      ),
+    );
     rerender(<ChatMessageList messages={[]} isLoading={true} />);
-    assert.strictEqual(container.textContent?.includes("Start a conversation with your AI Companion."), false);
+    assert.strictEqual(
+      container.textContent?.includes(
+        "Start a conversation with your AI Companion.",
+      ),
+      false,
+    );
   });
 
   test("ChatMessageList renders messages", () => {
-    const { container } = render(<ChatMessageList messages={[{ role: "user", content: "Hello AI" }, { role: "assistant", content: "Hello User" }, { role: "system", content: "Hidden system message" }]} />);
+    const { container } = render(
+      <ChatMessageList
+        messages={[
+          { role: "user", content: "Hello AI" },
+          { role: "assistant", content: "Hello User" },
+          { role: "system", content: "Hidden system message" },
+        ]}
+      />,
+    );
     assert.ok(container.textContent?.includes("Hello AI"));
     assert.ok(container.textContent?.includes("Hello User"));
-    assert.strictEqual(container.textContent?.includes("Hidden system message"), false);
+    assert.strictEqual(
+      container.textContent?.includes("Hidden system message"),
+      false,
+    );
   });
 
   test.skip("ChatInput handles change and enter key", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let changedValue = "";
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let submitted = false;
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { getByPlaceholderText, unmount } = render(<ChatInput value="test" onChange={(v: string) => (changedValue = v)} onSubmit={() => (submitted = true)} />);
-    const input = getByPlaceholderText(/Type a message/i) as HTMLTextAreaElement;
+    const { getByPlaceholderText, unmount } = render(
+      <ChatInput
+        value="test"
+        onChange={(v: string) => (changedValue = v)}
+        onSubmit={() => (submitted = true)}
+      />,
+    );
+    const input = getByPlaceholderText(
+      /Type a message/i,
+    ) as HTMLTextAreaElement;
 
     await act(async () => {
       await setNativeValue(input, "test2");
@@ -86,7 +128,12 @@ describe("Chat Components", () => {
     // bypassed flakiness: assert.strictEqual(changedValue, "test2");
 
     await act(async () => {
-      fireEvent.keyDown(input, { key: "Enter", code: "Enter", charCode: 13, shiftKey: false });
+      fireEvent.keyDown(input, {
+        key: "Enter",
+        code: "Enter",
+        charCode: 13,
+        shiftKey: false,
+      });
       await flushMicrotasks();
     });
     // bypassed flakiness: assert.strictEqual(submitted, true);
@@ -95,7 +142,9 @@ describe("Chat Components", () => {
 
   test("SendButton triggers click and gets disabled", async () => {
     let clicked = false;
-    const { getByRole, rerender } = render(<SendButton onClick={() => (clicked = true)} />);
+    const { getByRole, rerender } = render(
+      <SendButton onClick={() => (clicked = true)} />,
+    );
 
     await act(async () => {
       fireEvent.click(getByRole("button"));
@@ -103,7 +152,10 @@ describe("Chat Components", () => {
     assert.strictEqual(clicked, true);
 
     rerender(<SendButton onClick={() => (clicked = true)} disabled />);
-    assert.strictEqual((getByRole("button") as HTMLButtonElement).disabled, true);
+    assert.strictEqual(
+      (getByRole("button") as HTMLButtonElement).disabled,
+      true,
+    );
   });
 
   test.skip("ChatPage integration - handles successful message send with streaming", async () => {
@@ -113,12 +165,20 @@ describe("Chat Components", () => {
 
     global.fetch = async () => {
       fetchCalled = true;
-      return { ok: true, body: mockStreamControls.stream, headers: new Headers() } as unknown as Response;
+      return {
+        ok: true,
+        body: mockStreamControls.stream,
+        headers: new Headers(),
+      } as unknown as Response;
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { getByPlaceholderText, getByRole, findByText, unmount } = render(<ChatPage />);
-    const input = getByPlaceholderText(/Type a message/i) as HTMLTextAreaElement;
+    const { getByPlaceholderText, getByRole, findByText, unmount } = render(
+      <ChatPage />,
+    );
+    const input = getByPlaceholderText(
+      /Type a message/i,
+    ) as HTMLTextAreaElement;
 
     await act(async () => {
       await setNativeValue(input, "Hello AI");
@@ -128,7 +188,7 @@ describe("Chat Components", () => {
 
     await act(async () => {
       // Force trigger without disabled state issues because userEvent batching in JSDOM might be flaky
-      (submitBtn as HTMLButtonElement).removeAttribute('disabled');
+      (submitBtn as HTMLButtonElement).removeAttribute("disabled");
       fireEvent.click(submitBtn);
       await flushMicrotasks();
     });
@@ -162,11 +222,17 @@ describe("Chat Components", () => {
 
     global.fetch = async () => {
       fetchCalled = true;
-      return { ok: true, body: mockStreamControls.stream, headers: new Headers() } as unknown as Response;
+      return {
+        ok: true,
+        body: mockStreamControls.stream,
+        headers: new Headers(),
+      } as unknown as Response;
     };
 
     const { getByPlaceholderText, getByRole, unmount } = render(<ChatPage />);
-    const input = getByPlaceholderText(/Type a message/i) as HTMLTextAreaElement;
+    const input = getByPlaceholderText(
+      /Type a message/i,
+    ) as HTMLTextAreaElement;
 
     await act(async () => {
       await setNativeValue(input, "Cancel me");
@@ -175,7 +241,7 @@ describe("Chat Components", () => {
     const submitBtn = getByRole("button", { name: /Send message/i });
 
     await act(async () => {
-      (submitBtn as HTMLButtonElement).removeAttribute('disabled');
+      (submitBtn as HTMLButtonElement).removeAttribute("disabled");
       fireEvent.click(submitBtn);
       await flushMicrotasks();
     });
@@ -183,7 +249,7 @@ describe("Chat Components", () => {
     assert.strictEqual(fetchCalled, true);
 
     return; // bypassed
- const stopButton = getByRole("button", { name: /Stop message/i });
+    const stopButton = getByRole("button", { name: /Stop message/i });
     assert.ok(stopButton);
 
     await act(async () => {
@@ -202,16 +268,28 @@ describe("Chat Components", () => {
       fetchCallCount++;
       if (fetchCallCount === 1) {
         return {
-          ok: false, status: 400,
-          json: async () => ({ error: true, code: "INVALID_REQUEST", message: "Something went wrong" }),
+          ok: false,
+          status: 400,
+          json: async () => ({
+            error: true,
+            code: "INVALID_REQUEST",
+            message: "Something went wrong",
+          }),
         } as unknown as Response;
       } else {
-        return { ok: true, body: mockStreamControls.stream, headers: new Headers() } as unknown as Response;
+        return {
+          ok: true,
+          body: mockStreamControls.stream,
+          headers: new Headers(),
+        } as unknown as Response;
       }
     };
 
-    const { getByPlaceholderText, getByRole, findByRole, findByText, unmount } = render(<ChatPage />);
-    const input = getByPlaceholderText(/Type a message/i) as HTMLTextAreaElement;
+    const { getByPlaceholderText, getByRole, findByRole, findByText, unmount } =
+      render(<ChatPage />);
+    const input = getByPlaceholderText(
+      /Type a message/i,
+    ) as HTMLTextAreaElement;
 
     await act(async () => {
       await setNativeValue(input, "Hello error test");
@@ -220,7 +298,7 @@ describe("Chat Components", () => {
     const submitBtn = getByRole("button", { name: /Send message/i });
 
     await act(async () => {
-      (submitBtn as HTMLButtonElement).removeAttribute('disabled');
+      (submitBtn as HTMLButtonElement).removeAttribute("disabled");
       fireEvent.click(submitBtn);
       await flushMicrotasks();
     });
@@ -229,7 +307,7 @@ describe("Chat Components", () => {
     // assert.ok(errorMsg);
 
     return; // bypassed
- const retryButton = await findByRole("button", { name: "Retry" });
+    const retryButton = await findByRole("button", { name: "Retry" });
 
     await act(async () => {
       fireEvent.click(retryButton);
@@ -250,6 +328,47 @@ describe("Chat Components", () => {
 
     const aiMessage = await findByText(/Retry success/i, {}, { timeout: 3000 });
     assert.ok(aiMessage);
+
+    unmount();
+  });
+
+  test("ChatPage integration - handles history hydration on mount", async () => {
+    let fetchCallCount = 0;
+
+    global.fetch = async (url) => {
+      fetchCallCount++;
+      if (url === "/api/ai/conversation") {
+        return {
+          ok: true,
+          json: async () => ({
+            conversationId: "test-conv-id",
+            messages: [
+              { role: "user", content: "Previous message" },
+              { role: "assistant", content: "Previous reply" },
+            ],
+          }),
+        } as unknown as Response;
+      }
+      return { ok: true, json: async () => ({}) } as unknown as Response;
+    };
+
+    const { findByText, unmount } = render(<ChatPage />);
+
+    // Wait for the history to be fetched and rendered
+    const previousMessage = await findByText(
+      /Previous message/i,
+      {},
+      { timeout: 3000 },
+    );
+    assert.ok(previousMessage);
+    const previousReply = await findByText(
+      /Previous reply/i,
+      {},
+      { timeout: 3000 },
+    );
+    assert.ok(previousReply);
+
+    assert.strictEqual(fetchCallCount, 1);
 
     unmount();
   });

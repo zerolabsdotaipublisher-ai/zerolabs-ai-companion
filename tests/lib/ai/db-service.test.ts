@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { test, describe, afterEach } from "node:test";
 import assert from "node:assert";
 import * as serverLib from "../../../src/lib/supabase/server";
@@ -16,37 +17,48 @@ const mockSupabase = {
               return { data: null, error: new Error(mockMethods.insertError) };
             }
             return { data: { ...values[0], id: "new-id" }, error: null };
-          }
-        })
+          },
+        }),
       };
     },
     update: (values: any) => ({
       eq: async (field: string, val: string) => {
         mockMethods.updateArgs = { table, values, field, val };
         return { error: null };
-      }
+      },
     }),
     select: (fields: string) => ({
       eq: (field: string, val: string) => ({
         order: async (orderField: string, options: any) => {
-          mockMethods.selectArgs = { table, fields, field, val, orderField, options };
+          mockMethods.selectArgs = {
+            table,
+            fields,
+            field,
+            val,
+            orderField,
+            options,
+          };
           if (mockMethods.selectError) {
             return { data: null, error: new Error(mockMethods.selectError) };
           }
           return { data: mockMethods.selectData || [], error: null };
-        }
-      })
-    })
-  })
+        },
+      }),
+    }),
+  }),
 };
 
 describe("Database Service", () => {
   afterEach(() => {
-    Object.keys(mockMethods).forEach(k => delete mockMethods[k]);
+    Object.keys(mockMethods).forEach((k) => delete mockMethods[k]);
   });
 
   test("createConversation - success", async (t) => {
-    t.mock.method(serverLib, "getSupabaseServerClient", async () => mockSupabase);
+    t.mock.method(
+      serverLib,
+      "getSupabaseServerClient",
+      async () => mockSupabase,
+    );
 
     const result = await dbService.createConversation("user1", "Test Title");
 
@@ -56,11 +68,17 @@ describe("Database Service", () => {
     assert.strictEqual(result.data?.id, "new-id");
 
     assert.deepStrictEqual(mockMethods.insertArgs.table, "conversations");
-    assert.deepStrictEqual(mockMethods.insertArgs.values, [{ user_id: "user1", title: "Test Title" }]);
+    assert.deepStrictEqual(mockMethods.insertArgs.values, [
+      { user_id: "user1", title: "Test Title" },
+    ]);
   });
 
   test("createConversation - error", async (t) => {
-    t.mock.method(serverLib, "getSupabaseServerClient", async () => mockSupabase);
+    t.mock.method(
+      serverLib,
+      "getSupabaseServerClient",
+      async () => mockSupabase,
+    );
     mockMethods.insertError = "DB Insert Failed";
 
     const result = await dbService.createConversation("user1");
@@ -70,47 +88,71 @@ describe("Database Service", () => {
   });
 
   test("saveUserMessage - success", async (t) => {
-    t.mock.method(serverLib, "getSupabaseServerClient", async () => mockSupabase);
+    t.mock.method(
+      serverLib,
+      "getSupabaseServerClient",
+      async () => mockSupabase,
+    );
 
-    const result = await dbService.saveUserMessage("conv1", "user1", "Hello AI");
+    const result = await dbService.saveUserMessage(
+      "conv1",
+      "user1",
+      "Hello AI",
+    );
 
     assert.strictEqual(result.error, null);
     assert.strictEqual(result.data?.content, "Hello AI");
     assert.strictEqual(result.data?.role, "user");
 
     assert.strictEqual(mockMethods.insertArgs.table, "messages");
-    assert.deepStrictEqual(mockMethods.insertArgs.values, [{
+    assert.deepStrictEqual(mockMethods.insertArgs.values, [
+      {
         conversation_id: "conv1",
         user_id: "user1",
         role: "user",
-        content: "Hello AI"
-    }]);
+        content: "Hello AI",
+      },
+    ]);
   });
 
   test("saveAssistantMessage - success", async (t) => {
-    t.mock.method(serverLib, "getSupabaseServerClient", async () => mockSupabase);
+    t.mock.method(
+      serverLib,
+      "getSupabaseServerClient",
+      async () => mockSupabase,
+    );
 
-    const result = await dbService.saveAssistantMessage("conv1", "user1", "Hello User");
+    const result = await dbService.saveAssistantMessage(
+      "conv1",
+      "user1",
+      "Hello User",
+    );
 
     assert.strictEqual(result.error, null);
     assert.strictEqual(result.data?.content, "Hello User");
     assert.strictEqual(result.data?.role, "assistant");
 
     assert.strictEqual(mockMethods.insertArgs.table, "messages");
-    assert.deepStrictEqual(mockMethods.insertArgs.values, [{
+    assert.deepStrictEqual(mockMethods.insertArgs.values, [
+      {
         conversation_id: "conv1",
         user_id: "user1",
         role: "assistant",
-        content: "Hello User"
-    }]);
+        content: "Hello User",
+      },
+    ]);
   });
 
   test("getConversationMessages - chronological sorting", async (t) => {
-    t.mock.method(serverLib, "getSupabaseServerClient", async () => mockSupabase);
+    t.mock.method(
+      serverLib,
+      "getSupabaseServerClient",
+      async () => mockSupabase,
+    );
 
     mockMethods.selectData = [
       { id: "1", content: "first", created_at: "2024-01-01T00:00:00Z" },
-      { id: "2", content: "second", created_at: "2024-01-01T00:01:00Z" }
+      { id: "2", content: "second", created_at: "2024-01-01T00:01:00Z" },
     ];
 
     const result = await dbService.getConversationMessages("conv1");
@@ -126,7 +168,11 @@ describe("Database Service", () => {
   });
 
   test("getConversationMessages - error", async (t) => {
-    t.mock.method(serverLib, "getSupabaseServerClient", async () => mockSupabase);
+    t.mock.method(
+      serverLib,
+      "getSupabaseServerClient",
+      async () => mockSupabase,
+    );
     mockMethods.selectError = "Read Failed";
 
     const result = await dbService.getConversationMessages("conv1");

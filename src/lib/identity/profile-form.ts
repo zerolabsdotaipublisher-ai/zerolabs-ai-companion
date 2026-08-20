@@ -24,7 +24,9 @@ export type IdentityProfileFormValues = {
   avoidances: string;
 };
 
-export type IdentityProfileFormErrors = Partial<Record<keyof IdentityProfileFormValues, string>>;
+export type IdentityProfileFormErrors = Partial<
+  Record<keyof IdentityProfileFormValues, string>
+>;
 export type IdentityProfileFormSubmission = {
   identity: Pick<
     IdentityProfileEditableValues,
@@ -85,7 +87,9 @@ export function toIdentityProfileFormValues(
     "display_name" | "preferred_name" | "timezone" | "locale" | "preferences"
   >,
 ): IdentityProfileFormValues {
-  const companionPreferences = getCompanionPreferencesFromProfilePreferences(profile.preferences);
+  const companionPreferences = getCompanionPreferencesFromProfilePreferences(
+    profile.preferences,
+  );
 
   return {
     display_name: profile.display_name ?? "",
@@ -146,7 +150,10 @@ export function validateIdentityProfileFormValues(
 
   if (normalizedValues.locale.length > MAX_LOCALE_LENGTH) {
     errors.locale = `Locale must be ${MAX_LOCALE_LENGTH} characters or less.`;
-  } else if (normalizedValues.locale.length > 0 && !isValidLocale(normalizedValues.locale)) {
+  } else if (
+    normalizedValues.locale.length > 0 &&
+    !isValidLocale(normalizedValues.locale)
+  ) {
     errors.locale = "Locale must be a valid locale code.";
   }
 
@@ -182,7 +189,8 @@ export function buildIdentityProfileUpdateValues(
         timezone: normalizeOptionalText(normalizedValues.timezone),
         locale: normalizeOptionalText(normalizedValues.locale),
       },
-      companionPreferences: buildCompanionPreferencesUpdateInput(normalizedValues),
+      companionPreferences:
+        buildCompanionPreferencesUpdateInput(normalizedValues),
     },
     fieldErrors: {},
   };
