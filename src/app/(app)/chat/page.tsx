@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChatLayout } from "@/components/chat/chat-layout";
 import { ChatMessageList } from "@/components/chat/chat-message-list";
 import { ChatInput } from "@/components/chat/chat-input";
@@ -14,7 +14,46 @@ export default function ChatPage() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [abortController, setAbortController] =
+    useState<AbortController | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadHistory() {
+      try {
+        setIsLoading(true);
+        const res = await fetch("/api/ai/conversation");
+        if (!res.ok) {
+          throw new Error("Failed to fetch conversation history");
+        }
+        const data = await res.json();
+
+        if (isMounted) {
+          if (data.conversationId) {
+            setConversationId(data.conversationId);
+          }
+          if (data.messages && Array.isArray(data.messages)) {
+            setMessages(data.messages);
+          }
+        }
+      } catch {
+        if (isMounted) {
+          setError("Failed to load conversation history. Please try again.");
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadHistory();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleStop = () => {
     if (abortController) {
@@ -36,7 +75,10 @@ export default function ChatPage() {
       const response = await fetch("/api/ai/conversation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: updatedMessages, ...(conversationId && { conversationId }) }),
+        body: JSON.stringify({
+          messages: updatedMessages,
+          ...(conversationId && { conversationId }),
+        }),
         signal: controller.signal,
       });
 
@@ -45,12 +87,16 @@ export default function ChatPage() {
         try {
           errorData = await response.json();
         } catch {
-          throw new Error(`Failed to get response: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `Failed to get response: ${response.status} ${response.statusText}`,
+          );
         }
         if (errorData && errorData.error) {
           throw new Error(errorData.message || "An error occurred");
         }
-        throw new Error(`Failed to get response: ${response.status} ${response.statusText}`);
+        throw new Error(
+          `Failed to get response: ${response.status} ${response.statusText}`,
+        );
       }
 
       if (!response.body) {
@@ -61,9 +107,9 @@ export default function ChatPage() {
       setIsStreaming(true);
 
       const reader = response.body.getReader();
-      const responseConversationId = response.headers.get('x-conversation-id');
+      const responseConversationId = response.headers.get("x-conversation-id");
       if (responseConversationId) {
-          setConversationId(responseConversationId);
+        setConversationId(responseConversationId);
       }
       const decoder = new TextDecoder();
       let done = false;
@@ -153,7 +199,10 @@ export default function ChatPage() {
 
     // Remove any incomplete assistant message from the end
     const cleanedMessages = [...messages];
-    if (cleanedMessages.length > 0 && cleanedMessages[cleanedMessages.length - 1].role === "assistant") {
+    if (
+      cleanedMessages.length > 0 &&
+      cleanedMessages[cleanedMessages.length - 1].role === "assistant"
+    ) {
       cleanedMessages.pop();
       setMessages(cleanedMessages);
     }
