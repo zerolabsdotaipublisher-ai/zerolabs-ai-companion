@@ -29,7 +29,7 @@ const mockSupabase = {
     }),
     select: (fields: string) => ({
       eq: (field: string, val: string) => ({
-        order: async (orderField: string, options: any) => {
+        order: (orderField: string, options: any) => {
           mockMethods.selectArgs = {
             table,
             fields,
@@ -38,10 +38,22 @@ const mockSupabase = {
             orderField,
             options,
           };
-          if (mockMethods.selectError) {
-            return { data: null, error: new Error(mockMethods.selectError) };
-          }
-          return { data: mockMethods.selectData || [], error: null };
+          const resolveMock = async () => {
+            if (mockMethods.selectError) {
+              return { data: null, error: new Error(mockMethods.selectError) };
+            }
+            return { data: mockMethods.selectData || [], error: null };
+          };
+          return {
+            range: async () => resolveMock(),
+            limit: () => ({
+              maybeSingle: async () => resolveMock(),
+              then: (resolve: any, reject: any) =>
+                resolveMock().then(resolve).catch(reject),
+            }),
+            then: (resolve: any, reject: any) =>
+              resolveMock().then(resolve).catch(reject),
+          };
         },
       }),
     }),
@@ -165,6 +177,21 @@ describe("Database Service", () => {
     assert.strictEqual(mockMethods.selectArgs.val, "conv1");
     assert.strictEqual(mockMethods.selectArgs.orderField, "created_at");
     assert.deepStrictEqual(mockMethods.selectArgs.options, { ascending: true });
+  });
+
+  test("getLatestConversation - returns null when no conversation exists", async (t) => {
+    t.mock.method(
+      serverLib,
+      "getSupabaseServerClient",
+      async () => mockSupabase,
+    );
+
+    mockMethods.selectData = [];
+
+    const result = await dbService.getLatestConversation("newuser");
+
+    assert.strictEqual(result.error, null);
+    assert.strictEqual(result.data, null);
   });
 
   test("getConversationMessages - error", async (t) => {

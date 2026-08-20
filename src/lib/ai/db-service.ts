@@ -192,8 +192,7 @@ export async function getLatestConversation(
       .select("*")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .limit(1);
 
     if (error) {
       logger.error("Failed to get latest conversation", {
@@ -203,7 +202,7 @@ export async function getLatestConversation(
       return { data: null, error: error.message };
     }
 
-    return { data, error: null };
+    return { data: data && data.length > 0 ? data[0] : null, error: null };
   } catch (error: unknown) {
     logger.error("Unexpected error getting latest conversation", {
       error,
