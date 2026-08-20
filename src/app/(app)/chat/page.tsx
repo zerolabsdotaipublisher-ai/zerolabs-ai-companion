@@ -11,6 +11,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
@@ -35,7 +36,7 @@ export default function ChatPage() {
       const response = await fetch("/api/ai/conversation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: updatedMessages }),
+        body: JSON.stringify({ messages: updatedMessages, ...(conversationId && { conversationId }) }),
         signal: controller.signal,
       });
 
@@ -60,6 +61,10 @@ export default function ChatPage() {
       setIsStreaming(true);
 
       const reader = response.body.getReader();
+      const responseConversationId = response.headers.get('x-conversation-id');
+      if (responseConversationId) {
+          setConversationId(responseConversationId);
+      }
       const decoder = new TextDecoder();
       let done = false;
       let assistantMessageContent = "";
