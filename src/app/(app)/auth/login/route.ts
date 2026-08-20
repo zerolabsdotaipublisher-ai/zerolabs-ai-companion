@@ -30,9 +30,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 }
 
 function getLoginFailureLogMessage(error: unknown): string {
-  return error
-    ? "Supabase login failed with auth error."
-    : "Supabase login returned no session.";
+  return error ? "Supabase login failed with auth error." : "Supabase login returned no session.";
 }
 
 function toLoginValues(body: Record<string, unknown>): LoginFormValues {
@@ -42,9 +40,7 @@ function toLoginValues(body: Record<string, unknown>): LoginFormValues {
   };
 }
 
-function getRequestedRedirectPath(
-  next: unknown,
-): string | string[] | undefined {
+function getRequestedRedirectPath(next: unknown): string | string[] | undefined {
   if (typeof next === "string") {
     return next;
   }
@@ -138,9 +134,7 @@ export async function POST(request: Request): Promise<Response> {
       metadata: {
         ...diagnostics,
         authErrorCode:
-          error && "code" in error && typeof error.code === "string"
-            ? error.code
-            : undefined,
+          error && "code" in error && typeof error.code === "string" ? error.code : undefined,
         authErrorStatus:
           error && "status" in error && typeof error.status === "number"
             ? error.status

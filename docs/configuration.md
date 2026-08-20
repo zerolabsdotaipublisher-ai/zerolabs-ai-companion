@@ -102,17 +102,17 @@ Important:
 1. Open project in Vercel.
 2. Go to **Settings → Environment Variables**.
 3. Add variables for each environment (Development, Preview, Production) using the exact names from `src/config/env.ts`:
-   - `NEXT_PUBLIC_APP_NAME` (optional)
-   - `NEXT_PUBLIC_APP_URL`
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY` (required for code paths that access `serverConfig.supabaseServiceRoleKey`)
-   - `OPENAI_API_KEY` (required for code paths that access `serverConfig.openaiApiKey`)
-   - `QDRANT_URL` (optional)
-   - `QDRANT_API_KEY` (optional)
-   - `QDRANT_COLLECTION` (optional)
-   - `ZERO_FLOW_API_URL` (optional)
-   - `ZERO_FLOW_API_KEY` (optional)
+    - `NEXT_PUBLIC_APP_NAME` (optional)
+    - `NEXT_PUBLIC_APP_URL`
+    - `NEXT_PUBLIC_SUPABASE_URL`
+    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+    - `SUPABASE_SERVICE_ROLE_KEY` (required for code paths that access `serverConfig.supabaseServiceRoleKey`)
+    - `OPENAI_API_KEY` (required for code paths that access `serverConfig.openaiApiKey`)
+    - `QDRANT_URL` (optional)
+    - `QDRANT_API_KEY` (optional)
+    - `QDRANT_COLLECTION` (optional)
+    - `ZERO_FLOW_API_URL` (optional)
+    - `ZERO_FLOW_API_KEY` (optional)
 4. Redeploy so new values are applied to runtime/builds.
 
 ## Example config usage

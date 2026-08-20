@@ -1,4 +1,4 @@
-import "server-only";
+import 'server-only';
 
 import { buildPromptContext } from "./context-builder";
 import { generateConversationResponse } from "./provider";
@@ -24,14 +24,7 @@ export async function processConversation(
   userId: string,
   messages: ConversationMessage[],
   settings?: ConversationModelSettings,
-  options?: {
-    apiKey?: string;
-    timeoutMs?: number;
-    apiUrl?: string;
-    model?: string;
-    stream?: boolean;
-    abortSignal?: AbortSignal;
-  },
+  options?: { apiKey?: string; timeoutMs?: number; apiUrl?: string; model?: string; stream?: boolean; abortSignal?: AbortSignal }
 ): Promise<ConversationResponse | ConversationError | Response> {
   try {
     const context = await buildPromptContext(userId);

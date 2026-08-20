@@ -15,10 +15,7 @@ export function sendMonitoringEvent(input: MonitoringEventInput): void {
 
   const body = JSON.stringify(payload);
 
-  if (
-    typeof navigator !== "undefined" &&
-    typeof navigator.sendBeacon === "function"
-  ) {
+  if (typeof navigator !== "undefined" && typeof navigator.sendBeacon === "function") {
     const blob = new Blob([body], { type: "application/json" });
     navigator.sendBeacon(MONITORING_ENDPOINT, blob);
     return;

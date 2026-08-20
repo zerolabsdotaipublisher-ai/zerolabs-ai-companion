@@ -7,10 +7,7 @@ import {
   isIdentityProfileAccessAllowed,
   type IdentityProfileRepository,
 } from "@/lib/identity/profile";
-import type {
-  IdentityProfileEditableValues,
-  IdentityProfileRecord,
-} from "@/lib/identity/types";
+import type { IdentityProfileEditableValues, IdentityProfileRecord } from "@/lib/identity/types";
 import { logger } from "@/lib/logger";
 
 import {
@@ -38,9 +35,7 @@ function assertIdentityProfileAccess(
   requestedUserId: string,
 ): void {
   if (!isIdentityProfileAccessAllowed(authenticatedUserId, requestedUserId)) {
-    throw new Error(
-      "Identity profile access is limited to the authenticated user.",
-    );
+    throw new Error("Identity profile access is limited to the authenticated user.");
   }
 }
 
@@ -72,15 +67,12 @@ async function ensureIdentityProfileRecordByUserId({
   const existingProfileResult = await repository.getByUserId(requestedUserId);
 
   if (existingProfileResult.error) {
-    logger.warn(
-      "Identity profile lookup failed while ensuring companion preferences.",
-      {
-        context: "identity",
-        source: "identity.preferences",
-        error: existingProfileResult.error,
-        metadata: { userId: requestedUserId },
-      },
-    );
+    logger.warn("Identity profile lookup failed while ensuring companion preferences.", {
+      context: "identity",
+      source: "identity.preferences",
+      error: existingProfileResult.error,
+      metadata: { userId: requestedUserId },
+    });
     throw existingProfileResult.error;
   }
 
@@ -93,17 +85,13 @@ async function ensureIdentityProfileRecordByUserId({
   );
 
   if (createProfileResult.error || !createProfileResult.data) {
-    logger.warn(
-      "Identity profile creation failed while ensuring companion preferences.",
-      {
-        context: "identity",
-        source: "identity.preferences",
-        error:
-          createProfileResult.error ??
-          "Identity profile creation returned no data.",
-        metadata: { userId: requestedUserId },
-      },
-    );
+    logger.warn("Identity profile creation failed while ensuring companion preferences.", {
+      context: "identity",
+      source: "identity.preferences",
+      error:
+        createProfileResult.error ?? "Identity profile creation returned no data.",
+      metadata: { userId: requestedUserId },
+    });
     throw (
       createProfileResult.error ??
       new Error("Identity profile creation returned no data.")
@@ -140,9 +128,7 @@ export async function getCompanionPreferencesByUserId({
     return createDefaultCompanionPreferences();
   }
 
-  return getCompanionPreferencesFromProfilePreferences(
-    profileResult.data.preferences,
-  );
+  return getCompanionPreferencesFromProfilePreferences(profileResult.data.preferences);
 }
 
 export async function ensureCompanionPreferencesByUserId({
@@ -179,13 +165,8 @@ export async function updateCompanionPreferencesByUserId({
     requestedUserId,
     repository,
   });
-  const currentPreferences = getCompanionPreferencesFromProfilePreferences(
-    profile.preferences,
-  );
-  const normalizedInput = normalizeCompanionPreferencesInput(
-    input,
-    currentPreferences,
-  );
+  const currentPreferences = getCompanionPreferencesFromProfilePreferences(profile.preferences);
+  const normalizedInput = normalizeCompanionPreferencesInput(input, currentPreferences);
 
   if (!normalizedInput.data) {
     throw new InvalidCompanionPreferencesError(normalizedInput.fieldErrors);
@@ -204,19 +185,13 @@ export async function updateCompanionPreferencesByUserId({
     logger.warn("Companion preferences update failed.", {
       context: "identity",
       source: "identity.preferences",
-      error:
-        updateResult.error ?? "Companion preferences update returned no data.",
+      error: updateResult.error ?? "Companion preferences update returned no data.",
       metadata: { userId: requestedUserId },
     });
-    throw (
-      updateResult.error ??
-      new Error("Companion preferences update returned no data.")
-    );
+    throw updateResult.error ?? new Error("Companion preferences update returned no data.");
   }
 
-  return getCompanionPreferencesFromProfilePreferences(
-    updateResult.data.preferences,
-  );
+  return getCompanionPreferencesFromProfilePreferences(updateResult.data.preferences);
 }
 
 export async function getCompanionPreferencesForUser(

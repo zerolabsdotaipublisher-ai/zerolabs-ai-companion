@@ -1,9 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
-import {
-  sanitizeMessageContent,
-  ConversationInputSchema,
-} from "../../../src/lib/ai/validation";
+import { sanitizeMessageContent, ConversationInputSchema } from "../../../src/lib/ai/validation";
 
 describe("validation", () => {
   describe("sanitizeMessageContent", () => {
@@ -43,26 +40,22 @@ describe("validation", () => {
     it("should validate and sanitize correct input", () => {
       const input = {
         messages: [
-          {
-            role: "user",
-            content: "  Hello <script>alert('xss');</script>world  ",
-          },
-        ],
+          { role: "user", content: "  Hello <script>alert('xss');</script>world  " }
+        ]
       };
       const result = ConversationInputSchema.safeParse(input);
       assert.strictEqual(result.success, true);
       if (result.success) {
         assert.strictEqual(result.data.messages.length, 1);
-        assert.strictEqual(
-          result.data.messages[0].content,
-          "Hello alert('xss');world",
-        );
+        assert.strictEqual(result.data.messages[0].content, "Hello alert('xss');world");
       }
     });
 
     it("should reject input with empty messages after sanitization", () => {
       const input = {
-        messages: [{ role: "user", content: "   <p></p>   " }],
+        messages: [
+          { role: "user", content: "   <p></p>   " }
+        ]
       };
       const result = ConversationInputSchema.safeParse(input);
       assert.strictEqual(result.success, false);
@@ -70,7 +63,7 @@ describe("validation", () => {
 
     it("should reject input with empty messages array", () => {
       const input = {
-        messages: [],
+        messages: []
       };
       const result = ConversationInputSchema.safeParse(input);
       assert.strictEqual(result.success, false);
@@ -84,7 +77,9 @@ describe("validation", () => {
 
     it("should reject input with invalid message role", () => {
       const input = {
-        messages: [{ role: "invalid", content: "Hello" }],
+        messages: [
+          { role: "invalid", content: "Hello" }
+        ]
       };
       const result = ConversationInputSchema.safeParse(input);
       assert.strictEqual(result.success, false);
@@ -92,11 +87,13 @@ describe("validation", () => {
 
     it("should allow valid settings", () => {
       const input = {
-        messages: [{ role: "user", content: "Hello" }],
+        messages: [
+          { role: "user", content: "Hello" }
+        ],
         settings: {
           temperature: 0.5,
-          max_tokens: 100,
-        },
+          max_tokens: 100
+        }
       };
       const result = ConversationInputSchema.safeParse(input);
       assert.strictEqual(result.success, true);
@@ -104,11 +101,13 @@ describe("validation", () => {
 
     it("should reject invalid settings", () => {
       const input = {
-        messages: [{ role: "user", content: "Hello" }],
+        messages: [
+          { role: "user", content: "Hello" }
+        ],
         settings: {
           temperature: 3.5, // > 2
-          max_tokens: -100, // negative
-        },
+          max_tokens: -100 // negative
+        }
       };
       const result = ConversationInputSchema.safeParse(input);
       assert.strictEqual(result.success, false);

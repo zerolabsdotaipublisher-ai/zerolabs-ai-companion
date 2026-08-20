@@ -10,7 +10,9 @@ type SignupPageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };
 
-export default async function SignupPage({ searchParams }: SignupPageProps) {
+export default async function SignupPage({
+  searchParams,
+}: SignupPageProps) {
   const resolvedSearchParams = (await searchParams) ?? {};
   const user = await getAuthenticatedUser();
 
@@ -18,9 +20,5 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
     redirect(AUTHENTICATED_APP_REDIRECT);
   }
 
-  return (
-    <SignupForm
-      callbackError={getAuthCallbackError(resolvedSearchParams.error)}
-    />
-  );
+  return <SignupForm callbackError={getAuthCallbackError(resolvedSearchParams.error)} />;
 }

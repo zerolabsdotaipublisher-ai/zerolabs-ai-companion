@@ -2,12 +2,7 @@ import type { IdentityProfileJson } from "@/lib/identity/types";
 
 export const COMPANION_PREFERENCES_KEY = "companion_preferences";
 
-export const COMPANION_TONE_OPTIONS = [
-  "calm",
-  "friendly",
-  "playful",
-  "direct",
-] as const;
+export const COMPANION_TONE_OPTIONS = ["calm", "friendly", "playful", "direct"] as const;
 export const SUGGESTION_STYLE_OPTIONS = [
   "balanced",
   "novel",
@@ -15,11 +10,7 @@ export const SUGGESTION_STYLE_OPTIONS = [
   "outdoor",
   "indoor",
 ] as const;
-export const ACTIVITY_INTENSITY_OPTIONS = [
-  "light",
-  "moderate",
-  "active",
-] as const;
+export const ACTIVITY_INTENSITY_OPTIONS = ["light", "moderate", "active"] as const;
 export const PREFERRED_TIME_OF_DAY_OPTIONS = [
   "morning",
   "afternoon",
@@ -80,15 +71,10 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 }
 
 function isStringArray(value: unknown): value is string[] {
-  return (
-    Array.isArray(value) && value.every((entry) => typeof entry === "string")
-  );
+  return Array.isArray(value) && value.every((entry) => typeof entry === "string");
 }
 
-function isAllowedOption<T extends string>(
-  value: unknown,
-  options: readonly T[],
-): value is T {
+function isAllowedOption<T extends string>(value: unknown, options: readonly T[]): value is T {
   return typeof value === "string" && options.includes(value as T);
 }
 
@@ -137,9 +123,7 @@ export function parseCompanionPreferenceList(value: string): string[] {
   return normalizeCompanionPreferenceList(value.split(","));
 }
 
-export function formatCompanionPreferenceList(
-  values: readonly string[],
-): string {
+export function formatCompanionPreferenceList(values: readonly string[]): string {
   return normalizeCompanionPreferenceList(values).join(", ");
 }
 
@@ -312,9 +296,7 @@ export function setCompanionPreferencesOnProfilePreferences(
     : {};
 
   nextPreferences[COMPANION_PREFERENCES_KEY] = {
-    ...cloneCompanionPreferences(
-      buildCompanionPreferences(companionPreferences),
-    ),
+    ...cloneCompanionPreferences(buildCompanionPreferences(companionPreferences)),
   };
 
   return nextPreferences as Record<string, IdentityProfileJson>;

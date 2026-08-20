@@ -11,9 +11,7 @@ export type SignupFormErrors = Partial<Record<keyof SignupFormValues, string>>;
 export const MIN_PASSWORD_LENGTH = 8;
 const emailSchema = z.string().email();
 
-export function normalizeSignupValues(
-  values: SignupFormValues,
-): SignupFormValues {
+export function normalizeSignupValues(values: SignupFormValues): SignupFormValues {
   return {
     email: values.email.trim(),
     password: values.password,
@@ -25,9 +23,7 @@ function isValidEmailFormat(email: string): boolean {
   return emailSchema.safeParse(email).success;
 }
 
-export function validateSignupValues(
-  values: SignupFormValues,
-): SignupFormErrors {
+export function validateSignupValues(values: SignupFormValues): SignupFormErrors {
   const errors: SignupFormErrors = {};
   const normalizedValues = normalizeSignupValues(values);
 

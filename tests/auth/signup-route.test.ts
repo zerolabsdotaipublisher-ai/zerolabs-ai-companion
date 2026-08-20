@@ -5,21 +5,11 @@ import test from "node:test";
 const requireFromTest = createRequire(__filename);
 
 test("uses the request origin for signup email confirmation callbacks", async () => {
-  const originModule = requireFromTest(
-    "../../src/lib/auth/origin",
-  ) as typeof import("../../src/lib/auth/origin");
-  const signupProfileModule = requireFromTest(
-    "../../src/lib/auth/signup-profile",
-  ) as typeof import("../../src/lib/auth/signup-profile");
-  const adminModule = requireFromTest(
-    "../../src/lib/supabase/admin",
-  ) as typeof import("../../src/lib/supabase/admin");
-  const serverModule = requireFromTest(
-    "../../src/lib/supabase/server",
-  ) as typeof import("../../src/lib/supabase/server");
-  const routeModulePath = requireFromTest.resolve(
-    "../../src/app/(app)/auth/signup/route",
-  );
+  const originModule = requireFromTest("../../src/lib/auth/origin") as typeof import("../../src/lib/auth/origin");
+  const signupProfileModule = requireFromTest("../../src/lib/auth/signup-profile") as typeof import("../../src/lib/auth/signup-profile");
+  const adminModule = requireFromTest("../../src/lib/supabase/admin") as typeof import("../../src/lib/supabase/admin");
+  const serverModule = requireFromTest("../../src/lib/supabase/server") as typeof import("../../src/lib/supabase/server");
+  const routeModulePath = requireFromTest.resolve("../../src/app/(app)/auth/signup/route");
   const originalIsStateChangingAuthRequestAllowed =
     originModule.isStateChangingAuthRequestAllowed;
   const originalProvisionSignupIdentityProfile =

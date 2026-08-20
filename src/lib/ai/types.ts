@@ -27,9 +27,7 @@ export const ConversationModelSettingsSchema = z.object({
   presence_penalty: z.number().min(-2).max(2).optional(),
 });
 
-export type ConversationModelSettings = z.infer<
-  typeof ConversationModelSettingsSchema
->;
+export type ConversationModelSettings = z.infer<typeof ConversationModelSettingsSchema>;
 
 export const ConversationRequestSchema = z.object({
   context: PromptContextSchema,
@@ -49,13 +47,10 @@ export type TokenUsage = z.infer<typeof TokenUsageSchema>;
 
 export const ConversationResponseSchema = z.object({
   message: ConversationMessageSchema,
-  metadata: z
-    .object({
-      model: z.string(),
-      finish_reason: z.string().optional(),
-    })
-    .catchall(z.unknown())
-    .optional(),
+  metadata: z.object({
+    model: z.string(),
+    finish_reason: z.string().optional(),
+  }).catchall(z.unknown()).optional(),
   usage: TokenUsageSchema.optional(),
 });
 
@@ -66,7 +61,7 @@ export const ErrorCodeSchema = z.enum([
   "TIMEOUT",
   "API_ERROR",
   "INVALID_REQUEST",
-  "INTERNAL_ERROR",
+  "INTERNAL_ERROR"
 ]);
 
 export type ErrorCode = z.infer<typeof ErrorCodeSchema>;

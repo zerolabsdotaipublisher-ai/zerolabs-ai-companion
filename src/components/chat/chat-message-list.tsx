@@ -15,9 +15,7 @@ export function ChatMessageList({ messages, isLoading }: ChatMessageListProps) {
     if (!containerRef.current || !bottomRef.current) return;
 
     const container = containerRef.current;
-    const isNearBottom =
-      container.scrollHeight - container.scrollTop - container.clientHeight <=
-      150;
+    const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight <= 150;
     const isNewMessage = messages.length > prevMessagesLength.current;
 
     if (isNearBottom || isNewMessage || messages.length <= 1) {
@@ -36,10 +34,7 @@ export function ChatMessageList({ messages, isLoading }: ChatMessageListProps) {
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6"
-    >
+    <div ref={containerRef} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
       {messages.map((message, i) => {
         const isUser = message.role === "user";
         // Ignore system messages from UI
