@@ -418,6 +418,78 @@ describe("Chat Components", () => {
     unmount();
   });
 
+  test("ChatPage integration - handles sending a new message and updates conversation list", async () => {
+    let postCallCount = 0;
+    let listCallCount = 0;
+    const mockStreamControls = createFlushableMockStream();
+
+    global.fetch = async (url, options) => {
+      if (url === "/api/ai/conversation" && options?.method === "POST") {
+        postCallCount++;
+        return {
+          ok: true,
+          body: mockStreamControls.stream,
+          headers: new Headers({ "x-conversation-id": "new-conv-id" }),
+        } as unknown as Response;
+      }
+      if (url === "/api/ai/conversation?list=true") {
+        listCallCount++;
+        return {
+          ok: true,
+          json: async () => ({
+            conversations: [{ id: "new-conv-id", title: "New Conversation" }],
+          }),
+        } as unknown as Response;
+      }
+      if (url === "/api/ai/conversation") {
+        return {
+          ok: true,
+          json: async () => ({
+            conversationId: null,
+            messages: [],
+          }),
+        } as unknown as Response;
+      }
+      return { ok: true, json: async () => ({}) } as unknown as Response;
+    };
+
+    const { getByPlaceholderText, getByRole, unmount } = render(<ChatPage />);
+
+    // Wait for the empty state to render
+    const input = getByPlaceholderText(
+      /Type a message/i,
+    ) as HTMLTextAreaElement;
+
+    // Simulate typing a new message
+    await act(async () => {
+      await setNativeValue(input, "Start a new chat");
+    });
+
+    const submitBtn = getByRole("button", { name: /Send message/i });
+
+    // Store the list call count before clicking send
+    const listCallCountBeforeSend = listCallCount;
+
+    // Simulate clicking the send button
+    await act(async () => {
+      (submitBtn as HTMLButtonElement).removeAttribute("disabled");
+      fireEvent.click(submitBtn);
+      await flushMicrotasks();
+    });
+
+    assert.strictEqual(postCallCount, 1);
+
+    // Check if list was fetched again (sidebar update)
+    assert.strictEqual(listCallCount, listCallCountBeforeSend + 1);
+
+    await act(async () => {
+      mockStreamControls.close();
+      await flushMicrotasks();
+    });
+
+    unmount();
+  });
+
   test("ChatPage integration - handles history hydration on mount", async () => {
     let fetchCallCount = 0;
 
