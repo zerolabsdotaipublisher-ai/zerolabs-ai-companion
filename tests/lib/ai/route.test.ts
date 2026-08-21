@@ -7,6 +7,14 @@ import * as orchestratorLib from "../../../src/lib/ai/orchestrator";
 
 // Mock the Next.js NextResponse
 class MockNextResponse {
+  body: unknown;
+  status: number;
+  headers: unknown;
+  constructor(body: unknown, init?: { status?: number; headers?: unknown }) {
+    this.body = body;
+    this.status = init?.status ?? 200;
+    this.headers = init?.headers;
+  }
   static json(body: unknown, init?: { status?: number }) {
     return {
       json: async () => body,
@@ -316,6 +324,86 @@ describe("POST /api/ai/conversation", () => {
 
     const body = await response.json();
     assert.deepStrictEqual(body, validResponse);
+  });
+
+  it("should stream the response and save the assistant message on stream completion", async () => {
+    mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
+    mock.method(serverSessionLib, "getServerAuthState", async () => ({
+      user: { id: "user1" },
+    }));
+    mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
+
+    const saveAssistantMessageMock = mock.method(
+      dbServiceLib,
+      "saveAssistantMessage",
+      async () => ({
+        data: { id: "msg2" },
+        error: null,
+      }),
+    );
+
+    mock.method(dbServiceLib, "saveUserMessage", async () => ({
+      data: { id: "msg1" },
+      error: null,
+    }));
+
+    const mockStream = new ReadableStream({
+      start(controller) {
+        const encoder = new TextEncoder();
+        controller.enqueue(
+          encoder.encode(
+            'data: {"choices": [{"delta": {"content": "Hello"}}]}',
+          ),
+        );
+        controller.enqueue(
+          encoder.encode(
+            '\n\ndata: {"choices": [{"delta": {"content": " world!"}}]}',
+          ),
+        );
+        controller.enqueue(encoder.encode("\n\ndata: [DONE]\n\n"));
+        controller.close();
+      },
+    });
+
+    const mockResponse = new Response(mockStream, {
+      status: 200,
+      headers: new Headers({
+        "Content-Type": "text/event-stream",
+      }),
+    });
+
+    mock.method(
+      orchestratorLib,
+      "processConversation",
+      async () => mockResponse,
+    );
+
+    const request = new Request("https://example.com/api/ai/conversation", {
+      method: "POST",
+      body: JSON.stringify({
+        conversationId: "conv1",
+        messages: [{ role: "user", content: "Hello" }],
+      }),
+    });
+
+    const response = (await POST(request)) as unknown as Response;
+    console.log("RESPONSE:", response);
+    assert.strictEqual(response.status, 200);
+
+    const reader = response.body?.getReader();
+    assert.ok(reader);
+
+    // Consume the stream to trigger flush
+    while (true) {
+      const { done } = await reader.read();
+      if (done) break;
+    }
+
+    assert.strictEqual(saveAssistantMessageMock.mock.callCount(), 1);
+    const saveCall = saveAssistantMessageMock.mock.calls[0];
+    assert.strictEqual(saveCall.arguments[0], "conv1");
+    assert.strictEqual(saveCall.arguments[1], "user1");
+    assert.strictEqual(saveCall.arguments[2], "Hello world!");
   });
 
   it("should return 500 and a structured ConversationError if an unexpected exception is thrown", async () => {

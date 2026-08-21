@@ -14,6 +14,7 @@ import {
   getLatestConversation,
   getConversationMessages,
   getUserConversations,
+  saveAssistantMessage,
 } from "@/lib/ai/db-service";
 
 export async function POST(request: Request): Promise<Response> {
@@ -119,7 +120,58 @@ export async function POST(request: Request): Promise<Response> {
       headers.set("x-conversation-id", resolvedConversationId);
       headers.set("Access-Control-Expose-Headers", "x-conversation-id");
 
-      return new NextResponse(response.body, {
+      if (!response.body) {
+        return new NextResponse(null, { status: response.status, headers });
+      }
+
+      // Stream accumulator
+      let assistantMessageContent = "";
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      const transformStream = new TransformStream({
+        async transform(chunk, controller) {
+          // Pass the chunk through to the client
+          controller.enqueue(chunk);
+
+          // Accumulate and parse chunks on the server to save the final message
+          const decodedChunk = decoder.decode(chunk, { stream: true });
+          buffer += decodedChunk;
+          const lines = buffer.split("\n");
+
+          buffer = lines.pop() || "";
+
+          for (const line of lines) {
+            const trimmedLine = line.trim();
+            if (trimmedLine.startsWith("data: ")) {
+              const dataString = trimmedLine.slice("data: ".length);
+              if (dataString === "[DONE]") {
+                continue;
+              }
+              try {
+                const parsed = JSON.parse(dataString);
+                const content = parsed.choices?.[0]?.delta?.content;
+                if (content) {
+                  assistantMessageContent += content;
+                }
+              } catch {
+                // Ignore parsing errors for incomplete JSON
+              }
+            }
+          }
+        },
+        async flush() {
+          if (assistantMessageContent) {
+            await saveAssistantMessage(
+              resolvedConversationId,
+              authState.user.id,
+              assistantMessageContent,
+            );
+          }
+        },
+      });
+
+      return new NextResponse(response.body.pipeThrough(transformStream), {
         status: response.status,
         headers,
       });
