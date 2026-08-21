@@ -177,6 +177,44 @@ export async function getConversationMessages(
 }
 
 /**
+ * Retrieves all conversations for a given user, ordered by updated_at DESC.
+ */
+export async function getUserConversations(
+  userId: string,
+): Promise<DbResult<Conversation[]>> {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const typedSupabase =
+      supabase as unknown as import("@supabase/supabase-js").SupabaseClient<Database>;
+
+    const { data, error } = await typedSupabase
+      .from("conversations")
+      .select("*")
+      .eq("user_id", userId)
+      .order("updated_at", { ascending: false });
+
+    if (error) {
+      logger.error("Failed to get user conversations", {
+        error,
+        metadata: { userId },
+      });
+      return { data: null, error: error.message };
+    }
+
+    return { data: data || [], error: null };
+  } catch (error: unknown) {
+    logger.error("Unexpected error getting user conversations", {
+      error,
+      metadata: { userId },
+    });
+    return {
+      data: null,
+      error: "Unexpected error getting user conversations",
+    };
+  }
+}
+
+/**
  * Retrieves the most recent conversation for a given user.
  */
 export async function getLatestConversation(

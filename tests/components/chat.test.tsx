@@ -22,6 +22,7 @@ import ChatPage from "../../src/app/(app)/chat/page";
 import { ChatMessageList } from "../../src/components/chat/chat-message-list";
 import { SendButton } from "../../src/components/chat/send-button";
 import { ChatInput } from "../../src/components/chat/chat-input";
+import { ChatSidebar } from "../../src/components/chat/chat-sidebar";
 
 export function createFlushableMockStream() {
   let controllerRef: ReadableStreamDefaultController<Uint8Array> | null = null;
@@ -346,6 +347,14 @@ describe("Chat Components", () => {
           }),
         } as unknown as Response;
       }
+      if (url === "/api/ai/conversation?list=true") {
+        return {
+          ok: true,
+          json: async () => ({
+            conversations: [],
+          }),
+        } as unknown as Response;
+      }
       return { ok: true, json: async () => ({}) } as unknown as Response;
     };
 
@@ -358,7 +367,53 @@ describe("Chat Components", () => {
       { timeout: 3000 },
     );
     assert.ok(emptyStateText);
-    assert.strictEqual(fetchCallCount, 1);
+    assert.strictEqual(fetchCallCount, 2);
+
+    unmount();
+  });
+
+  test("ChatSidebar renders conversations and handles clicks", async () => {
+    let selectedId: string | null = null;
+    let newChatClicked = false;
+
+    const conversations = [
+      {
+        id: "1",
+        title: "Conv 1",
+        user_id: "u1",
+        created_at: "",
+        updated_at: "",
+      },
+      {
+        id: "2",
+        title: "Conv 2",
+        user_id: "u1",
+        created_at: "",
+        updated_at: "",
+      },
+    ];
+
+    const { getByText, unmount } = render(
+      <ChatSidebar
+        conversations={conversations}
+        activeConversationId="1"
+        onSelectConversation={(id) => (selectedId = id)}
+        onNewChat={() => (newChatClicked = true)}
+      />,
+    );
+
+    assert.ok(getByText("Conv 1"));
+    assert.ok(getByText("Conv 2"));
+
+    await act(async () => {
+      fireEvent.click(getByText("Conv 2"));
+    });
+    assert.strictEqual(selectedId, "2");
+
+    await act(async () => {
+      fireEvent.click(getByText("New Chat"));
+    });
+    assert.strictEqual(newChatClicked, true);
 
     unmount();
   });
@@ -377,6 +432,14 @@ describe("Chat Components", () => {
               { role: "user", content: "Previous message" },
               { role: "assistant", content: "Previous reply" },
             ],
+          }),
+        } as unknown as Response;
+      }
+      if (url === "/api/ai/conversation?list=true") {
+        return {
+          ok: true,
+          json: async () => ({
+            conversations: [{ id: "test-conv-id", title: "Test Conv" }],
           }),
         } as unknown as Response;
       }
@@ -399,7 +462,7 @@ describe("Chat Components", () => {
     );
     assert.ok(previousReply);
 
-    assert.strictEqual(fetchCallCount, 1);
+    assert.strictEqual(fetchCallCount, 2);
 
     unmount();
   });

@@ -27,28 +27,22 @@ const nonEmptyString = z
   })
   .trim()
   .min(1, "is required");
-const optionalTrimmedString = z.preprocess(
-  (value) => {
-    if (typeof value !== "string") {
-      return value;
-    }
+const optionalTrimmedString = z.preprocess((value) => {
+  if (typeof value !== "string") {
+    return value;
+  }
 
-    const trimmedValue = value.trim();
-    return trimmedValue.length > 0 ? trimmedValue : undefined;
-  },
-  z.string().min(1).optional(),
-);
-const optionalUrl = z.preprocess(
-  (value) => {
-    if (typeof value !== "string") {
-      return value;
-    }
+  const trimmedValue = value.trim();
+  return trimmedValue.length > 0 ? trimmedValue : undefined;
+}, z.string().min(1).optional());
+const optionalUrl = z.preprocess((value) => {
+  if (typeof value !== "string") {
+    return value;
+  }
 
-    const trimmedValue = value.trim();
-    return trimmedValue.length > 0 ? trimmedValue : undefined;
-  },
-  z.string().url("must be a valid URL").optional(),
-);
+  const trimmedValue = value.trim();
+  return trimmedValue.length > 0 ? trimmedValue : undefined;
+}, z.string().url("must be a valid URL").optional());
 
 const publicEnvSchema = z.object({
   NEXT_PUBLIC_APP_NAME: optionalTrimmedString,
@@ -71,7 +65,10 @@ type ServerEnv = z.infer<typeof serverEnvSchema>;
 
 let validatedServerEnv: ServerEnv | undefined;
 
-function formatEnvValidationError(scope: "public" | "server", error: z.ZodError): Error {
+function formatEnvValidationError(
+  scope: "public" | "server",
+  error: z.ZodError,
+): Error {
   const details = error.issues
     .map((issue) => `${issue.path.join(".") || "unknown"}: ${issue.message}`)
     .join("; ");
@@ -81,7 +78,11 @@ function formatEnvValidationError(scope: "public" | "server", error: z.ZodError)
   );
 }
 
-function validateEnv<T>(scope: "public" | "server", schema: z.ZodSchema<T>, values: unknown): T {
+function validateEnv<T>(
+  scope: "public" | "server",
+  schema: z.ZodSchema<T>,
+  values: unknown,
+): T {
   const result = schema.safeParse(values);
 
   if (!result.success) {
@@ -100,7 +101,9 @@ const publicEnv = validateEnv("public", publicEnvSchema, {
 
 function assertServerOnly(name: string): void {
   if (typeof window !== "undefined") {
-    throw new Error(`${name} is server-only and cannot be accessed in client code.`);
+    throw new Error(
+      `${name} is server-only and cannot be accessed in client code.`,
+    );
   }
 }
 

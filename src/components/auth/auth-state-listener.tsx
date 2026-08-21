@@ -20,7 +20,9 @@ export function AuthStateListener({ isAuthenticated }: AuthStateListenerProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const authStatusRef = useRef<ClientAuthStatus>(getClientAuthStatus(isAuthenticated));
+  const authStatusRef = useRef<ClientAuthStatus>(
+    getClientAuthStatus(isAuthenticated),
+  );
   const refreshTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -52,7 +54,8 @@ export function AuthStateListener({ isAuthenticated }: AuthStateListenerProps) {
     } = supabase.auth.onAuthStateChange((event, session) => {
       const result = resolveClientAuthTransition({
         currentPathname: pathname,
-        currentSearch: searchParams.size > 0 ? `?${searchParams.toString()}` : "",
+        currentSearch:
+          searchParams.size > 0 ? `?${searchParams.toString()}` : "",
         event,
         hasSession: Boolean(session?.user),
         previousStatus: authStatusRef.current,

@@ -207,4 +207,44 @@ describe("Database Service", () => {
     assert.strictEqual(result.data, null);
     assert.strictEqual(result.error, "Read Failed");
   });
+
+  test("getUserConversations - success", async (t) => {
+    t.mock.method(
+      serverLib,
+      "getSupabaseServerClient",
+      async () => mockSupabase,
+    );
+
+    mockMethods.selectData = [
+      { id: "1", title: "conv1", updated_at: "2024-01-02T00:00:00Z" },
+      { id: "2", title: "conv2", updated_at: "2024-01-01T00:00:00Z" },
+    ];
+
+    const result = await dbService.getUserConversations("user1");
+
+    assert.strictEqual(result.error, null);
+    assert.strictEqual(result.data?.length, 2);
+
+    assert.strictEqual(mockMethods.selectArgs.table, "conversations");
+    assert.strictEqual(mockMethods.selectArgs.field, "user_id");
+    assert.strictEqual(mockMethods.selectArgs.val, "user1");
+    assert.strictEqual(mockMethods.selectArgs.orderField, "updated_at");
+    assert.deepStrictEqual(mockMethods.selectArgs.options, {
+      ascending: false,
+    });
+  });
+
+  test("getUserConversations - error", async (t) => {
+    t.mock.method(
+      serverLib,
+      "getSupabaseServerClient",
+      async () => mockSupabase,
+    );
+    mockMethods.selectError = "Read Failed";
+
+    const result = await dbService.getUserConversations("user1");
+
+    assert.strictEqual(result.data, null);
+    assert.strictEqual(result.error, "Read Failed");
+  });
 });

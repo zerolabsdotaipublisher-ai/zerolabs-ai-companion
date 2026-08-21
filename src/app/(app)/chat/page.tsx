@@ -1,14 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { ChatLayout } from "@/components/chat/chat-layout";
 import { ChatMessageList } from "@/components/chat/chat-message-list";
 import { ChatInput } from "@/components/chat/chat-input";
 import { SendButton } from "@/components/chat/send-button";
+import { ChatSidebar } from "@/components/chat/chat-sidebar";
 import { ConversationMessage } from "@/lib/ai/types";
+import { Database } from "@/types/database.types";
+
+type Conversation = Database["public"]["Tables"]["conversations"]["Row"];
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -17,10 +22,47 @@ export default function ChatPage() {
   const [abortController, setAbortController] =
     useState<AbortController | null>(null);
 
+  const loadConversations = useCallback(async () => {
+    try {
+      const res = await fetch("/api/ai/conversation?list=true");
+      if (res.ok) {
+        const data = await res.json();
+        setConversations(data.conversations || []);
+      }
+    } catch (err) {
+      console.error("Failed to load conversations list", err);
+    }
+  }, []);
+
+  const loadConversationMessages = useCallback(async (id: string | null) => {
+    if (!id) {
+      setMessages([]);
+      return;
+    }
+    try {
+      setIsLoading(true);
+      const res = await fetch(`/api/ai/conversation?conversationId=${id}`);
+      if (!res.ok) {
+        throw new Error("Failed to fetch conversation history");
+      }
+      const data = await res.json();
+      setConversationId(id);
+      if (data.messages && Array.isArray(data.messages)) {
+        setMessages(data.messages);
+      } else {
+        setMessages([]);
+      }
+    } catch {
+      setError("Failed to load conversation history. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
 
-    async function loadHistory() {
+    async function initialLoad() {
       try {
         setIsLoading(true);
         const res = await fetch("/api/ai/conversation");
@@ -30,14 +72,15 @@ export default function ChatPage() {
         const data = await res.json();
 
         if (isMounted) {
-          setConversationId(
-            data.conversationId !== undefined ? data.conversationId : null,
-          );
+          const loadedConvId =
+            data.conversationId !== undefined ? data.conversationId : null;
+          setConversationId(loadedConvId);
           if (data.messages && Array.isArray(data.messages)) {
             setMessages(data.messages);
           } else {
             setMessages([]);
           }
+          await loadConversations();
         }
       } catch {
         if (isMounted) {
@@ -50,12 +93,12 @@ export default function ChatPage() {
       }
     }
 
-    loadHistory();
+    initialLoad();
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [loadConversations]);
 
   const handleStop = () => {
     if (abortController) {
@@ -64,6 +107,20 @@ export default function ChatPage() {
       setIsStreaming(false);
       setIsLoading(false);
     }
+  };
+
+  const handleNewChat = () => {
+    handleStop();
+    setConversationId(null);
+    setMessages([]);
+    setError(null);
+  };
+
+  const handleSelectConversation = (id: string) => {
+    if (id === conversationId) return;
+    handleStop();
+    setError(null);
+    loadConversationMessages(id);
   };
 
   const dispatchRequest = async (updatedMessages: ConversationMessage[]) => {
@@ -110,8 +167,10 @@ export default function ChatPage() {
 
       const reader = response.body.getReader();
       const responseConversationId = response.headers.get("x-conversation-id");
-      if (responseConversationId) {
+      if (responseConversationId && responseConversationId !== conversationId) {
         setConversationId(responseConversationId);
+        // Refresh conversations list to show the newly created chat
+        loadConversations();
       }
       const decoder = new TextDecoder();
       let done = false;
@@ -213,7 +272,17 @@ export default function ChatPage() {
   };
 
   return (
-    <ChatLayout>
+    <ChatLayout
+      sidebar={
+        <ChatSidebar
+          conversations={conversations}
+          activeConversationId={conversationId}
+          onSelectConversation={handleSelectConversation}
+          onNewChat={handleNewChat}
+          isLoading={isLoading}
+        />
+      }
+    >
       <ChatMessageList messages={messages} isLoading={isLoading} />
 
       <div className="border-t border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-950 sm:p-6">
