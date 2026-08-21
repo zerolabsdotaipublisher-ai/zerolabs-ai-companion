@@ -1,6 +1,7 @@
 import { env } from "@/lib/env";
 
-const SUPABASE_SERVICE_PATH_REGEX = /^\/(?:auth|functions|realtime|rest|storage)\/v1(?:\/.*)?$/;
+const SUPABASE_SERVICE_PATH_REGEX =
+  /^\/(?:auth|functions|realtime|rest|storage)\/v1(?:\/.*)?$/;
 
 function normalizeSupabaseProjectUrl(url: string): string {
   const normalizedUrl = new URL(url);

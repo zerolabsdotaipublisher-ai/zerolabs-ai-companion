@@ -46,13 +46,19 @@ function toIdentityProfileFormRequestValues(
 ): IdentityProfileFormValues {
   return {
     display_name:
-      typeof body.display_name === "string" ? body.display_name : fallbackValues.display_name,
+      typeof body.display_name === "string"
+        ? body.display_name
+        : fallbackValues.display_name,
     preferred_name:
       typeof body.preferred_name === "string"
         ? body.preferred_name
         : fallbackValues.preferred_name,
-    timezone: typeof body.timezone === "string" ? body.timezone : fallbackValues.timezone,
-    locale: typeof body.locale === "string" ? body.locale : fallbackValues.locale,
+    timezone:
+      typeof body.timezone === "string"
+        ? body.timezone
+        : fallbackValues.timezone,
+    locale:
+      typeof body.locale === "string" ? body.locale : fallbackValues.locale,
     companion_tone:
       typeof body.companion_tone === "string"
         ? body.companion_tone
@@ -73,8 +79,14 @@ function toIdentityProfileFormRequestValues(
       typeof body.location_preference === "string"
         ? body.location_preference
         : fallbackValues.location_preference,
-    interests: typeof body.interests === "string" ? body.interests : fallbackValues.interests,
-    avoidances: typeof body.avoidances === "string" ? body.avoidances : fallbackValues.avoidances,
+    interests:
+      typeof body.interests === "string"
+        ? body.interests
+        : fallbackValues.interests,
+    avoidances:
+      typeof body.avoidances === "string"
+        ? body.avoidances
+        : fallbackValues.avoidances,
   };
 }
 
@@ -84,7 +96,8 @@ function toCompanionPreferencesUpdateInput(
   const input: CompanionPreferencesUpdateInput = {};
 
   if (hasOwn(body, "companion_tone")) {
-    input.companion_tone = body.companion_tone as CompanionPreferencesUpdateInput["companion_tone"];
+    input.companion_tone =
+      body.companion_tone as CompanionPreferencesUpdateInput["companion_tone"];
   }
 
   if (hasOwn(body, "suggestion_style")) {
@@ -197,7 +210,9 @@ export async function PATCH(request: Request): Promise<Response> {
   }
 
   try {
-    const currentProfile = await ensureIdentityProfileForUser(authState.user.id);
+    const currentProfile = await ensureIdentityProfileForUser(
+      authState.user.id,
+    );
     const requestValues = toIdentityProfileFormRequestValues(
       parsedBody,
       toIdentityProfileFormValues(currentProfile),
@@ -214,9 +229,8 @@ export async function PATCH(request: Request): Promise<Response> {
       );
     }
 
-    const currentCompanionPreferences = getCompanionPreferencesFromProfilePreferences(
-      currentProfile.preferences,
-    );
+    const currentCompanionPreferences =
+      getCompanionPreferencesFromProfilePreferences(currentProfile.preferences);
     const normalizedCompanionPreferences = normalizeCompanionPreferencesInput(
       toCompanionPreferencesUpdateInput(parsedBody),
       currentCompanionPreferences,
@@ -226,7 +240,8 @@ export async function PATCH(request: Request): Promise<Response> {
       return NextResponse.json<ProfileRouteResponse>(
         {
           error: "Please correct the highlighted profile fields.",
-          fieldErrors: normalizedCompanionPreferences.fieldErrors as IdentityProfileFormErrors,
+          fieldErrors:
+            normalizedCompanionPreferences.fieldErrors as IdentityProfileFormErrors,
         },
         { status: 400 },
       );

@@ -129,6 +129,7 @@ export async function POST(request: Request): Promise<Response> {
 import {
   getLatestConversation,
   getConversationMessages,
+  getUserConversations,
 } from "@/lib/ai/db-service";
 
 export async function GET(request: Request): Promise<Response> {
@@ -145,6 +146,7 @@ export async function GET(request: Request): Promise<Response> {
 
   const { searchParams } = new URL(request.url);
   const conversationIdParam = searchParams.get("conversationId");
+  const listParam = searchParams.get("list");
   const limitParam = searchParams.get("limit");
   const offsetParam = searchParams.get("offset");
 
@@ -152,6 +154,20 @@ export async function GET(request: Request): Promise<Response> {
   const offset = offsetParam ? parseInt(offsetParam, 10) : 0;
 
   try {
+    if (listParam === "true") {
+      const { data: conversations, error: listError } =
+        await getUserConversations(authState.user.id);
+
+      if (listError) {
+        throw new Error(listError);
+      }
+
+      return NextResponse.json(
+        { conversations: conversations || [] },
+        { status: 200 },
+      );
+    }
+
     let conversationId = conversationIdParam;
 
     if (!conversationId) {

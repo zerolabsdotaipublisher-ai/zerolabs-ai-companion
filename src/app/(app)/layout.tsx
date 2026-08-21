@@ -11,7 +11,10 @@ export default async function AppLayout({
 
   return (
     <>
-      <AppHeader isAuthenticated={isAuthenticated} userEmail={user?.email ?? null} />
+      <AppHeader
+        isAuthenticated={isAuthenticated}
+        userEmail={user?.email ?? null}
+      />
       {children}
     </>
   );

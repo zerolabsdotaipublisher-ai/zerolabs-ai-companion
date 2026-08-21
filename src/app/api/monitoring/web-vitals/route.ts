@@ -25,7 +25,9 @@ const ALLOWED_PAYLOAD_KEYS = new Set([
 ]);
 
 function isValidString(value: unknown, maxLength: number): value is string {
-  return typeof value === "string" && value.length > 0 && value.length <= maxLength;
+  return (
+    typeof value === "string" && value.length > 0 && value.length <= maxLength
+  );
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -64,7 +66,9 @@ function hasValidNumericValue(value: number | undefined): boolean {
   return value === undefined || (value >= 0 && value <= MAX_MONITORING_VALUE);
 }
 
-function toMonitoringEvent(body: WebVitalsRequestBody): MonitoringEventInput | null {
+function toMonitoringEvent(
+  body: WebVitalsRequestBody,
+): MonitoringEventInput | null {
   const bodyEntries = Object.entries(body);
 
   if (
@@ -98,7 +102,8 @@ function toMonitoringEvent(body: WebVitalsRequestBody): MonitoringEventInput | n
   }
 
   const timestamp =
-    typeof body.timestamp === "string" && !Number.isNaN(Date.parse(body.timestamp))
+    typeof body.timestamp === "string" &&
+    !Number.isNaN(Date.parse(body.timestamp))
       ? body.timestamp
       : undefined;
   const durationMs = toFiniteNumber(body.durationMs);
@@ -125,16 +130,28 @@ function toMonitoringEvent(body: WebVitalsRequestBody): MonitoringEventInput | n
 export async function POST(request: Request): Promise<Response> {
   return withApiLatency("/api/monitoring/web-vitals", async () => {
     if (!isValidOrigin(request)) {
-      return NextResponse.json({ error: "Origin is not allowed." }, { status: 403 });
+      return NextResponse.json(
+        { error: "Origin is not allowed." },
+        { status: 403 },
+      );
     }
 
     const contentLength = request.headers.get("content-length");
 
     if (contentLength !== null) {
-      const parsedLength = /^\d+$/.test(contentLength) ? Number(contentLength) : Number.NaN;
+      const parsedLength = /^\d+$/.test(contentLength)
+        ? Number(contentLength)
+        : Number.NaN;
 
-      if (!Number.isFinite(parsedLength) || parsedLength <= 0 || parsedLength > MAX_MONITORING_BODY_BYTES) {
-        return NextResponse.json({ error: "Monitoring payload too large." }, { status: 413 });
+      if (
+        !Number.isFinite(parsedLength) ||
+        parsedLength <= 0 ||
+        parsedLength > MAX_MONITORING_BODY_BYTES
+      ) {
+        return NextResponse.json(
+          { error: "Monitoring payload too large." },
+          { status: 413 },
+        );
       }
     }
 
@@ -143,30 +160,47 @@ export async function POST(request: Request): Promise<Response> {
       const bodyByteLength = utf8Encoder.encode(rawBody).length;
 
       if (bodyByteLength === 0) {
-        return NextResponse.json({ error: "Monitoring payload is required." }, { status: 400 });
+        return NextResponse.json(
+          { error: "Monitoring payload is required." },
+          { status: 400 },
+        );
       }
 
       if (bodyByteLength > MAX_MONITORING_BODY_BYTES) {
-        return NextResponse.json({ error: "Monitoring payload too large." }, { status: 413 });
+        return NextResponse.json(
+          { error: "Monitoring payload too large." },
+          { status: 413 },
+        );
       }
 
       const parsedBody = JSON.parse(rawBody) as unknown;
 
       if (!isPlainObject(parsedBody)) {
-        return NextResponse.json({ error: "Invalid monitoring payload." }, { status: 400 });
+        return NextResponse.json(
+          { error: "Invalid monitoring payload." },
+          { status: 400 },
+        );
       }
 
-      const monitoringEvent = toMonitoringEvent(parsedBody as WebVitalsRequestBody);
+      const monitoringEvent = toMonitoringEvent(
+        parsedBody as WebVitalsRequestBody,
+      );
 
       if (!monitoringEvent) {
-        return NextResponse.json({ error: "Invalid monitoring payload." }, { status: 400 });
+        return NextResponse.json(
+          { error: "Invalid monitoring payload." },
+          { status: 400 },
+        );
       }
 
       logMonitoringEvent(monitoringEvent);
 
       return new NextResponse(null, { status: 202 });
     } catch {
-      return NextResponse.json({ error: "Invalid JSON payload." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid JSON payload." },
+        { status: 400 },
+      );
     }
   });
 }

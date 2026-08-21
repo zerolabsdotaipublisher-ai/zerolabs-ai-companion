@@ -16,7 +16,10 @@ test("builds auth callback URLs from the active request origin", () => {
 });
 
 test("falls back to the configured app URL for invalid callback request URLs", () => {
-  assert.equal(getAuthCallbackUrl("not a url"), `https://example.com${AUTH_CALLBACK_PATH}`);
+  assert.equal(
+    getAuthCallbackUrl("not a url"),
+    `https://example.com${AUTH_CALLBACK_PATH}`,
+  );
 });
 
 test("uses the authenticated app route after successful auth callbacks", () => {
