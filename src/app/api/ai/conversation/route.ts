@@ -8,6 +8,13 @@ import { processConversation } from "@/lib/ai/orchestrator";
 import { ConversationInputSchema } from "@/lib/ai/validation";
 import { ConversationResponseSchema, ConversationError } from "@/lib/ai/types";
 import { logger } from "@/lib/logger";
+import {
+  createConversation,
+  saveUserMessage,
+  getLatestConversation,
+  getConversationMessages,
+  getUserConversations,
+} from "@/lib/ai/db-service";
 
 export async function POST(request: Request): Promise<Response> {
   // Check if it's an allowed origin to prevent CSRF on state-changing API routes
@@ -54,7 +61,43 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json(error, { status: 400 });
   }
 
-  const { messages, settings } = validationResult.data;
+  const { conversationId, messages, settings } = validationResult.data;
+
+  let resolvedConversationId = conversationId;
+
+  if (!resolvedConversationId) {
+    const { data: newConversation, error: createError } =
+      await createConversation(authState.user.id);
+
+    if (createError || !newConversation) {
+      const error: ConversationError = {
+        error: true,
+        code: "INTERNAL_ERROR",
+        message: "Failed to create a new conversation.",
+      };
+      return NextResponse.json(error, { status: 500 });
+    }
+    resolvedConversationId = newConversation.id;
+  }
+
+  const lastMessage = messages[messages.length - 1];
+  if (lastMessage && lastMessage.role === "user") {
+    const { error: saveError } = await saveUserMessage(
+      resolvedConversationId,
+      authState.user.id,
+      lastMessage.content,
+    );
+    if (saveError) {
+      logger.error("Failed to save user message", { error: saveError });
+      // We can choose to fail the request or continue. We'll fail it to ensure consistency.
+      const error: ConversationError = {
+        error: true,
+        code: "INTERNAL_ERROR",
+        message: "Failed to save user message.",
+      };
+      return NextResponse.json(error, { status: 500 });
+    }
+  }
 
   try {
     const response = await processConversation(
@@ -68,13 +111,17 @@ export async function POST(request: Request): Promise<Response> {
     );
 
     if (response instanceof Response) {
+      // Return the newly created/existing conversation ID in headers
+      const headers = new Headers(response.headers);
+      headers.set("Content-Type", "text/event-stream");
+      headers.set("Cache-Control", "no-cache, no-transform");
+      headers.set("Connection", "keep-alive");
+      headers.set("x-conversation-id", resolvedConversationId);
+      headers.set("Access-Control-Expose-Headers", "x-conversation-id");
+
       return new NextResponse(response.body, {
         status: response.status,
-        headers: {
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache, no-transform",
-          Connection: "keep-alive",
-        },
+        headers,
       });
     }
 
@@ -125,12 +172,6 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json(error, { status: 500 });
   }
 }
-
-import {
-  getLatestConversation,
-  getConversationMessages,
-  getUserConversations,
-} from "@/lib/ai/db-service";
 
 export async function GET(request: Request): Promise<Response> {
   const authState = await getServerAuthState();

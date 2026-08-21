@@ -26,6 +26,8 @@ require("module").prototype.require = function (path: string) {
   return originalRequire.call(this, path);
 };
 
+import * as dbServiceLib from "../../../src/lib/ai/db-service";
+
 // Import route after mocking
 import { POST } from "../../../src/app/api/ai/conversation/route";
 
@@ -206,6 +208,11 @@ describe("POST /api/ai/conversation", () => {
     }));
     mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
 
+    mock.method(dbServiceLib, "saveUserMessage", async () => ({
+      data: { id: "msg1" },
+      error: null,
+    }));
+
     mock.method(orchestratorLib, "processConversation", async () => ({
       error: true,
       code: "RATE_LIMIT_EXCEEDED",
@@ -214,7 +221,10 @@ describe("POST /api/ai/conversation", () => {
 
     const request = new Request("https://example.com/api/ai/conversation", {
       method: "POST",
-      body: JSON.stringify({ messages: [{ role: "user", content: "Hello" }] }),
+      body: JSON.stringify({
+        conversationId: "conv1",
+        messages: [{ role: "user", content: "Hello" }],
+      }),
     });
 
     const response = (await POST(request)) as unknown as {
@@ -235,13 +245,21 @@ describe("POST /api/ai/conversation", () => {
     }));
     mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
 
+    mock.method(dbServiceLib, "saveUserMessage", async () => ({
+      data: { id: "msg1" },
+      error: null,
+    }));
+
     mock.method(orchestratorLib, "processConversation", async () => ({
       message: { role: "invalid", content: "Hello" }, // Invalid role
     }));
 
     const request = new Request("https://example.com/api/ai/conversation", {
       method: "POST",
-      body: JSON.stringify({ messages: [{ role: "user", content: "Hello" }] }),
+      body: JSON.stringify({
+        conversationId: "conv1",
+        messages: [{ role: "user", content: "Hello" }],
+      }),
     });
 
     const response = (await POST(request)) as unknown as {
@@ -266,6 +284,11 @@ describe("POST /api/ai/conversation", () => {
     }));
     mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
 
+    mock.method(dbServiceLib, "saveUserMessage", async () => ({
+      data: { id: "msg1" },
+      error: null,
+    }));
+
     const validResponse = {
       message: { role: "assistant", content: "Hi there!" },
       metadata: { model: "test-model" },
@@ -279,7 +302,10 @@ describe("POST /api/ai/conversation", () => {
 
     const request = new Request("https://example.com/api/ai/conversation", {
       method: "POST",
-      body: JSON.stringify({ messages: [{ role: "user", content: "Hello" }] }),
+      body: JSON.stringify({
+        conversationId: "conv1",
+        messages: [{ role: "user", content: "Hello" }],
+      }),
     });
 
     const response = (await POST(request)) as unknown as {
@@ -299,13 +325,21 @@ describe("POST /api/ai/conversation", () => {
     }));
     mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
 
+    mock.method(dbServiceLib, "saveUserMessage", async () => ({
+      data: { id: "msg1" },
+      error: null,
+    }));
+
     mock.method(orchestratorLib, "processConversation", async () => {
       throw new Error("Simulated runtime crash");
     });
 
     const request = new Request("https://example.com/api/ai/conversation", {
       method: "POST",
-      body: JSON.stringify({ messages: [{ role: "user", content: "Hello" }] }),
+      body: JSON.stringify({
+        conversationId: "conv1",
+        messages: [{ role: "user", content: "Hello" }],
+      }),
     });
 
     const response = (await POST(request)) as unknown as {

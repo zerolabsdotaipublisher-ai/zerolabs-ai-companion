@@ -13,6 +13,7 @@ export function sanitizeMessageContent(content: string): string {
 }
 
 export const ConversationInputSchema = z.object({
+  conversationId: z.string().nullable().optional(),
   messages: z
     .array(
       z.object({
