@@ -16,6 +16,11 @@ describe("processConversation", () => {
       opts: unknown,
     ) => Promise<unknown>;
   };
+  let dbServiceMock: {
+    getConversationMessages: (
+      id: string,
+    ) => Promise<{ data: unknown[] | null; error: string | null }>;
+  };
   let loggerMock: { error: (msg: string, meta?: unknown) => void };
 
   beforeEach(() => {
@@ -24,6 +29,13 @@ describe("processConversation", () => {
         display_name: "MockName",
         companion_vibe: "MockVibe",
         personalization: { key: "value" },
+      }),
+    };
+
+    dbServiceMock = {
+      getConversationMessages: async () => ({
+        data: [],
+        error: null,
       }),
     };
 
@@ -49,6 +61,9 @@ describe("processConversation", () => {
       if (id.endsWith("provider")) {
         return providerMock;
       }
+      if (id.endsWith("db-service")) {
+        return dbServiceMock;
+      }
       if (id.endsWith("@/lib/logger")) {
         return { logger: loggerMock };
       }
@@ -61,6 +76,7 @@ describe("processConversation", () => {
         key.includes("orchestrator") ||
         key.includes("context-builder") ||
         key.includes("provider") ||
+        key.includes("db-service") ||
         key.includes("logger")
       ) {
         delete require.cache[key];
@@ -102,6 +118,7 @@ describe("processConversation", () => {
 
     const result = await processConversation(
       "user123",
+      "conv123",
       messages,
       settings,
       options,
@@ -140,7 +157,7 @@ describe("processConversation", () => {
       loggedError = { msg, meta };
     };
 
-    const result = await processConversation("user123", []);
+    const result = await processConversation("user123", null, []);
 
     assert.equal("error" in result, true);
     if ("error" in result) {
@@ -163,6 +180,54 @@ describe("processConversation", () => {
     }
   });
 
+  it("prepends conversation history from DB and correctly handles the 20 message slice and format", async () => {
+    const { processConversation } = await import("@/lib/ai/orchestrator");
+
+    // Produce 25 messages in DB mock
+    const fakeHistory = Array.from({ length: 25 }).map((_, i) => ({
+      id: `msg-${i}`,
+      role: "user",
+      content: `History message ${i}`,
+      created_at: `2023-10-10T10:00:${i.toString().padStart(2, "0")}Z`,
+    }));
+
+    dbServiceMock.getConversationMessages = async () => ({
+      data: fakeHistory,
+      error: null,
+    });
+
+    let providerReq: unknown = null;
+    providerMock.generateConversationResponse = async (req: unknown) => {
+      providerReq = req;
+      return { message: { role: "assistant", content: "TestResponse" } };
+    };
+
+    const messages = [{ role: "user" as const, content: "New prompt" }];
+
+    await processConversation("user123", "conv123", messages);
+
+    // It should slice to the last 20 messages, and strip metadata
+    const req = providerReq as { messages: Array<Record<string, unknown>> };
+    const passedMessages = req.messages;
+    assert.equal(passedMessages.length, 21); // 20 history + 1 new prompt
+
+    // The first history message passed should be index 5 from fakeHistory
+    assert.deepEqual(passedMessages[0], {
+      role: "user",
+      content: "History message 5",
+    });
+
+    // Verify it doesn't have metadata leaked
+    assert.equal("id" in passedMessages[0], false);
+    assert.equal("created_at" in passedMessages[0], false);
+
+    // Last message should be the new prompt
+    assert.deepEqual(passedMessages[20], {
+      role: "user",
+      content: "New prompt",
+    });
+  });
+
   it("returns generateConversationResponse result even if it's an error object", async () => {
     const { processConversation } = await import("@/lib/ai/orchestrator");
 
@@ -174,7 +239,7 @@ describe("processConversation", () => {
       };
     };
 
-    const result = await processConversation("user123", []);
+    const result = await processConversation("user123", null, []);
 
     assert.equal("error" in result, true);
     if ("error" in result) {

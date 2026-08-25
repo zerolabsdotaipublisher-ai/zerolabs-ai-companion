@@ -285,6 +285,48 @@ describe("POST /api/ai/conversation", () => {
     );
   });
 
+  it("should extract conversationId from request body and pass it to processConversation", async () => {
+    mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
+    mock.method(serverSessionLib, "getServerAuthState", async () => ({
+      user: { id: "user1" },
+    }));
+    mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
+
+    mock.method(dbServiceLib, "saveUserMessage", async () => ({
+      data: { id: "msg1" },
+      error: null,
+    }));
+
+    const validResponse = {
+      message: { role: "assistant", content: "Hi there!" },
+      metadata: { model: "test-model" },
+    };
+
+    const processConversationMock = mock.method(
+      orchestratorLib,
+      "processConversation",
+      async () => validResponse,
+    );
+
+    const request = new Request("https://example.com/api/ai/conversation", {
+      method: "POST",
+      body: JSON.stringify({
+        conversationId: "conv-extracted-123",
+        messages: [{ role: "user", content: "Hello" }],
+      }),
+    });
+
+    const response = (await POST(request)) as unknown as {
+      status: number;
+      json: () => Promise<Record<string, unknown>>;
+    };
+    assert.strictEqual(response.status, 200);
+
+    const callArgs = processConversationMock.mock.calls[0].arguments;
+    assert.strictEqual(callArgs[0], "user1");
+    assert.strictEqual(callArgs[1], "conv-extracted-123");
+  });
+
   it("should return 200 and the valid response on success", async () => {
     mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
     mock.method(serverSessionLib, "getServerAuthState", async () => ({
