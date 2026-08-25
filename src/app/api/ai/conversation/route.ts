@@ -64,7 +64,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const { conversationId, messages, settings } = validationResult.data;
 
-  let resolvedConversationId = conversationId;
+  let resolvedConversationId = conversationId || null;
 
   if (!resolvedConversationId) {
     const { data: newConversation, error: createError } =
@@ -103,6 +103,7 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const response = await processConversation(
       authState.user.id,
+      resolvedConversationId,
       messages,
       settings,
       {

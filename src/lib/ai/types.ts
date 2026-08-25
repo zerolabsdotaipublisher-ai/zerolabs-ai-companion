@@ -32,6 +32,7 @@ export type ConversationModelSettings = z.infer<
 >;
 
 export const ConversationRequestSchema = z.object({
+  conversationId: z.string().optional(),
   context: PromptContextSchema,
   messages: z.array(ConversationMessageSchema),
   settings: ConversationModelSettingsSchema.optional(),

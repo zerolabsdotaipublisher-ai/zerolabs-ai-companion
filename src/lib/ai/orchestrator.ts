@@ -2,6 +2,7 @@ import "server-only";
 
 import { buildPromptContext } from "./context-builder";
 import { generateConversationResponse } from "./provider";
+import { getConversationMessages } from "./db-service";
 import {
   ConversationMessage,
   ConversationModelSettings,
@@ -15,6 +16,7 @@ import { logger } from "@/lib/logger";
  * and invoking the AI provider.
  *
  * @param userId - The ID of the user initiating the conversation
+ * @param conversationId - The optional ID of the conversation to retrieve history for
  * @param messages - The history of messages in the conversation
  * @param settings - Optional AI model settings
  * @param options - Optional configuration for the AI provider
@@ -22,6 +24,7 @@ import { logger } from "@/lib/logger";
  */
 export async function processConversation(
   userId: string,
+  conversationId: string | null | undefined,
   messages: ConversationMessage[],
   settings?: ConversationModelSettings,
   options?: {
@@ -36,9 +39,40 @@ export async function processConversation(
   try {
     const context = await buildPromptContext(userId);
 
+    let history: ConversationMessage[] = [];
+
+    if (conversationId) {
+      const historyResult = await getConversationMessages(conversationId);
+      if (historyResult.error) {
+        logger.error("Failed to retrieve conversation history", {
+          context: "ai",
+          source: "ai.orchestrator",
+          error: historyResult.error,
+          metadata: { userId, conversationId },
+        });
+        // Non-blocking error, we continue with empty history
+      } else if (historyResult.data) {
+        // Enforce a sliding history window capped strictly at the last 20 messages
+        // chronological sorting (created_at ASC) is already done by getConversationMessages
+        const recentMessages = historyResult.data.slice(-20);
+
+        // Defensively map retrieved rows to clean role objects
+        history = recentMessages.map((msg) => ({
+          role:
+            msg.role === "system" ||
+            msg.role === "assistant" ||
+            msg.role === "user"
+              ? msg.role
+              : "user",
+          content: msg.content,
+        }));
+      }
+    }
+
     const request = {
+      conversationId: conversationId || undefined,
       context,
-      messages,
+      messages: [...history, ...messages],
       settings,
     };
 
