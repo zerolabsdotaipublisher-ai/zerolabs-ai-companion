@@ -56,16 +56,19 @@ export async function processConversation(
         // chronological sorting (created_at ASC) is already done by getConversationMessages
         const recentMessages = historyResult.data.slice(-20);
 
-        // Defensively map retrieved rows to clean role objects
-        history = recentMessages.map((msg) => ({
-          role:
-            msg.role === "system" ||
-            msg.role === "assistant" ||
-            msg.role === "user"
-              ? msg.role
-              : "user",
-          content: msg.content,
-        }));
+        // Defensively filter and map retrieved rows to clean role objects
+        history = recentMessages
+          .filter((msg) => msg.role === "user" || msg.role === "assistant")
+          .map((msg) => {
+            let content = msg.content;
+            if (content.length > 1000) {
+              content = content.substring(0, 1000) + "... [truncated]";
+            }
+            return {
+              role: msg.role as "user" | "assistant",
+              content,
+            };
+          });
       }
     }
 

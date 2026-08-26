@@ -218,14 +218,119 @@ describe("processConversation", () => {
     });
 
     // Verify it doesn't have metadata leaked
-    assert.equal("id" in passedMessages[0], false);
-    assert.equal("created_at" in passedMessages[0], false);
+    assert.strictEqual("id" in passedMessages[0], false);
+    assert.strictEqual("created_at" in passedMessages[0], false);
 
     // Last message should be the new prompt
     assert.deepEqual(passedMessages[20], {
       role: "user",
       content: "New prompt",
     });
+  });
+
+  it("filters out unsupported roles like 'system' from DB history", async () => {
+    const { processConversation } = await import("@/lib/ai/orchestrator");
+
+    const fakeHistory = [
+      { id: "msg-1", role: "user", content: "Hello", created_at: "now" },
+      {
+        id: "msg-2",
+        role: "system",
+        content: "System message",
+        created_at: "now",
+      },
+      { id: "msg-3", role: "assistant", content: "Hi", created_at: "now" },
+    ];
+
+    dbServiceMock.getConversationMessages = async () => ({
+      data: fakeHistory,
+      error: null,
+    });
+
+    let providerReq: unknown = null;
+    providerMock.generateConversationResponse = async (req: unknown) => {
+      providerReq = req;
+      return { message: { role: "assistant", content: "TestResponse" } };
+    };
+
+    const messages = [{ role: "user" as const, content: "New prompt" }];
+
+    await processConversation("user123", "conv123", messages);
+
+    const req = providerReq as { messages: Array<Record<string, unknown>> };
+    const passedMessages = req.messages;
+    // 2 valid from history (user, assistant) + 1 new prompt
+    assert.equal(passedMessages.length, 3);
+    assert.deepEqual(passedMessages[0], { role: "user", content: "Hello" });
+    assert.deepEqual(passedMessages[1], { role: "assistant", content: "Hi" });
+    assert.deepEqual(passedMessages[2], {
+      role: "user",
+      content: "New prompt",
+    });
+  });
+
+  it("truncates historical message text over 1,000 characters", async () => {
+    const { processConversation } = await import("@/lib/ai/orchestrator");
+
+    const longContent = "A".repeat(1500);
+    const expectedContent = "A".repeat(1000) + "... [truncated]";
+
+    const fakeHistory = [
+      { id: "msg-1", role: "user", content: longContent, created_at: "now" },
+    ];
+
+    dbServiceMock.getConversationMessages = async () => ({
+      data: fakeHistory,
+      error: null,
+    });
+
+    let providerReq: unknown = null;
+    providerMock.generateConversationResponse = async (req: unknown) => {
+      providerReq = req;
+      return { message: { role: "assistant", content: "TestResponse" } };
+    };
+
+    const messages = [{ role: "user" as const, content: "New prompt" }];
+
+    await processConversation("user123", "conv123", messages);
+
+    const req = providerReq as { messages: Array<Record<string, unknown>> };
+    const passedMessages = req.messages;
+    assert.equal(passedMessages.length, 2);
+    assert.deepEqual(passedMessages[0], {
+      role: "user",
+      content: expectedContent,
+    });
+  });
+
+  it("gracefully falls back to empty history if DB returns empty array or conversationId is null", async () => {
+    const { processConversation } = await import("@/lib/ai/orchestrator");
+
+    dbServiceMock.getConversationMessages = async () => ({
+      data: [],
+      error: null,
+    });
+
+    let providerReq: unknown = null;
+    providerMock.generateConversationResponse = async (req: unknown) => {
+      providerReq = req;
+      return { message: { role: "assistant", content: "TestResponse" } };
+    };
+
+    const messages = [{ role: "user" as const, content: "New prompt" }];
+
+    await processConversation("user123", "conv123", messages);
+
+    const req1 = providerReq as { messages: Array<Record<string, unknown>> };
+    assert.equal(req1.messages.length, 1);
+    assert.deepEqual(req1.messages[0], { role: "user", content: "New prompt" });
+
+    // Try with null conversationId
+    providerReq = null;
+    await processConversation("user123", null, messages);
+    const req2 = providerReq as { messages: Array<Record<string, unknown>> };
+    assert.equal(req2.messages.length, 1);
+    assert.deepEqual(req2.messages[0], { role: "user", content: "New prompt" });
   });
 
   it("returns generateConversationResponse result even if it's an error object", async () => {
