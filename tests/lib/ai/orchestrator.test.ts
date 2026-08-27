@@ -333,6 +333,44 @@ describe("processConversation", () => {
     assert.deepEqual(req2.messages[0], { role: "user", content: "New prompt" });
   });
 
+  it("removes duplicate active prompt from history to prevent duplication (Duplicate Prevention)", async () => {
+    const { processConversation } = await import("@/lib/ai/orchestrator");
+
+    const fakeHistory = [
+      { id: "msg-1", role: "user", content: "Hello", created_at: "now" },
+      { id: "msg-2", role: "assistant", content: "Hi", created_at: "now" },
+      // This is the active prompt that is already saved in DB
+      { id: "msg-3", role: "user", content: "New prompt", created_at: "now" },
+    ];
+
+    dbServiceMock.getConversationMessages = async () => ({
+      data: fakeHistory,
+      error: null,
+    });
+
+    let providerReq: unknown = null;
+    providerMock.generateConversationResponse = async (req: unknown) => {
+      providerReq = req;
+      return { message: { role: "assistant", content: "TestResponse" } };
+    };
+
+    const messages = [{ role: "user" as const, content: "New prompt" }];
+
+    await processConversation("user123", "conv123", messages);
+
+    const req = providerReq as { messages: Array<Record<string, unknown>> };
+    const passedMessages = req.messages;
+
+    // 2 valid from history (user, assistant), the 3rd one from history is removed, + 1 new prompt
+    assert.equal(passedMessages.length, 3);
+    assert.deepEqual(passedMessages[0], { role: "user", content: "Hello" });
+    assert.deepEqual(passedMessages[1], { role: "assistant", content: "Hi" });
+    assert.deepEqual(passedMessages[2], {
+      role: "user",
+      content: "New prompt",
+    });
+  });
+
   it("returns generateConversationResponse result even if it's an error object", async () => {
     const { processConversation } = await import("@/lib/ai/orchestrator");
 
