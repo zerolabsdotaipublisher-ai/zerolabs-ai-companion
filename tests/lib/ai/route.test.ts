@@ -368,6 +368,41 @@ describe("POST /api/ai/conversation", () => {
     assert.deepStrictEqual(body, validResponse);
   });
 
+  it("should pass AbortController cancellation abortSignal to processConversation", async () => {
+    mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
+    mock.method(serverSessionLib, "getServerAuthState", async () => ({
+      user: { id: "user1" },
+    }));
+    mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
+
+    mock.method(dbServiceLib, "saveUserMessage", async () => ({
+      data: { id: "msg1" },
+      error: null,
+    }));
+
+    let passedOptions: any = null;
+    mock.method(orchestratorLib, "processConversation", async (_userId: unknown, _conversationId: unknown, _messages: unknown, _settings: unknown, options: any) => {
+      passedOptions = options;
+      return { message: { role: "assistant", content: "Hi" } };
+    });
+
+    const abortController = new AbortController();
+    const request = new Request("https://example.com/api/ai/conversation", {
+      method: "POST",
+      body: JSON.stringify({
+        conversationId: "conv1",
+        messages: [{ role: "user", content: "Hello" }],
+      }),
+      signal: abortController.signal,
+    });
+
+    await POST(request);
+
+    assert.ok(passedOptions);
+    assert.strictEqual(passedOptions.stream, true);
+    assert.ok(passedOptions.abortSignal instanceof AbortSignal);
+  });
+
   it("should stream the response and save the assistant message on stream completion", async () => {
     mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
     mock.method(serverSessionLib, "getServerAuthState", async () => ({

@@ -69,6 +69,18 @@ export async function processConversation(
               content,
             };
           });
+
+        // Duplicate Prevention: if the latest retrieved message matches the active prompt, remove it from history
+        const activePrompt = messages[messages.length - 1];
+        if (
+          history.length > 0 &&
+          activePrompt &&
+          activePrompt.role === "user" &&
+          history[history.length - 1].role === "user" &&
+          history[history.length - 1].content === activePrompt.content
+        ) {
+          history.pop();
+        }
       }
     }
 
