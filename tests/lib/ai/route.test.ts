@@ -380,11 +380,27 @@ describe("POST /api/ai/conversation", () => {
       error: null,
     }));
 
-    let passedOptions: any = null;
-    mock.method(orchestratorLib, "processConversation", async (_userId: unknown, _conversationId: unknown, _messages: unknown, _settings: unknown, options: any) => {
-      passedOptions = options;
-      return { message: { role: "assistant", content: "Hi" } };
-    });
+    let passedOptions = null as unknown as {
+      stream?: boolean;
+      abortSignal?: AbortSignal;
+    } | null;
+    mock.method(
+      orchestratorLib,
+      "processConversation",
+      async (
+        _userId: unknown,
+        _conversationId: unknown,
+        _messages: unknown,
+        _settings: unknown,
+        options: unknown,
+      ) => {
+        passedOptions = options as {
+          stream?: boolean;
+          abortSignal?: AbortSignal;
+        };
+        return { message: { role: "assistant", content: "Hi" } };
+      },
+    );
 
     const abortController = new AbortController();
     const request = new Request("https://example.com/api/ai/conversation", {
@@ -399,8 +415,10 @@ describe("POST /api/ai/conversation", () => {
     await POST(request);
 
     assert.ok(passedOptions);
-    assert.strictEqual(passedOptions.stream, true);
-    assert.ok(passedOptions.abortSignal instanceof AbortSignal);
+    assert.strictEqual(passedOptions ? passedOptions.stream : false, true);
+    assert.ok(
+      passedOptions ? passedOptions.abortSignal instanceof AbortSignal : false,
+    );
   });
 
   it("should stream the response and save the assistant message on stream completion", async () => {
@@ -522,3 +540,43 @@ describe("POST /api/ai/conversation", () => {
     );
   });
 });
+
+  it("should prevent multi-tenant context leakage by gracefully handling unauthorized DB read", async () => {
+    mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
+    mock.method(serverSessionLib, "getServerAuthState", async () => ({
+      user: { id: "user2" }, // Different user
+    }));
+    mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
+
+    // Simulate RLS blocking read and returning empty array
+    mock.method(dbServiceLib, "getConversationMessages", async () => ({
+      data: [],
+      error: null,
+    }));
+
+    mock.method(dbServiceLib, "saveUserMessage", async () => ({
+      data: { id: "msg1" },
+      error: null,
+    }));
+
+    let providerReq: Record<string, unknown> | null = null;
+    mock.method(orchestratorLib, "processConversation", async (_userId: unknown, _conversationId: unknown, messages: unknown) => {
+      providerReq = { messages };
+      return { message: { role: "assistant", content: "Hi" } };
+    });
+
+    const request = new Request("https://example.com/api/ai/conversation", {
+      method: "POST",
+      body: JSON.stringify({
+        conversationId: "conv-owned-by-user1",
+        messages: [{ role: "user", content: "Hello" }],
+      }),
+    });
+
+    const response = await POST(request) as unknown as Response;
+    assert.strictEqual(response.status, 200);
+
+    const passedMessages = (providerReq as unknown as Record<string, unknown>)?.messages as unknown[];
+    assert.strictEqual(passedMessages.length, 1);
+    assert.deepStrictEqual(passedMessages[0], { role: "user", content: "Hello" });
+  });
