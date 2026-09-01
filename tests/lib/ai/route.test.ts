@@ -541,42 +541,47 @@ describe("POST /api/ai/conversation", () => {
   });
 });
 
-  it("should prevent multi-tenant context leakage by gracefully handling unauthorized DB read", async () => {
-    mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
-    mock.method(serverSessionLib, "getServerAuthState", async () => ({
-      user: { id: "user2" }, // Different user
-    }));
-    mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
+it("should prevent multi-tenant context leakage by gracefully handling unauthorized DB read", async () => {
+  mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
+  mock.method(serverSessionLib, "getServerAuthState", async () => ({
+    user: { id: "user2" }, // Different user
+  }));
+  mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
 
-    // Simulate RLS blocking read and returning empty array
-    mock.method(dbServiceLib, "getConversationMessages", async () => ({
-      data: [],
-      error: null,
-    }));
+  // Simulate RLS blocking read and returning empty array
+  mock.method(dbServiceLib, "getConversationMessages", async () => ({
+    data: [],
+    error: null,
+  }));
 
-    mock.method(dbServiceLib, "saveUserMessage", async () => ({
-      data: { id: "msg1" },
-      error: null,
-    }));
+  mock.method(dbServiceLib, "saveUserMessage", async () => ({
+    data: { id: "msg1" },
+    error: null,
+  }));
 
-    let providerReq: Record<string, unknown> | null = null;
-    mock.method(orchestratorLib, "processConversation", async (_userId: unknown, _conversationId: unknown, messages: unknown) => {
+  let providerReq: Record<string, unknown> | null = null;
+  mock.method(
+    orchestratorLib,
+    "processConversation",
+    async (_userId: unknown, _conversationId: unknown, messages: unknown) => {
       providerReq = { messages };
       return { message: { role: "assistant", content: "Hi" } };
-    });
+    },
+  );
 
-    const request = new Request("https://example.com/api/ai/conversation", {
-      method: "POST",
-      body: JSON.stringify({
-        conversationId: "conv-owned-by-user1",
-        messages: [{ role: "user", content: "Hello" }],
-      }),
-    });
-
-    const response = await POST(request) as unknown as Response;
-    assert.strictEqual(response.status, 200);
-
-    const passedMessages = (providerReq as unknown as Record<string, unknown>)?.messages as unknown[];
-    assert.strictEqual(passedMessages.length, 1);
-    assert.deepStrictEqual(passedMessages[0], { role: "user", content: "Hello" });
+  const request = new Request("https://example.com/api/ai/conversation", {
+    method: "POST",
+    body: JSON.stringify({
+      conversationId: "conv-owned-by-user1",
+      messages: [{ role: "user", content: "Hello" }],
+    }),
   });
+
+  const response = (await POST(request)) as unknown as Response;
+  assert.strictEqual(response.status, 200);
+
+  const passedMessages = (providerReq as unknown as Record<string, unknown>)
+    ?.messages as unknown[];
+  assert.strictEqual(passedMessages.length, 1);
+  assert.deepStrictEqual(passedMessages[0], { role: "user", content: "Hello" });
+});
