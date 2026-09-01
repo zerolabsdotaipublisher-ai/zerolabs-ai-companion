@@ -1,6 +1,7 @@
 import "server-only";
 
 import { ConversationMessage, PromptContext } from "./types";
+import { resolvePersonality } from "./personalities";
 
 export interface PromptComposerInput {
   context?: PromptContext | null;
@@ -23,9 +24,16 @@ export function generateSystemTier(
   const displayName = context?.display_name || "Friend";
   const vibe = context?.companion_vibe || "Spontaneous";
 
+  const personality = resolvePersonality(vibe);
+
   const userContextString = `User Context:
 - Name: ${displayName}
-- Vibe: ${vibe}`;
+- Vibe: ${vibe}
+
+Personality Directives:
+- Tone: ${personality.tone}
+- Style: ${personality.style}
+${personality.directives}`;
 
   return {
     role: "system",

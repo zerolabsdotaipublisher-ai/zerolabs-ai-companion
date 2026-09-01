@@ -544,10 +544,7 @@ describe("Chat Components", () => {
   });
 
   test("ChatPage integration - handles history hydration on mount", async () => {
-    let fetchCallCount = 0;
-
     global.fetch = async (url) => {
-      fetchCallCount++;
       if (url === "/api/ai/conversation") {
         return {
           ok: true,

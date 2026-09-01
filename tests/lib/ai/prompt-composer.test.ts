@@ -7,7 +7,7 @@ test("Prompt Composer", async (t) => {
     const input = {
       context: {
         display_name: "Alice",
-        companion_vibe: "Calm",
+        companion_vibe: "Reflective",
         personalization: {},
       },
       history: [
@@ -28,7 +28,9 @@ test("Prompt Composer", async (t) => {
     assert.ok(systemMsg.content.includes("quiet companion"));
     assert.ok(systemMsg.content.includes("No lecturing:"));
     assert.ok(systemMsg.content.includes("Name: Alice"));
-    assert.ok(systemMsg.content.includes("Vibe: Calm"));
+    assert.ok(systemMsg.content.includes("Vibe: Reflective"));
+    assert.ok(systemMsg.content.includes("Tone: Thoughtful, calm"));
+    assert.ok(systemMsg.content.includes("- Encourage mindful observation."));
 
     // History
     assert.strictEqual(messages[1].role, "user");
@@ -52,6 +54,66 @@ test("Prompt Composer", async (t) => {
     const systemMsg = messages[0];
     assert.ok(systemMsg.content.includes("Name: Friend"));
     assert.ok(systemMsg.content.includes("Vibe: Spontaneous"));
+    assert.ok(systemMsg.content.includes("Tone: Encouraging, light"));
+  });
+
+  await t.test("Companion vibe resolution (case-insensitive)", () => {
+    const vibes = ["SPONTANEOUS", "spontaneous", "  sPoNtAnEoUs  "];
+
+    for (const vibe of vibes) {
+      const input = {
+        context: {
+          display_name: "Test",
+          companion_vibe: vibe,
+          personalization: {},
+        },
+        history: [],
+        activeMessage: { role: "user" as const, content: "Hello" },
+      };
+
+      const messages = composePrompt(input);
+      const systemMsg = messages[0];
+
+      assert.ok(systemMsg.content.includes("Tone: Encouraging, light"));
+      assert.ok(systemMsg.content.includes("Highlight fresh experiences."));
+    }
+  });
+
+  await t.test("Companion vibe resolution for Creative", () => {
+    const input = {
+      context: {
+        display_name: "Test",
+        companion_vibe: "Creative",
+        personalization: {},
+      },
+      history: [],
+      activeMessage: { role: "user" as const, content: "Hello" },
+    };
+
+    const messages = composePrompt(input);
+    const systemMsg = messages[0];
+
+    assert.ok(systemMsg.content.includes("Tone: Imaginative, playful"));
+    assert.ok(systemMsg.content.includes("Spark curiosity."));
+  });
+
+  await t.test("Companion vibe fallback for unknown vibes", () => {
+    const input = {
+      context: {
+        display_name: "Test",
+        companion_vibe: "Unknown Vibe",
+        personalization: {},
+      },
+      history: [],
+      activeMessage: { role: "user" as const, content: "Hello" },
+    };
+
+    const messages = composePrompt(input);
+    const systemMsg = messages[0];
+
+    assert.ok(systemMsg.content.includes("Vibe: Unknown Vibe"));
+    // Falls back to Spontaneous tone
+    assert.ok(systemMsg.content.includes("Tone: Encouraging, light"));
   });
 
   await t.test("Conversation history sliding window limit", () => {
