@@ -259,7 +259,7 @@ describe("POST /api/ai/conversation", () => {
     }));
 
     mock.method(orchestratorLib, "processConversation", async () => ({
-      message: { role: "invalid", content: "Hello" }, // Invalid role
+      message: { role: "invalid_role", content: "Hello" }, // Invalid role
     }));
 
     const request = new Request("https://example.com/api/ai/conversation", {
