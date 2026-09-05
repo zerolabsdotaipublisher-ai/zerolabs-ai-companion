@@ -1,6 +1,7 @@
 import "server-only";
 
 import { buildPromptContext } from "./context-builder";
+import { composePrompt } from "./prompt-composer";
 import { generateConversationResponse } from "./provider";
 import { getConversationMessages } from "./db-service";
 import {
@@ -70,24 +71,26 @@ export async function processConversation(
             };
           });
 
-        // Duplicate Prevention: if the latest retrieved message matches the active prompt, remove it from history
-        const activePrompt = messages[messages.length - 1];
-        if (
-          history.length > 0 &&
-          activePrompt &&
-          activePrompt.role === "user" &&
-          history[history.length - 1].role === "user" &&
-          history[history.length - 1].content === activePrompt.content
-        ) {
-          history.pop();
-        }
+        // Duplicate Prevention is handled by composePrompt
       }
     }
+
+    // We expect the active message to be the last one in the messages array
+    const activeMessage = messages[messages.length - 1];
+    if (!activeMessage) {
+      throw new Error("No active message provided in conversation request.");
+    }
+
+    const composedMessages = composePrompt({
+      context,
+      history,
+      activeMessage,
+    });
 
     const request = {
       conversationId: conversationId || undefined,
       context,
-      messages: [...history, ...messages],
+      messages: composedMessages,
       settings,
     };
 

@@ -24,9 +24,26 @@ test("Prompt Composer", async (t) => {
     // System message
     const systemMsg = messages[0];
     assert.strictEqual(systemMsg.role, "system");
+
+    // Assert Quiet Companion guardrails are present
     assert.ok(systemMsg.content.includes("You are the AI Companion"));
     assert.ok(systemMsg.content.includes("quiet companion"));
-    assert.ok(systemMsg.content.includes("No lecturing:"));
+    assert.ok(
+      systemMsg.content.includes(
+        "No lecturing: Do not act like a strict productivity coach",
+      ),
+    );
+    assert.ok(systemMsg.content.includes("No nagging: Do not pester the user"));
+    assert.ok(
+      systemMsg.content.includes(
+        "No mandatory journaling: Do not force the user into structured journaling prompts",
+      ),
+    );
+    assert.ok(
+      systemMsg.content.includes("Suggestion-first: Offer gentle suggestions"),
+    );
+
+    // Check specific vibe interpolations
     assert.ok(systemMsg.content.includes("Name: Alice"));
     assert.ok(systemMsg.content.includes("Vibe: Reflective"));
     assert.ok(systemMsg.content.includes("Tone: Thoughtful, calm"));
@@ -76,6 +93,11 @@ test("Prompt Composer", async (t) => {
 
       assert.ok(systemMsg.content.includes("Tone: Encouraging, light"));
       assert.ok(systemMsg.content.includes("Highlight fresh experiences."));
+      assert.ok(
+        systemMsg.content.includes(
+          "- Encourage low-pressure, real-world action.",
+        ),
+      );
     }
   });
 
@@ -95,6 +117,11 @@ test("Prompt Composer", async (t) => {
 
     assert.ok(systemMsg.content.includes("Tone: Imaginative, playful"));
     assert.ok(systemMsg.content.includes("Spark curiosity."));
+    assert.ok(
+      systemMsg.content.includes(
+        "- Offer fresh perspectives on everyday routines.",
+      ),
+    );
   });
 
   await t.test("Companion vibe fallback for unknown vibes", () => {

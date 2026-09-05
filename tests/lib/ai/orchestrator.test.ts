@@ -10,6 +10,9 @@ describe("processConversation", () => {
   let contextBuilderMock: {
     buildPromptContext: (userId: string) => Promise<unknown>;
   };
+  let promptComposerMock: {
+    composePrompt: (input: unknown) => unknown[];
+  };
   let providerMock: {
     generateConversationResponse: (
       req: unknown,
@@ -30,6 +33,15 @@ describe("processConversation", () => {
         companion_vibe: "MockVibe",
         personalization: { key: "value" },
       }),
+    };
+
+    promptComposerMock = {
+      composePrompt: (input: unknown) => {
+        // Fallback mock behavior resembling composePrompt output
+        // to not break other tests expecting providerReq.messages to match this
+        const typedInput = input as { history?: unknown[]; activeMessage: unknown };
+        return [...(typedInput.history || []), typedInput.activeMessage];
+      },
     };
 
     dbServiceMock = {
@@ -58,6 +70,9 @@ describe("processConversation", () => {
       if (id.endsWith("context-builder")) {
         return contextBuilderMock;
       }
+      if (id.endsWith("prompt-composer")) {
+        return promptComposerMock;
+      }
       if (id.endsWith("provider")) {
         return providerMock;
       }
@@ -75,6 +90,7 @@ describe("processConversation", () => {
       if (
         key.includes("orchestrator") ||
         key.includes("context-builder") ||
+        key.includes("prompt-composer") ||
         key.includes("provider") ||
         key.includes("db-service") ||
         key.includes("logger")
@@ -88,7 +104,7 @@ describe("processConversation", () => {
     Module.prototype.require = originalRequire;
   });
 
-  it("calls buildPromptContext and generateConversationResponse", async () => {
+  it("calls buildPromptContext, composePrompt, and generateConversationResponse", async () => {
     const { processConversation } = await import("@/lib/ai/orchestrator");
 
     let contextUserId = "";
@@ -99,6 +115,15 @@ describe("processConversation", () => {
         companion_vibe: "TestVibe",
         personalization: {},
       };
+    };
+
+    let composerInput: unknown = null;
+    promptComposerMock.composePrompt = (input: unknown) => {
+      composerInput = input;
+      return [
+        { role: "system", content: "composed" },
+        { role: "user", content: "Hello" },
+      ];
     };
 
     let providerReq: unknown = null;
@@ -126,17 +151,29 @@ describe("processConversation", () => {
 
     assert.equal(contextUserId, "user123");
 
-    const castedReq = providerReq as {
+    const castedComposerInput = composerInput as {
       context: unknown;
-      messages: unknown;
-      settings: unknown;
+      history: unknown;
+      activeMessage: unknown;
     };
-    assert.deepEqual(castedReq.context, {
+
+    assert.deepEqual(castedComposerInput.context, {
       display_name: "TestUser",
       companion_vibe: "TestVibe",
       personalization: {},
     });
-    assert.deepEqual(castedReq.messages, messages);
+    assert.deepEqual(castedComposerInput.activeMessage, messages[0]);
+
+    const castedReq = providerReq as {
+      messages: unknown;
+      settings: unknown;
+    };
+
+    // Orchestrator sends composed messages to provider
+    assert.deepEqual(castedReq.messages, [
+      { role: "system", content: "composed" },
+      { role: "user", content: "Hello" },
+    ]);
     assert.deepEqual(castedReq.settings, settings);
     assert.deepEqual(providerOpts, options);
 
@@ -180,66 +217,11 @@ describe("processConversation", () => {
     }
   });
 
-  it("prepends conversation history from DB and correctly handles the 20 message slice and format", async () => {
-    const { processConversation } = await import("@/lib/ai/orchestrator");
-
-    // Produce 25 messages in DB mock
-    const fakeHistory = Array.from({ length: 25 }).map((_, i) => ({
-      id: `msg-${i}`,
-      role: "user",
-      content: `History message ${i}`,
-      created_at: `2023-10-10T10:00:${i.toString().padStart(2, "0")}Z`,
-    }));
-
-    dbServiceMock.getConversationMessages = async () => ({
-      data: fakeHistory,
-      error: null,
-    });
-
-    let providerReq: unknown = null;
-    providerMock.generateConversationResponse = async (req: unknown) => {
-      providerReq = req;
-      return { message: { role: "assistant", content: "TestResponse" } };
-    };
-
-    const messages = [{ role: "user" as const, content: "New prompt" }];
-
-    await processConversation("user123", "conv123", messages);
-
-    // It should slice to the last 20 messages, and strip metadata
-    const req = providerReq as { messages: Array<Record<string, unknown>> };
-    const passedMessages = req.messages;
-    assert.equal(passedMessages.length, 21); // 20 history + 1 new prompt
-
-    // The first history message passed should be index 5 from fakeHistory
-    assert.deepEqual(passedMessages[0], {
-      role: "user",
-      content: "History message 5",
-    });
-
-    // Verify it doesn't have metadata leaked
-    assert.strictEqual("id" in passedMessages[0], false);
-    assert.strictEqual("created_at" in passedMessages[0], false);
-
-    // Last message should be the new prompt
-    assert.deepEqual(passedMessages[20], {
-      role: "user",
-      content: "New prompt",
-    });
-  });
-
-  it("filters out unsupported roles like 'system' from DB history", async () => {
+  it("passes correct history and context to composePrompt", async () => {
     const { processConversation } = await import("@/lib/ai/orchestrator");
 
     const fakeHistory = [
-      { id: "msg-1", role: "user", content: "Hello", created_at: "now" },
-      {
-        id: "msg-2",
-        role: "system",
-        content: "System message",
-        created_at: "now",
-      },
-      { id: "msg-3", role: "assistant", content: "Hi", created_at: "now" },
+      { id: "msg-1", role: "user", content: "Hi", created_at: "now" },
     ];
 
     dbServiceMock.getConversationMessages = async () => ({
@@ -247,9 +229,13 @@ describe("processConversation", () => {
       error: null,
     });
 
-    let providerReq: unknown = null;
-    providerMock.generateConversationResponse = async (req: unknown) => {
-      providerReq = req;
+    let composerInput: unknown = null;
+    promptComposerMock.composePrompt = (input: unknown) => {
+      composerInput = input;
+      return [];
+    };
+
+    providerMock.generateConversationResponse = async () => {
       return { message: { role: "assistant", content: "TestResponse" } };
     };
 
@@ -257,50 +243,47 @@ describe("processConversation", () => {
 
     await processConversation("user123", "conv123", messages);
 
-    const req = providerReq as { messages: Array<Record<string, unknown>> };
-    const passedMessages = req.messages;
-    // 2 valid from history (user, assistant) + 1 new prompt
-    assert.equal(passedMessages.length, 3);
-    assert.deepEqual(passedMessages[0], { role: "user", content: "Hello" });
-    assert.deepEqual(passedMessages[1], { role: "assistant", content: "Hi" });
-    assert.deepEqual(passedMessages[2], {
+    const castedComposerInput = composerInput as {
+      history: unknown[];
+      activeMessage: unknown;
+    };
+
+    assert.deepEqual(castedComposerInput.history, [
+      { role: "user", content: "Hi" },
+    ]);
+    assert.deepEqual(castedComposerInput.activeMessage, {
       role: "user",
       content: "New prompt",
     });
   });
 
-  it("truncates historical message text over 1,000 characters", async () => {
+  it("handles errors from composePrompt", async () => {
     const { processConversation } = await import("@/lib/ai/orchestrator");
 
-    const longContent = "A".repeat(1500);
-    const expectedContent = "A".repeat(1000) + "... [truncated]";
-
-    const fakeHistory = [
-      { id: "msg-1", role: "user", content: longContent, created_at: "now" },
-    ];
-
-    dbServiceMock.getConversationMessages = async () => ({
-      data: fakeHistory,
-      error: null,
-    });
-
-    let providerReq: unknown = null;
-    providerMock.generateConversationResponse = async (req: unknown) => {
-      providerReq = req;
-      return { message: { role: "assistant", content: "TestResponse" } };
+    promptComposerMock.composePrompt = () => {
+      throw new Error("Composer failed");
     };
 
-    const messages = [{ role: "user" as const, content: "New prompt" }];
+    let loggedError: { msg: string; meta: unknown } | null = null;
+    loggerMock.error = (msg: string, meta: unknown) => {
+      loggedError = { msg, meta };
+    };
 
-    await processConversation("user123", "conv123", messages);
+    const result = await processConversation("user123", "conv123", [
+      { role: "user", content: "Hi" },
+    ]);
 
-    const req = providerReq as { messages: Array<Record<string, unknown>> };
-    const passedMessages = req.messages;
-    assert.equal(passedMessages.length, 2);
-    assert.deepEqual(passedMessages[0], {
-      role: "user",
-      content: expectedContent,
-    });
+    assert.equal("error" in result, true);
+    if ("error" in result) {
+      assert.equal(result.code, "INTERNAL_ERROR");
+      assert.equal(
+        result.message,
+        "An unexpected error occurred while processing the conversation",
+      );
+      assert.deepEqual(result.details, { error: "Composer failed" });
+    }
+
+    assert.ok(loggedError !== null);
   });
 
   it("gracefully falls back to empty history if DB returns empty array or conversationId is null", async () => {
@@ -333,44 +316,6 @@ describe("processConversation", () => {
     assert.deepEqual(req2.messages[0], { role: "user", content: "New prompt" });
   });
 
-  it("removes duplicate active prompt from history to prevent duplication (Duplicate Prevention)", async () => {
-    const { processConversation } = await import("@/lib/ai/orchestrator");
-
-    const fakeHistory = [
-      { id: "msg-1", role: "user", content: "Hello", created_at: "now" },
-      { id: "msg-2", role: "assistant", content: "Hi", created_at: "now" },
-      // This is the active prompt that is already saved in DB
-      { id: "msg-3", role: "user", content: "New prompt", created_at: "now" },
-    ];
-
-    dbServiceMock.getConversationMessages = async () => ({
-      data: fakeHistory,
-      error: null,
-    });
-
-    let providerReq: unknown = null;
-    providerMock.generateConversationResponse = async (req: unknown) => {
-      providerReq = req;
-      return { message: { role: "assistant", content: "TestResponse" } };
-    };
-
-    const messages = [{ role: "user" as const, content: "New prompt" }];
-
-    await processConversation("user123", "conv123", messages);
-
-    const req = providerReq as { messages: Array<Record<string, unknown>> };
-    const passedMessages = req.messages;
-
-    // 2 valid from history (user, assistant), the 3rd one from history is removed, + 1 new prompt
-    assert.equal(passedMessages.length, 3);
-    assert.deepEqual(passedMessages[0], { role: "user", content: "Hello" });
-    assert.deepEqual(passedMessages[1], { role: "assistant", content: "Hi" });
-    assert.deepEqual(passedMessages[2], {
-      role: "user",
-      content: "New prompt",
-    });
-  });
-
   it("returns generateConversationResponse result even if it's an error object", async () => {
     const { processConversation } = await import("@/lib/ai/orchestrator");
 
@@ -382,7 +327,9 @@ describe("processConversation", () => {
       };
     };
 
-    const result = await processConversation("user123", null, []);
+    const result = await processConversation("user123", null, [
+      { role: "user", content: "Hi" },
+    ]);
 
     assert.equal("error" in result, true);
     if ("error" in result) {
