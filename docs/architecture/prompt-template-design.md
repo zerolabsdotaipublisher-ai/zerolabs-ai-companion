@@ -157,4 +157,15 @@ To maintain focus and deliver a stable initial architectural implementation, the
 - **Semantic Vector Memory:** Integrations with vector databases (e.g., Qdrant) and embedding pipelines are deferred to the Scale Phase.
 - **Cross-Session Retrieval:** Long-term, cross-session knowledge retrieval and semantic search are deferred.
 - **Life Graphs:** Complex entity relationship mapping and journaling schemas are deferred.
-- **Implementation Note:** This document represents the pure architectural design. Programmatic code implementation of the prompt template engine is deferred to subsequent AIC-306 tasks.
+
+---
+
+## 7. Validation & Guarantees
+
+The prompt composition engine strictly adheres to the architectural design through extensive unit tests (`tests/lib/ai/prompt-composer.test.ts`), which guarantee:
+
+- **Sequence Fidelity:** The four-tier system sequence is constructed flawlessly without mutation.
+- **Data Security:** Strict stripping of database and internal API properties from injected payloads prior to AI delivery.
+- **Fallback Safety:** Unsafe preferences immediately coerce back to safe defaults ("Spontaneous", "Friend").
+- **Cost/Token Efficacy:** Enforced sliding windows (20 items max) and prompt truncation logic guarantee an immutable ceiling for latency and payload token sizes on multi-turn conversations.
+- **Role Validation:** Any foreign roles outside 'user' or 'assistant' are explicitly omitted from history bounds.

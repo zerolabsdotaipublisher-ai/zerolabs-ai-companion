@@ -3,9 +3,15 @@ import "server-only";
 import { ConversationMessage, PromptContext } from "./types";
 import { resolvePersonality } from "./personalities";
 
+/**
+ * Interface for the inputs required to compose a full AI prompt.
+ */
 export interface PromptComposerInput {
+  /** User context containing profile preferences and identity. */
   context?: PromptContext | null;
+  /** Chronological list of past messages. Can include DB metadata which is stripped. */
   history?: (ConversationMessage | Record<string, unknown>)[];
+  /** The most recent active message from the user. */
   activeMessage: ConversationMessage;
 }
 
@@ -18,6 +24,15 @@ Strict Guardrails:
 - No mandatory journaling: Do not force the user into structured journaling prompts.
 - Suggestion-first: Offer gentle suggestions or reflections rather than directives.`;
 
+/**
+ * Generates the System Tier message for the prompt sequence.
+ * Enforces the core persona ("Quiet Companion"), applies strict behavioral guardrails,
+ * and interpolates user-specific tone and style directives based on the configured vibe.
+ * Defaults to safe fallbacks (Name: "Friend", Vibe: "Spontaneous") if context is missing.
+ *
+ * @param context - The user context preferences.
+ * @returns A ConversationMessage with role "system".
+ */
 export function generateSystemTier(
   context?: PromptContext | null,
 ): ConversationMessage {
@@ -41,6 +56,19 @@ ${personality.directives}`;
   };
 }
 
+/**
+ * Generates the Conversation Context Tier messages.
+ * Responsible for:
+ * - Filtering out unsupported roles (keeps only 'user' or 'assistant').
+ * - Deduplicating the active message if it's identical to the last user message.
+ * - Enforcing a sliding window of max 20 messages.
+ * - Truncating individual messages to 1000 characters.
+ * - Stripping all raw relational database metadata from the payload.
+ *
+ * @param history - Raw history turns from the DB.
+ * @param activeMessageContent - The active message content used to deduplicate.
+ * @returns A sanitized and truncated array of ConversationMessages.
+ */
 export function generateConversationContextTier(
   history: (ConversationMessage | Record<string, unknown>)[],
   activeMessageContent: string,
@@ -84,6 +112,13 @@ export function generateConversationContextTier(
   return truncatedHistory;
 }
 
+/**
+ * Generates the User Message Tier for the prompt sequence.
+ * Ensures the role is strictly forced to 'user' and sanitizes placement.
+ *
+ * @param activeMessage - The raw active user message.
+ * @returns A ConversationMessage with role forced to "user" and trimmed content.
+ */
 export function generateUserMessageTier(
   activeMessage: ConversationMessage,
 ): ConversationMessage {
@@ -95,6 +130,17 @@ export function generateUserMessageTier(
   };
 }
 
+/**
+ * Composes a full array of messages to be sent to the LLM orchestration layer.
+ * Strictly enforces a four-tier sequence:
+ * 1. System Prompt (Directives)
+ * 2. User Context (Profile/Tone) included within the system message
+ * 3. Conversation Context (Truncated sliding window)
+ * 4. Active User Message
+ *
+ * @param input - The payload containing context, history, and activeMessage.
+ * @returns The final array of cleanly formatted ConversationMessages.
+ */
 export function composePrompt(
   input: PromptComposerInput,
 ): ConversationMessage[] {
