@@ -39,7 +39,10 @@ describe("processConversation", () => {
       composePrompt: (input: unknown) => {
         // Fallback mock behavior resembling composePrompt output
         // to not break other tests expecting providerReq.messages to match this
-        const typedInput = input as { history?: unknown[]; activeMessage: unknown };
+        const typedInput = input as {
+          history?: unknown[];
+          activeMessage: unknown;
+        };
         return [...(typedInput.history || []), typedInput.activeMessage];
       },
     };
