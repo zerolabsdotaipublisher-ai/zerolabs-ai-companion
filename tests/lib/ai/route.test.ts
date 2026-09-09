@@ -209,6 +209,32 @@ describe("POST /api/ai/conversation", () => {
     assert.strictEqual(body.message, "Invalid conversation request.");
   });
 
+  it("should return 400 on HTML injection attempts that result in empty content", async () => {
+    mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
+    mock.method(serverSessionLib, "getServerAuthState", async () => ({
+      user: { id: "user1" },
+    }));
+    mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
+
+    const request = new Request("https://example.com/api/ai/conversation", {
+      method: "POST",
+      body: JSON.stringify({
+        messages: [{ role: "user", content: "<script></script>" }],
+      }),
+    });
+
+    const response = (await POST(request)) as unknown as {
+      status: number;
+      json: () => Promise<Record<string, unknown>>;
+    };
+    assert.strictEqual(response.status, 400);
+
+    const body = await response.json();
+    assert.strictEqual(body.error, true);
+    assert.strictEqual(body.code, "INVALID_REQUEST");
+    assert.strictEqual(body.message, "Invalid conversation request.");
+  });
+
   it("should handle error responses from processConversation", async () => {
     mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
     mock.method(serverSessionLib, "getServerAuthState", async () => ({
@@ -283,6 +309,43 @@ describe("POST /api/ai/conversation", () => {
       body.message,
       "The AI produced an invalid response format.",
     );
+  });
+
+  it("should return 500 and structured ConversationError for TIMEOUT", async () => {
+    mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
+    mock.method(serverSessionLib, "getServerAuthState", async () => ({
+      user: { id: "user1" },
+    }));
+    mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
+
+    mock.method(dbServiceLib, "saveUserMessage", async () => ({
+      data: { id: "msg1" },
+      error: null,
+    }));
+
+    mock.method(orchestratorLib, "processConversation", async () => ({
+      error: true,
+      code: "TIMEOUT",
+      message: "OpenAI API request timed out",
+    }));
+
+    const request = new Request("https://example.com/api/ai/conversation", {
+      method: "POST",
+      body: JSON.stringify({
+        conversationId: "conv1",
+        messages: [{ role: "user", content: "Hello" }],
+      }),
+    });
+
+    const response = (await POST(request)) as unknown as {
+      status: number;
+      json: () => Promise<Record<string, unknown>>;
+    };
+    assert.strictEqual(response.status, 500);
+
+    const body = await response.json();
+    assert.strictEqual(body.error, true);
+    assert.strictEqual(body.code, "TIMEOUT");
   });
 
   it("should extract conversationId from request body and pass it to processConversation", async () => {
