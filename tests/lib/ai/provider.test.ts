@@ -131,6 +131,67 @@ describe("generateConversationResponse", () => {
     });
   });
 
+  it("handles simulated 15s network timeout cleanly as TIMEOUT", async () => {
+    let internalSignal: AbortSignal | undefined;
+    global.fetch = async (input, init) => {
+      internalSignal = init?.signal as AbortSignal;
+      // Simulate an artificial delay that we won't actually wait for,
+      // because we'll just mock the AbortError from the timeout controller.
+      return new Promise((_, reject) => {
+        if (internalSignal) {
+          internalSignal.addEventListener("abort", () => {
+            const err = new Error("The operation was aborted");
+            err.name = "AbortError";
+            reject(err);
+          });
+        }
+      });
+    };
+
+    const response = await generateConversationResponse(validRequest, {
+      timeoutMs: 1,
+    }); // extremely short timeout to trigger immediately
+
+    assert.deepEqual(response, {
+      error: true,
+      code: "TIMEOUT",
+      message: "OpenAI API request timed out",
+    });
+  });
+
+  it("aborts cleanly when stream abortSignal is triggered (cancelling stream completion)", async () => {
+    let internalSignal: AbortSignal | undefined;
+    global.fetch = async (input, init) => {
+      internalSignal = init?.signal as AbortSignal;
+      return new Promise((_, reject) => {
+        if (internalSignal) {
+          internalSignal.addEventListener("abort", () => {
+            const err = new Error("The operation was aborted");
+            err.name = "AbortError";
+            reject(err);
+          });
+        }
+      });
+    };
+
+    const abortController = new AbortController();
+    const promise = generateConversationResponse(validRequest, {
+      abortSignal: abortController.signal,
+      stream: true,
+    });
+
+    // Simulate user clicking "Stop message" causing an abort mid-flight
+    abortController.abort();
+
+    const response = await promise;
+
+    assert.deepEqual(response, {
+      error: true,
+      code: "TIMEOUT",
+      message: "OpenAI API request timed out",
+    });
+  });
+
   it("handles rate limit (429)", async () => {
     global.fetch = async () => {
       return new Response(null, { status: 429 });
