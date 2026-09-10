@@ -11,7 +11,7 @@ export function ChatLayout({ children, sidebar }: ChatLayoutProps) {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-[calc(100vh-73px)] w-full flex-row bg-zinc-50 dark:bg-zinc-950 relative overflow-hidden">
+    <div className="flex h-[calc(100dvh-73px)] w-full flex-row bg-zinc-50 dark:bg-zinc-950 relative overflow-hidden">
       {/* Mobile Sidebar Overlay */}
       {sidebar && isMobileSidebarOpen && (
         <div
