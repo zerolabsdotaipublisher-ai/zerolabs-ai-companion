@@ -348,6 +348,62 @@ describe("POST /api/ai/conversation", () => {
     assert.strictEqual(body.code, "TIMEOUT");
   });
 
+  it("should generate a title from the first user message when conversationId is omitted", async () => {
+    mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
+    mock.method(serverSessionLib, "getServerAuthState", async () => ({
+      user: { id: "user1" },
+    }));
+    mock.method(serverSessionLib, "hasAuthenticatedServerSession", () => true);
+
+    const createConversationMock = mock.method(
+      dbServiceLib,
+      "createConversation",
+      async () => ({
+        data: { id: "new-conv-id" },
+        error: null,
+      }),
+    );
+
+    mock.method(dbServiceLib, "saveUserMessage", async () => ({
+      data: { id: "msg1" },
+      error: null,
+    }));
+
+    const validResponse = {
+      message: { role: "assistant", content: "Hi there!" },
+      metadata: { model: "test-model" },
+    };
+
+    mock.method(
+      orchestratorLib,
+      "processConversation",
+      async () => validResponse,
+    );
+
+    const longMessage =
+      "This is a very long message that spans multiple lines.\nIt should be cleaned up and truncated properly.";
+    const request = new Request("https://example.com/api/ai/conversation", {
+      method: "POST",
+      body: JSON.stringify({
+        messages: [{ role: "user", content: longMessage }],
+      }),
+    });
+
+    const response = (await POST(request)) as unknown as {
+      status: number;
+      json: () => Promise<Record<string, unknown>>;
+    };
+    assert.strictEqual(response.status, 200);
+
+    assert.strictEqual(createConversationMock.mock.callCount(), 1);
+    const callArgs = createConversationMock.mock.calls[0].arguments;
+    assert.strictEqual(callArgs[0], "user1");
+    // "This is a very long message that spa..."
+    const expectedTitle = "This is a very long message that spa...";
+    assert.strictEqual(callArgs[1], expectedTitle);
+    assert.strictEqual(expectedTitle.length, 36 + 3);
+  });
+
   it("should extract conversationId from request body and pass it to processConversation", async () => {
     mock.method(originLib, "isStateChangingAuthRequestAllowed", () => true);
     mock.method(serverSessionLib, "getServerAuthState", async () => ({
