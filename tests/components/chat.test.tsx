@@ -335,15 +335,6 @@ describe("Chat Components", () => {
 
   test("ChatPage integration - handles empty history hydration on mount", async () => {
     global.fetch = async (url) => {
-      if (url === "/api/ai/conversation") {
-        return {
-          ok: true,
-          json: async () => ({
-            conversationId: null,
-            messages: [],
-          }),
-        } as unknown as Response;
-      }
       if (url === "/api/ai/conversation?list=true") {
         return {
           ok: true,
@@ -491,7 +482,7 @@ describe("Chat Components", () => {
 
   test("ChatPage integration - handles New Chat button click", async () => {
     global.fetch = async (url) => {
-      if (url === "/api/ai/conversation") {
+      if (url.toString().includes("?conversationId=")) {
         return {
           ok: true,
           json: async () => ({
@@ -518,6 +509,13 @@ describe("Chat Components", () => {
       <ChatPage />,
     );
 
+    // Click a conversation in sidebar to load history
+    const convBtn = await findByText(/Test Conv/i, {}, { timeout: 3000 });
+    await act(async () => {
+      fireEvent.click(convBtn);
+      await flushMicrotasks();
+    });
+
     // Wait for history to load
     const prevMsg = await findByText(
       /Previous message/i,
@@ -543,9 +541,23 @@ describe("Chat Components", () => {
     unmount();
   });
 
-  test("ChatPage integration - handles history hydration on mount", async () => {
+  test("ChatPage integration - disables history hydration on mount, shows empty state, and populates sidebar", async () => {
     global.fetch = async (url) => {
-      if (url === "/api/ai/conversation") {
+      if (url === "/api/ai/conversation?list=true") {
+        return {
+          ok: true,
+          json: async () => ({
+            conversations: [
+              {
+                id: "test-conv-id",
+                title: "Test Conv",
+                updated_at: "2024-01-01T00:00:00Z",
+              },
+            ],
+          }),
+        } as unknown as Response;
+      }
+      if (url.toString().includes("?conversationId=")) {
         return {
           ok: true,
           json: async () => ({
@@ -557,34 +569,23 @@ describe("Chat Components", () => {
           }),
         } as unknown as Response;
       }
-      if (url === "/api/ai/conversation?list=true") {
-        return {
-          ok: true,
-          json: async () => ({
-            conversations: [{ id: "test-conv-id", title: "Test Conv" }],
-          }),
-        } as unknown as Response;
-      }
       return { ok: true, json: async () => ({}) } as unknown as Response;
     };
 
-    const { findByText, unmount } = render(<ChatPage />);
+    const { findByText, queryByText, unmount } = render(<ChatPage />);
 
-    // Wait for the history to be fetched and rendered
-    const previousMessage = await findByText(
-      /Previous message/i,
+    // Sidebar should populate
+    const sidebarItem = await findByText(/Test Conv/i, {}, { timeout: 3000 });
+    assert.ok(sidebarItem);
+
+    // Empty state should be visible instead of previous messages
+    const emptyStateText = await findByText(
+      /Start a conversation with your AI Companion/i,
       {},
       { timeout: 3000 },
     );
-    assert.ok(previousMessage);
-    const previousReply = await findByText(
-      /Previous reply/i,
-      {},
-      { timeout: 3000 },
-    );
-    assert.ok(previousReply);
-
-    // // fetchCallCount assertion bypassed
+    assert.ok(emptyStateText);
+    assert.strictEqual(queryByText(/Previous message/i), null);
 
     unmount();
   });

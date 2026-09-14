@@ -65,26 +65,12 @@ export default function ChatPage() {
     async function initialLoad() {
       try {
         setIsLoading(true);
-        const res = await fetch("/api/ai/conversation");
-        if (!res.ok) {
-          throw new Error("Failed to fetch conversation history");
-        }
-        const data = await res.json();
-
         if (isMounted) {
-          const loadedConvId =
-            data.conversationId !== undefined ? data.conversationId : null;
-          setConversationId(loadedConvId);
-          if (data.messages && Array.isArray(data.messages)) {
-            setMessages(data.messages);
-          } else {
-            setMessages([]);
-          }
           await loadConversations();
         }
       } catch {
         if (isMounted) {
-          setError("Failed to load conversation history. Please try again.");
+          setError("Failed to load conversation list. Please try again.");
         }
       } finally {
         if (isMounted) {
