@@ -67,8 +67,21 @@ export async function POST(request: Request): Promise<Response> {
   let resolvedConversationId = conversationId || null;
 
   if (!resolvedConversationId) {
+    let title: string | undefined = undefined;
+
+    // Derive a clean, single-line title from the first user message
+    const firstUserMessage = messages.find((m) => m.role === "user");
+    if (firstUserMessage && firstUserMessage.content) {
+      const singleLineContent = firstUserMessage.content
+        .replace(/\r?\n|\r/g, " ")
+        .trim();
+      title =
+        singleLineContent.slice(0, 36).trim() +
+        (singleLineContent.length > 36 ? "..." : "");
+    }
+
     const { data: newConversation, error: createError } =
-      await createConversation(authState.user.id);
+      await createConversation(authState.user.id, title);
 
     if (createError || !newConversation) {
       const error: ConversationError = {
