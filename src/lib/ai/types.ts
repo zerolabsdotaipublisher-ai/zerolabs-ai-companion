@@ -80,3 +80,13 @@ export const ConversationErrorSchema = z.object({
 });
 
 export type ConversationError = z.infer<typeof ConversationErrorSchema>;
+
+export const DailySuggestionOutputSchema = z.object({
+  primarySuggestion: z.string().max(255),
+  supportingContext: z.string().max(500),
+  alternatives: z.array(z.string().max(255)).min(1).max(2),
+  estimatedDuration: z.string(),
+  categoryTags: z.array(z.string()).min(1).max(5),
+});
+
+export type DailySuggestionOutput = z.infer<typeof DailySuggestionOutputSchema>;
