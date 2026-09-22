@@ -90,3 +90,31 @@ export const DailySuggestionOutputSchema = z.object({
 });
 
 export type DailySuggestionOutput = z.infer<typeof DailySuggestionOutputSchema>;
+
+export const SuggestionStatusSchema = z.enum([
+  "pending",
+  "accepted",
+  "skipped",
+  "alternative_requested",
+]);
+
+export type SuggestionStatus = z.infer<typeof SuggestionStatusSchema>;
+
+export const DailySuggestionSchema = z.object({
+  id: z.string().uuid(),
+  userId: z.string().uuid(),
+  primarySuggestion: z.string().max(255),
+  supportingContext: z.string().max(500),
+  alternatives: z.array(z.string().max(255)).min(1).max(2),
+  estimatedDuration: z.enum(["15m", "30m", "1h", "flex"]).optional().nullable(),
+  categoryTags: z.array(z.string()).max(3),
+  createdAt: z.string().datetime(),
+  status: SuggestionStatusSchema.default("pending"),
+});
+
+export type DailySuggestion = z.infer<typeof DailySuggestionSchema>;
+
+export type ClientDailySuggestion = Omit<
+  DailySuggestion,
+  "userId" | "createdAt"
+>;
