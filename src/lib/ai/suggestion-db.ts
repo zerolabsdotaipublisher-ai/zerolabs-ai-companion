@@ -24,7 +24,9 @@ function mapRowToClientSuggestion(
     primarySuggestion: row.primary_suggestion,
     supportingContext: row.supporting_context,
     alternatives: (row.alternatives as string[]) || [],
-    estimatedDuration: (row.estimated_duration as unknown as "15m" | "30m" | "1h" | "flex") || null,
+    estimatedDuration:
+      (row.estimated_duration as unknown as "15m" | "30m" | "1h" | "flex") ||
+      null,
     categoryTags: (row.category_tags as string[]) || [],
     status: row.status as SuggestionStatus,
   };
