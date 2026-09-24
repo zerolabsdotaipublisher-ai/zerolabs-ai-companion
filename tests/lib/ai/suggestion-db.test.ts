@@ -202,11 +202,13 @@ describe("suggestion-db", () => {
       assert.strictEqual("user_id" in result.data[0], false);
       assert.strictEqual("created_at" in result.data[0], false);
 
-      const orderArgs = mockOrder.mock.calls[0].arguments as unknown as unknown[];
+      const orderArgs = mockOrder.mock.calls[0]
+        .arguments as unknown as unknown[];
       assert.strictEqual(orderArgs[0], "created_at");
       assert.deepStrictEqual(orderArgs[1], { ascending: false });
 
-      const limitArgs = mockLimit.mock.calls[0].arguments as unknown as unknown[];
+      const limitArgs = mockLimit.mock.calls[0]
+        .arguments as unknown as unknown[];
       assert.strictEqual(limitArgs[0], 2);
     });
   });
