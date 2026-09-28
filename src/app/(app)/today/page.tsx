@@ -1,0 +1,143 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { TodaySuggestionCard } from "@/components/today/today-suggestion-card";
+import { TodayAlternatives } from "@/components/today/today-alternatives";
+import { TodayActions } from "@/components/today/today-actions";
+import { TodaySkeleton } from "@/components/today/today-skeleton";
+import { TodayEmptyState } from "@/components/today/today-empty-state";
+import type { ClientDailySuggestion } from "@/lib/ai/types";
+
+export default function TodayPage() {
+  const [suggestion, setSuggestion] = useState<ClientDailySuggestion | null>(
+    null,
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // For Task 2.2, we just render the UI.
+    // The server actions and DB fetch will be wired up in Task 2.3.
+    // We mock a delay and empty state or simple suggestion to make the UI testable
+    // and visually verifiable for now without crashing, or we can fetch a dummy endpoint.
+    // Let's create a stub since we are building the UI.
+    const loadMock = async () => {
+      setIsLoading(true);
+      await new Promise((r) => setTimeout(r, 1000));
+
+      // Simulate getting a pending suggestion
+      setSuggestion({
+        id: "mock-id-123",
+        primarySuggestion: "Take a 15-minute walk without your phone",
+        supportingContext:
+          "You've been indoors most of the morning. A quick screen-free walk will clear your head and fits the spontaneous vibe.",
+        alternatives: [
+          "Stretch by the window for 5 minutes.",
+          "Make a fresh cup of tea and focus on the brewing process.",
+        ],
+        estimatedDuration: "15m",
+        categoryTags: ["outdoor", "mindful", "screen-free"],
+        status: "pending",
+      });
+      setIsLoading(false);
+    };
+
+    loadMock();
+  }, []);
+
+  const handleAccept = async () => {
+    setIsSubmitting(true);
+    // Simulate API call
+    await new Promise((r) => setTimeout(r, 500));
+    setSuggestion((prev) => (prev ? { ...prev, status: "accepted" } : null));
+    setIsSubmitting(false);
+  };
+
+  const handleSkip = async () => {
+    setIsSubmitting(true);
+    // Simulate API call
+    await new Promise((r) => setTimeout(r, 500));
+    setSuggestion((prev) => (prev ? { ...prev, status: "skipped" } : null));
+    setIsSubmitting(false);
+  };
+
+  const handleAlternative = async (alt: string) => {
+    setIsSubmitting(true);
+    // Simulate API call
+    await new Promise((r) => setTimeout(r, 500));
+    setSuggestion((prev) =>
+      prev
+        ? {
+            ...prev,
+            primarySuggestion: alt,
+            status: "alternative_requested", // Or keep it pending with new text
+          }
+        : null,
+    );
+    setIsSubmitting(false);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 w-full h-[100dvh] bg-slate-50 flex items-center justify-center p-4">
+        <div className="w-full max-w-xl mx-auto">
+          <TodaySkeleton />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 w-full h-[100dvh] bg-slate-50 flex items-center justify-center p-4">
+        <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 flex items-center gap-3 w-full max-w-xl mx-auto">
+          <span>Failed to load suggestion.</span>
+          <button
+            onClick={() => window.location.reload()}
+            className="ml-auto bg-red-100 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (
+    !suggestion ||
+    suggestion.status === "accepted" ||
+    suggestion.status === "skipped"
+  ) {
+    return (
+      <div className="flex-1 w-full h-[100dvh] bg-slate-50 flex items-center justify-center p-4">
+        <TodayEmptyState />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 w-full h-[100dvh] bg-slate-50 flex flex-col pt-12 md:pt-24 px-4 overflow-y-auto">
+      <div className="w-full max-w-xl mx-auto flex flex-col gap-4 pb-12">
+        <TodaySuggestionCard
+          title={suggestion.primarySuggestion}
+          duration={
+            suggestion.estimatedDuration as "15m" | "30m" | "1h" | "flex" | null
+          }
+          tags={suggestion.categoryTags}
+          rationale={suggestion.supportingContext}
+        />
+        <TodayActions
+          onAccept={handleAccept}
+          onSkip={handleSkip}
+          isSubmitting={isSubmitting}
+        />
+        <TodayAlternatives
+          alternatives={suggestion.alternatives}
+          onSelectAlternative={handleAlternative}
+          isSubmitting={isSubmitting}
+        />
+      </div>
+    </div>
+  );
+}
