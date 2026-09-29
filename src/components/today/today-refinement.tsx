@@ -101,7 +101,10 @@ export function TodayRefinement({
                   const newMsgs = [...prev];
                   let lastMsg = newMsgs[newMsgs.length - 1];
                   if (lastMsg && lastMsg.role === "assistant") {
-                    lastMsg = { ...lastMsg, content: lastMsg.content + content };
+                    lastMsg = {
+                      ...lastMsg,
+                      content: lastMsg.content + content,
+                    };
                     newMsgs[newMsgs.length - 1] = lastMsg;
                   }
                   return newMsgs;

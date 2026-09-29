@@ -94,6 +94,56 @@ describe("Today UI Components", () => {
     assert.strictEqual(selectedAlternative, "Alternative 1");
   });
 
+  test("TodayAlternatives handles disabled state correctly", () => {
+    act(() => {
+      render(
+        <TodayAlternatives
+          alternatives={["Alternative 1"]}
+          onSelectAlternative={() => {}}
+          isSubmitting={true}
+        />,
+      );
+    });
+
+    const toggleButton = document.querySelector("button");
+    assert.strictEqual(toggleButton?.disabled, true);
+
+    // We can't toggle it when disabled, but let's re-render it as open and disabled
+    act(() => {
+      document.body.innerHTML = "";
+      render(
+        <TodayAlternatives
+          alternatives={["Alternative 1"]}
+          onSelectAlternative={() => {}}
+          isSubmitting={false}
+        />,
+      );
+    });
+
+    const newToggleButton = document.querySelector("button");
+    act(() => {
+      newToggleButton?.click();
+    });
+
+    // Now it's open, let's re-render with isSubmitting=true
+    act(() => {
+      document.body.innerHTML = "";
+      render(
+        <TodayAlternatives
+          alternatives={["Alternative 1"]}
+          onSelectAlternative={() => {}}
+          isSubmitting={true}
+        />,
+      );
+    });
+
+    // Both toggle button and the list buttons should be disabled
+    const allButtons = document.querySelectorAll("button");
+    allButtons.forEach((btn) => {
+      assert.strictEqual(btn.disabled, true);
+    });
+  });
+
   test("TodayActions callbacks and disabled state", () => {
     let accepted = false;
     let skipped = false;
@@ -307,6 +357,106 @@ describe("TodayPage Integration Tests", () => {
     // UI should transition to empty state
     const heading = document.querySelector("h2");
     assert.strictEqual(heading?.textContent, "All Done");
+  });
+
+  test("TodayPage handles Error State on failed status update", async () => {
+    global.fetch = async () => {
+      return { ok: false, json: async () => ({}) } as Response;
+    };
+
+    act(() => {
+      render(<TodayPage />);
+    });
+
+    // Wait for the mock 1s load
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 1100));
+    });
+
+    const buttons = document.querySelectorAll("button");
+    const acceptBtn = Array.from(buttons).find(
+      (b) => b.textContent === "Do it",
+    );
+
+    assert.ok(acceptBtn !== undefined);
+
+    await act(async () => {
+      acceptBtn!.click();
+    });
+
+    // UI should show error state
+    const textContent = document.body.textContent || "";
+    assert.ok(textContent.includes("Failed to load suggestion."));
+  });
+
+  test("TodayPage handles Conversational Refinement correctly", async () => {
+    let fetchCalledWith: FetchMockCall = {};
+
+    const mockStreamResponse = new ReadableStream({
+      start(controller) {
+        controller.enqueue(
+          new TextEncoder().encode(
+            'data: {"choices": [{"delta": {"content": "Hello"}}]}\n\n',
+          ),
+        );
+        controller.enqueue(
+          new TextEncoder().encode(
+            'data: {"choices": [{"delta": {"content": " world"}}]}\n\n',
+          ),
+        );
+        controller.enqueue(new TextEncoder().encode("data: [DONE]\n\n"));
+        controller.close();
+      },
+    });
+
+    global.fetch = async (url, options) => {
+      fetchCalledWith = { url: url as string, options };
+      return {
+        ok: true,
+        body: mockStreamResponse,
+      } as unknown as Response;
+    };
+
+    act(() => {
+      render(<TodayPage />);
+    });
+
+    // Wait for the mock 1s load
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 1100));
+    });
+
+    const buttons = document.querySelectorAll("button");
+    const askBtn = Array.from(buttons).find(
+      (b) => b.textContent === "Ask companion about this",
+    );
+    assert.ok(askBtn !== undefined);
+
+    act(() => {
+      askBtn!.click();
+    });
+
+    // We can click a predefined pill
+    const predefinedBtn = document.querySelectorAll("button");
+    const pillBtn = Array.from(predefinedBtn).find(
+      (b) => b.textContent === "Something indoors instead?",
+    );
+    assert.ok(pillBtn !== undefined);
+
+    await act(async () => {
+      pillBtn!.click();
+    });
+
+    assert.ok(fetchCalledWith.url !== undefined);
+    assert.strictEqual(fetchCalledWith.url, "/api/ai/conversation");
+    const body = JSON.parse(fetchCalledWith.options?.body as string);
+    assert.ok(body.suggestionContext !== undefined);
+    assert.strictEqual(
+      body.suggestionContext.primarySuggestion,
+      "Take a 15-minute walk without your phone",
+    );
+    assert.strictEqual(body.messages.length, 1);
+    assert.strictEqual(body.messages[0].content, "Something indoors instead?");
   });
 
   test("TodayPage handles Alternatives correctly", async () => {
