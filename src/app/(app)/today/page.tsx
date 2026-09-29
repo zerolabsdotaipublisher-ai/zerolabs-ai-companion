@@ -46,37 +46,44 @@ export default function TodayPage() {
     loadMock();
   }, []);
 
-  const handleAccept = async () => {
+  const updateStatus = async (status: string, alternativeText?: string) => {
+    if (!suggestion) return;
     setIsSubmitting(true);
-    // Simulate API call
-    await new Promise((r) => setTimeout(r, 500));
-    setSuggestion((prev) => (prev ? { ...prev, status: "accepted" } : null));
-    setIsSubmitting(false);
+    setError(null);
+    try {
+      const response = await fetch("/api/ai/daily-suggestion/status", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          suggestionId: suggestion.id,
+          status,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update status");
+      }
+
+      setSuggestion((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          status: status as ClientDailySuggestion["status"],
+          ...(alternativeText ? { primarySuggestion: alternativeText } : {}),
+        };
+      });
+    } catch (_err) {
+      setError("Failed to update suggestion. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleSkip = async () => {
-    setIsSubmitting(true);
-    // Simulate API call
-    await new Promise((r) => setTimeout(r, 500));
-    setSuggestion((prev) => (prev ? { ...prev, status: "skipped" } : null));
-    setIsSubmitting(false);
-  };
-
-  const handleAlternative = async (alt: string) => {
-    setIsSubmitting(true);
-    // Simulate API call
-    await new Promise((r) => setTimeout(r, 500));
-    setSuggestion((prev) =>
-      prev
-        ? {
-            ...prev,
-            primarySuggestion: alt,
-            status: "alternative_requested", // Or keep it pending with new text
-          }
-        : null,
-    );
-    setIsSubmitting(false);
-  };
+  const handleAccept = () => updateStatus("accepted");
+  const handleSkip = () => updateStatus("skipped");
+  const handleAlternative = (alt: string) => updateStatus("alternative_requested", alt);
 
   if (isLoading) {
     return (

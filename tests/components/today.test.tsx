@@ -1,4 +1,5 @@
-import { test, describe, afterEach } from "node:test";
+import TodayPage from "../../src/app/(app)/today/page";
+import { test, describe, afterEach, beforeEach } from "node:test";
 import assert from "node:assert";
 import { JSDOM } from "jsdom";
 import React from "react";
@@ -158,5 +159,132 @@ describe("Today UI Components", () => {
         "You're all set for today. Enjoy the moment.",
       ),
     );
+  });
+});
+
+
+interface FetchMockCall { url?: string; options?: RequestInit; }
+
+describe("TodayPage Integration Tests", () => {
+  let originalFetch: typeof global.fetch;
+
+  beforeEach(() => {
+    originalFetch = global.fetch;
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    document.body.innerHTML = "";
+  });
+
+  test("TodayPage handles Accept correctly", async () => {
+    let fetchCalledWith: FetchMockCall = {};
+    global.fetch = async (url, options) => {
+      fetchCalledWith = { url: url as string, options };
+      return { ok: true, json: async () => ({}) } as Response;
+    };
+
+    act(() => {
+      render(<TodayPage />);
+    });
+
+    // Wait for the mock 1s load
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 1100));
+    });
+
+    const buttons = document.querySelectorAll("button");
+    const acceptBtn = Array.from(buttons).find(b => b.textContent === "Do it");
+
+    assert.ok(acceptBtn !== undefined);
+
+    await act(async () => {
+      acceptBtn!.click();
+    });
+
+    assert.ok(fetchCalledWith.url !== undefined);
+    assert.strictEqual(fetchCalledWith.url, "/api/ai/daily-suggestion/status");
+    const body = JSON.parse(fetchCalledWith.options?.body as string);
+    assert.strictEqual(body.status, "accepted");
+
+    // UI should transition to empty state
+    const heading = document.querySelector("h2");
+    assert.strictEqual(heading?.textContent, "All Done");
+  });
+
+  test("TodayPage handles Skip correctly", async () => {
+    let fetchCalledWith: FetchMockCall = {};
+    global.fetch = async (url, options) => {
+      fetchCalledWith = { url: url as string, options };
+      return { ok: true, json: async () => ({}) } as Response;
+    };
+
+    act(() => {
+      render(<TodayPage />);
+    });
+
+    // Wait for the mock 1s load
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 1100));
+    });
+
+    const buttons = document.querySelectorAll("button");
+    const skipBtn = Array.from(buttons).find(b => b.textContent === "Skip");
+
+    assert.ok(skipBtn !== undefined);
+
+    await act(async () => {
+      skipBtn!.click();
+    });
+
+    assert.ok(fetchCalledWith.url !== undefined);
+    assert.strictEqual(fetchCalledWith.url, "/api/ai/daily-suggestion/status");
+    const body = JSON.parse(fetchCalledWith.options?.body as string);
+    assert.strictEqual(body.status, "skipped");
+
+    // UI should transition to empty state
+    const heading = document.querySelector("h2");
+    assert.strictEqual(heading?.textContent, "All Done");
+  });
+
+  test("TodayPage handles Alternatives correctly", async () => {
+    let fetchCalledWith: FetchMockCall = {};
+    global.fetch = async (url, options) => {
+      fetchCalledWith = { url: url as string, options };
+      return { ok: true, json: async () => ({}) } as Response;
+    };
+
+    act(() => {
+      render(<TodayPage />);
+    });
+
+    // Wait for the mock 1s load
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 1100));
+    });
+
+    const buttons = document.querySelectorAll("button");
+    const tryAnotherBtn = Array.from(buttons).find(b => b.textContent === "Try another");
+
+    assert.ok(tryAnotherBtn !== undefined);
+
+    await act(async () => {
+      tryAnotherBtn!.click();
+    });
+
+    const altButtons = document.querySelectorAll("#alternatives-list button");
+
+    await act(async () => {
+      (altButtons[0] as HTMLButtonElement).click();
+    });
+
+    assert.ok(fetchCalledWith.url !== undefined);
+    assert.strictEqual(fetchCalledWith.url, "/api/ai/daily-suggestion/status");
+    const body = JSON.parse(fetchCalledWith.options?.body as string);
+    assert.strictEqual(body.status, "alternative_requested");
+
+    // Primary suggestion text should be updated
+    const titleElement = document.querySelector("h2");
+    assert.strictEqual(titleElement?.textContent, "Stretch by the window for 5 minutes.");
   });
 });
