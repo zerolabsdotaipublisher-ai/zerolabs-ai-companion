@@ -62,7 +62,8 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json(error, { status: 400 });
   }
 
-  const { conversationId, messages, settings } = validationResult.data;
+  const { conversationId, messages, settings, suggestionContext } =
+    validationResult.data;
 
   let resolvedConversationId = conversationId || null;
 
@@ -122,6 +123,7 @@ export async function POST(request: Request): Promise<Response> {
       {
         stream: true,
         abortSignal: request.signal,
+        suggestionContext,
       },
     );
 

@@ -46,12 +46,17 @@ export async function POST(req: Request) {
       await updateSuggestionStatus(user.id, suggestionId, status);
 
     if (updateError) {
-      if (updateError === "Not found" || updateError.includes("JSON object requested, multiple (or no) rows returned")) {
-          // If no rows are returned by .single() it means the suggestion wasn't found or doesn't belong to the user
-          return NextResponse.json(
-            { error: "Suggestion not found or unauthorized to update" },
-            { status: 404 },
-          );
+      if (
+        updateError === "Not found" ||
+        updateError.includes(
+          "JSON object requested, multiple (or no) rows returned",
+        )
+      ) {
+        // If no rows are returned by .single() it means the suggestion wasn't found or doesn't belong to the user
+        return NextResponse.json(
+          { error: "Suggestion not found or unauthorized to update" },
+          { status: 404 },
+        );
       }
 
       return NextResponse.json(
