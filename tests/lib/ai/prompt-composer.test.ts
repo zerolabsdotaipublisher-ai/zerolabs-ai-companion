@@ -60,6 +60,27 @@ test("Prompt Composer", async (t) => {
     assert.strictEqual(messages[3].content, "Tell me a story");
   });
 
+  await t.test("Suggestion context formatting", () => {
+    const input = {
+      suggestionContext: {
+        primarySuggestion: "Take a walk",
+        supportingContext: "It's nice outside",
+        estimatedDuration: "15m",
+        categoryTags: ["outdoor"],
+      },
+      activeMessage: { role: "user" as const, content: "Tell me more" },
+    };
+
+    const messages = composePrompt(input);
+    const systemMsg = messages[0];
+
+    assert.ok(systemMsg.content.includes("Active Suggestion Context:"));
+    assert.ok(systemMsg.content.includes("- Suggestion: Take a walk"));
+    assert.ok(systemMsg.content.includes("- Rationale: It's nice outside"));
+    assert.ok(systemMsg.content.includes("- Duration: 15m"));
+    assert.ok(systemMsg.content.includes("- Tags: outdoor"));
+  });
+
   await t.test("User context fallback interpolation", () => {
     const input = {
       context: null,

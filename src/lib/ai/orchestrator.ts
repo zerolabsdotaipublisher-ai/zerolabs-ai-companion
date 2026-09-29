@@ -9,6 +9,7 @@ import {
   ConversationModelSettings,
   ConversationResponse,
   ConversationError,
+  SuggestionContext,
 } from "./types";
 import { logger } from "@/lib/logger";
 
@@ -35,6 +36,7 @@ export async function processConversation(
     model?: string;
     stream?: boolean;
     abortSignal?: AbortSignal;
+    suggestionContext?: SuggestionContext;
   },
 ): Promise<ConversationResponse | ConversationError | Response> {
   try {
@@ -85,6 +87,7 @@ export async function processConversation(
       context,
       history,
       activeMessage,
+      suggestionContext: options?.suggestionContext,
     });
 
     const request = {

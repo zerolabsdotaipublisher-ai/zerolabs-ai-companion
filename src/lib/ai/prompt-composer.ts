@@ -1,6 +1,6 @@
 import "server-only";
 
-import { ConversationMessage, PromptContext } from "./types";
+import { ConversationMessage, PromptContext, SuggestionContext } from "./types";
 import { resolvePersonality } from "./personalities";
 
 /**
@@ -13,6 +13,8 @@ export interface PromptComposerInput {
   history?: (ConversationMessage | Record<string, unknown>)[];
   /** The most recent active message from the user. */
   activeMessage: ConversationMessage;
+  /** The currently active daily suggestion context. */
+  suggestionContext?: SuggestionContext;
 }
 
 const SYSTEM_DIRECTIVES = `You are the AI Companion, a "quiet companion" designed to be calm, supportive, minimalist, and suggestion-first.
@@ -35,6 +37,7 @@ Strict Guardrails:
  */
 export function generateSystemTier(
   context?: PromptContext | null,
+  suggestionContext?: SuggestionContext,
 ): ConversationMessage {
   const displayName = context?.display_name || "Friend";
   const vibe = context?.companion_vibe || "Spontaneous";
@@ -50,9 +53,28 @@ Personality Directives:
 - Style: ${personality.style}
 ${personality.directives}`;
 
+  let suggestionContextString = "";
+  if (suggestionContext) {
+    const {
+      primarySuggestion,
+      supportingContext,
+      estimatedDuration,
+      categoryTags,
+    } = suggestionContext;
+    suggestionContextString = `\n\nActive Suggestion Context:
+The user is currently considering the following daily suggestion. Answer their follow-up questions or refine this suggestion supportively and concisely. Do not list alternatives unless requested.
+- Suggestion: ${primarySuggestion}`;
+    if (supportingContext)
+      suggestionContextString += `\n- Rationale: ${supportingContext}`;
+    if (estimatedDuration)
+      suggestionContextString += `\n- Duration: ${estimatedDuration}`;
+    if (categoryTags && categoryTags.length > 0)
+      suggestionContextString += `\n- Tags: ${categoryTags.join(", ")}`;
+  }
+
   return {
     role: "system",
-    content: `${SYSTEM_DIRECTIVES}\n\n${userContextString}`,
+    content: `${SYSTEM_DIRECTIVES}\n\n${userContextString}${suggestionContextString}`,
   };
 }
 
@@ -144,9 +166,9 @@ export function generateUserMessageTier(
 export function composePrompt(
   input: PromptComposerInput,
 ): ConversationMessage[] {
-  const { context, history = [], activeMessage } = input;
+  const { context, history = [], activeMessage, suggestionContext } = input;
 
-  const systemMessage = generateSystemTier(context);
+  const systemMessage = generateSystemTier(context, suggestionContext);
   const activeUserMessage = generateUserMessageTier(activeMessage);
   const contextMessages = generateConversationContextTier(
     history,

@@ -6,6 +6,7 @@ import { TodayAlternatives } from "@/components/today/today-alternatives";
 import { TodayActions } from "@/components/today/today-actions";
 import { TodaySkeleton } from "@/components/today/today-skeleton";
 import { TodayEmptyState } from "@/components/today/today-empty-state";
+import { TodayRefinement } from "@/components/today/today-refinement";
 import type { ClientDailySuggestion } from "@/lib/ai/types";
 
 export default function TodayPage() {
@@ -14,6 +15,7 @@ export default function TodayPage() {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -83,7 +85,8 @@ export default function TodayPage() {
 
   const handleAccept = () => updateStatus("accepted");
   const handleSkip = () => updateStatus("skipped");
-  const handleAlternative = (alt: string) => updateStatus("alternative_requested", alt);
+  const handleAlternative = (alt: string) =>
+    updateStatus("alternative_requested", alt);
 
   if (isLoading) {
     return (
@@ -123,6 +126,15 @@ export default function TodayPage() {
     );
   }
 
+  const suggestionContext = suggestion
+    ? {
+        primarySuggestion: suggestion.primarySuggestion,
+        supportingContext: suggestion.supportingContext,
+        estimatedDuration: suggestion.estimatedDuration ?? undefined,
+        categoryTags: suggestion.categoryTags,
+      }
+    : undefined;
+
   return (
     <div className="flex-1 w-full h-[100dvh] bg-slate-50 flex flex-col pt-12 md:pt-24 px-4 overflow-y-auto">
       <div className="w-full max-w-xl mx-auto flex flex-col gap-4 pb-12">
@@ -134,15 +146,22 @@ export default function TodayPage() {
           tags={suggestion.categoryTags}
           rationale={suggestion.supportingContext}
         />
+        {suggestionContext && (
+          <TodayRefinement
+            suggestionContext={suggestionContext}
+            onStreamingChange={setIsStreaming}
+            disabled={isSubmitting}
+          />
+        )}
         <TodayActions
           onAccept={handleAccept}
           onSkip={handleSkip}
-          isSubmitting={isSubmitting}
+          isSubmitting={isSubmitting || isStreaming}
         />
         <TodayAlternatives
           alternatives={suggestion.alternatives}
           onSelectAlternative={handleAlternative}
-          isSubmitting={isSubmitting}
+          isSubmitting={isSubmitting || isStreaming}
         />
       </div>
     </div>

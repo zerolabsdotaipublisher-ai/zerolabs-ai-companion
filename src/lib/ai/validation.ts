@@ -1,6 +1,10 @@
 import "server-only";
 import { z } from "zod";
-import { MessageRoleSchema, ConversationModelSettingsSchema } from "./types";
+import {
+  MessageRoleSchema,
+  ConversationModelSettingsSchema,
+  SuggestionContextSchema,
+} from "./types";
 
 // Helper to sanitize message content
 export function sanitizeMessageContent(content: string): string {
@@ -28,6 +32,7 @@ export const ConversationInputSchema = z.object({
     )
     .min(1, "At least one message is required"),
   settings: ConversationModelSettingsSchema.optional(),
+  suggestionContext: SuggestionContextSchema.optional(),
 });
 
 export type ConversationInput = z.infer<typeof ConversationInputSchema>;

@@ -13,13 +13,19 @@ describe("Daily Suggestion Status Route Handler", () => {
   test("should return 401 if user is unauthorized", async () => {
     mock.method(supabaseServerLib, "getSupabaseServerClient", async () => ({
       auth: {
-        getUser: async () => ({ data: { user: null }, error: new Error("Unauthorized") }),
+        getUser: async () => ({
+          data: { user: null },
+          error: new Error("Unauthorized"),
+        }),
       },
     }));
 
     const req = new Request("http://localhost/api/ai/daily-suggestion/status", {
       method: "POST",
-      body: JSON.stringify({ suggestionId: "123e4567-e89b-12d3-a456-426614174000", status: "accepted" }),
+      body: JSON.stringify({
+        suggestionId: "123e4567-e89b-12d3-a456-426614174000",
+        status: "accepted",
+      }),
     });
 
     const res = await POST(req);
@@ -31,7 +37,10 @@ describe("Daily Suggestion Status Route Handler", () => {
   test("should return 400 for invalid JSON payload", async () => {
     mock.method(supabaseServerLib, "getSupabaseServerClient", async () => ({
       auth: {
-        getUser: async () => ({ data: { user: { id: "user-123" } }, error: null }),
+        getUser: async () => ({
+          data: { user: { id: "user-123" } },
+          error: null,
+        }),
       },
     }));
 
@@ -49,7 +58,10 @@ describe("Daily Suggestion Status Route Handler", () => {
   test("should return 400 for invalid payload shape", async () => {
     mock.method(supabaseServerLib, "getSupabaseServerClient", async () => ({
       auth: {
-        getUser: async () => ({ data: { user: { id: "user-123" } }, error: null }),
+        getUser: async () => ({
+          data: { user: { id: "user-123" } },
+          error: null,
+        }),
       },
     }));
 
@@ -67,21 +79,32 @@ describe("Daily Suggestion Status Route Handler", () => {
   test("should return 200 and updated suggestion on success", async () => {
     mock.method(supabaseServerLib, "getSupabaseServerClient", async () => ({
       auth: {
-        getUser: async () => ({ data: { user: { id: "user-123" } }, error: null }),
+        getUser: async () => ({
+          data: { user: { id: "user-123" } },
+          error: null,
+        }),
       },
     }));
 
     const suggestionId = "123e4567-e89b-12d3-a456-426614174000";
     const status = "skipped";
 
-    const mockUpdatedSuggestion = { id: suggestionId, status, primarySuggestion: "Test" };
+    const mockUpdatedSuggestion = {
+      id: suggestionId,
+      status,
+      primarySuggestion: "Test",
+    };
 
-    mock.method(suggestionDbLib, "updateSuggestionStatus", async (uId: string, sId: string, stat: string) => {
-      assert.strictEqual(uId, "user-123");
-      assert.strictEqual(sId, suggestionId);
-      assert.strictEqual(stat, status);
-      return { data: mockUpdatedSuggestion, error: null };
-    });
+    mock.method(
+      suggestionDbLib,
+      "updateSuggestionStatus",
+      async (uId: string, sId: string, stat: string) => {
+        assert.strictEqual(uId, "user-123");
+        assert.strictEqual(sId, suggestionId);
+        assert.strictEqual(stat, status);
+        return { data: mockUpdatedSuggestion, error: null };
+      },
+    );
 
     const req = new Request("http://localhost/api/ai/daily-suggestion/status", {
       method: "POST",
@@ -97,7 +120,10 @@ describe("Daily Suggestion Status Route Handler", () => {
   test("should return 404 when suggestion is not found", async () => {
     mock.method(supabaseServerLib, "getSupabaseServerClient", async () => ({
       auth: {
-        getUser: async () => ({ data: { user: { id: "user-123" } }, error: null }),
+        getUser: async () => ({
+          data: { user: { id: "user-123" } },
+          error: null,
+        }),
       },
     }));
 
@@ -107,7 +133,10 @@ describe("Daily Suggestion Status Route Handler", () => {
 
     const req = new Request("http://localhost/api/ai/daily-suggestion/status", {
       method: "POST",
-      body: JSON.stringify({ suggestionId: "123e4567-e89b-12d3-a456-426614174000", status: "accepted" }),
+      body: JSON.stringify({
+        suggestionId: "123e4567-e89b-12d3-a456-426614174000",
+        status: "accepted",
+      }),
     });
 
     const res = await POST(req);

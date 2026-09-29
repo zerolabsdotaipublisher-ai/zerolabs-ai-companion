@@ -28,6 +28,7 @@ import { TodayAlternatives } from "../../src/components/today/today-alternatives
 import { TodayActions } from "../../src/components/today/today-actions";
 import { TodaySkeleton } from "../../src/components/today/today-skeleton";
 import { TodayEmptyState } from "../../src/components/today/today-empty-state";
+import { TodayRefinement } from "../../src/components/today/today-refinement";
 
 describe("Today UI Components", () => {
   afterEach(() => {
@@ -160,10 +161,69 @@ describe("Today UI Components", () => {
       ),
     );
   });
+
+  test("TodayRefinement handles UI interactions properly", async () => {
+    let streamingState = false;
+
+    // Instead of using screen which might be unbound in this JSDOM node:test setup,
+    // we query the document.body directly.
+    act(() => {
+      render(
+        <TodayRefinement
+          suggestionContext={{ primarySuggestion: "Test" }}
+          onStreamingChange={(s) => {
+            streamingState = s;
+          }}
+        />,
+      );
+    });
+
+    // Initial state: closed
+    const buttons = document.querySelectorAll("button");
+    const triggerBtn = Array.from(buttons).find(
+      (b) => b.textContent === "Ask companion about this",
+    );
+    assert.ok(triggerBtn !== undefined);
+
+    // Open refinement
+    act(() => {
+      triggerBtn!.click();
+    });
+
+    assert.ok(document.body.textContent?.includes("Refine Suggestion"));
+
+    // Test text input
+    const input = document.querySelector(
+      "input[type='text']",
+    ) as HTMLInputElement;
+    act(() => {
+      fireEvent.change(input, { target: { value: "Hello" } });
+    });
+    assert.strictEqual(input.value, "Hello");
+
+    // Close refinement
+    const updatedButtons = document.querySelectorAll("button");
+    const closeBtn = Array.from(updatedButtons).find(
+      (b) => b.textContent === "Close",
+    );
+    assert.ok(closeBtn !== undefined);
+
+    act(() => {
+      closeBtn!.click();
+    });
+
+    const finalButtons = document.querySelectorAll("button");
+    const finalTriggerBtn = Array.from(finalButtons).find(
+      (b) => b.textContent === "Ask companion about this",
+    );
+    assert.ok(finalTriggerBtn !== undefined);
+  });
 });
 
-
-interface FetchMockCall { url?: string; options?: RequestInit; }
+interface FetchMockCall {
+  url?: string;
+  options?: RequestInit;
+}
 
 describe("TodayPage Integration Tests", () => {
   let originalFetch: typeof global.fetch;
@@ -194,7 +254,9 @@ describe("TodayPage Integration Tests", () => {
     });
 
     const buttons = document.querySelectorAll("button");
-    const acceptBtn = Array.from(buttons).find(b => b.textContent === "Do it");
+    const acceptBtn = Array.from(buttons).find(
+      (b) => b.textContent === "Do it",
+    );
 
     assert.ok(acceptBtn !== undefined);
 
@@ -229,7 +291,7 @@ describe("TodayPage Integration Tests", () => {
     });
 
     const buttons = document.querySelectorAll("button");
-    const skipBtn = Array.from(buttons).find(b => b.textContent === "Skip");
+    const skipBtn = Array.from(buttons).find((b) => b.textContent === "Skip");
 
     assert.ok(skipBtn !== undefined);
 
@@ -264,7 +326,9 @@ describe("TodayPage Integration Tests", () => {
     });
 
     const buttons = document.querySelectorAll("button");
-    const tryAnotherBtn = Array.from(buttons).find(b => b.textContent === "Try another");
+    const tryAnotherBtn = Array.from(buttons).find(
+      (b) => b.textContent === "Try another",
+    );
 
     assert.ok(tryAnotherBtn !== undefined);
 
@@ -285,6 +349,9 @@ describe("TodayPage Integration Tests", () => {
 
     // Primary suggestion text should be updated
     const titleElement = document.querySelector("h2");
-    assert.strictEqual(titleElement?.textContent, "Stretch by the window for 5 minutes.");
+    assert.strictEqual(
+      titleElement?.textContent,
+      "Stretch by the window for 5 minutes.",
+    );
   });
 });

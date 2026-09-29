@@ -31,11 +31,21 @@ export type ConversationModelSettings = z.infer<
   typeof ConversationModelSettingsSchema
 >;
 
+export const SuggestionContextSchema = z.object({
+  primarySuggestion: z.string(),
+  supportingContext: z.string().optional(),
+  estimatedDuration: z.string().optional(),
+  categoryTags: z.array(z.string()).optional(),
+});
+
+export type SuggestionContext = z.infer<typeof SuggestionContextSchema>;
+
 export const ConversationRequestSchema = z.object({
   conversationId: z.string().optional(),
   context: PromptContextSchema,
   messages: z.array(ConversationMessageSchema),
   settings: ConversationModelSettingsSchema.optional(),
+  suggestionContext: SuggestionContextSchema.optional(),
 });
 
 export type ConversationRequest = z.infer<typeof ConversationRequestSchema>;
