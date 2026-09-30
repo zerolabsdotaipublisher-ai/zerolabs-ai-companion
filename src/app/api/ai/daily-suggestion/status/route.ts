@@ -61,7 +61,8 @@ export async function POST(req: Request) {
         errorMessage.includes(
           "JSON object requested, multiple (or no) rows returned",
         ) ||
-        errorMessage.includes("invalid input syntax for type uuid")
+        errorMessage.includes("invalid input syntax for type uuid") ||
+        errorMessage.includes("invalid input syntax for uuid")
       ) {
         // If the record isn't in the DB yet (e.g. mock or on-the-fly),
         // cleanly handle it by returning a 200 with the requested state to unblock the client.

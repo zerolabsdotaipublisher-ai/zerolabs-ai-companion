@@ -73,7 +73,14 @@ export default function TodayPage() {
         return {
           ...prev,
           status: status as ClientDailySuggestion["status"],
-          ...(alternativeText ? { primarySuggestion: alternativeText } : {}),
+          ...(alternativeText
+            ? {
+                primarySuggestion: alternativeText,
+                estimatedDuration: null,
+                categoryTags: [],
+                supportingContext: "Alternative suggestion selected.",
+              }
+            : {}),
         };
       });
     } catch (_err) {
@@ -92,6 +99,9 @@ export default function TodayPage() {
       return {
         ...prev,
         primarySuggestion: alt,
+        estimatedDuration: null,
+        categoryTags: [],
+        supportingContext: "Alternative suggestion selected.",
       };
     });
     // We update the DB via updateStatus which also persists the choice locally.
