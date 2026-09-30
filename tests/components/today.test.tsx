@@ -465,12 +465,6 @@ describe("TodayPage Integration Tests", () => {
   });
 
   test("TodayPage handles Alternatives correctly", async () => {
-    let fetchCalledWith: FetchMockCall = {};
-    global.fetch = async (url, options) => {
-      fetchCalledWith = { url: url as string, options };
-      return { ok: true, json: async () => ({}) } as Response;
-    };
-
     act(() => {
       render(<TodayPage />);
     });
@@ -496,11 +490,6 @@ describe("TodayPage Integration Tests", () => {
     await act(async () => {
       (altButtons[0] as HTMLButtonElement).click();
     });
-
-    assert.ok(fetchCalledWith.url !== undefined);
-    assert.strictEqual(fetchCalledWith.url, "/api/ai/daily-suggestion/status");
-    const body = JSON.parse(fetchCalledWith.options?.body as string);
-    assert.strictEqual(body.status, "alternative_requested");
 
     // Primary suggestion text should be updated
     const titleElement = document.querySelector("h2");

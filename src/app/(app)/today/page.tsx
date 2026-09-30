@@ -48,7 +48,7 @@ export default function TodayPage() {
     loadMock();
   }, []);
 
-  const updateStatus = async (status: string, alternativeText?: string) => {
+  const updateStatus = async (status: string) => {
     if (!suggestion) return;
     setIsSubmitting(true);
     setError(null);
@@ -73,7 +73,6 @@ export default function TodayPage() {
         return {
           ...prev,
           status: status as ClientDailySuggestion["status"],
-          ...(alternativeText ? { primarySuggestion: alternativeText } : {}),
         };
       });
     } catch (_err) {
@@ -85,28 +84,44 @@ export default function TodayPage() {
 
   const handleAccept = () => updateStatus("accepted");
   const handleSkip = () => updateStatus("skipped");
+
   const handleAlternative = (alt: string) => {
-    // When clicking an alternative, update the active suggestion primary text immediately.
+    // Pure client-side state selection.
+    setError(null);
+
+    // Attempt to extract duration like "5m" or "15m" from the text
+    const durationMatch = alt.match(/\b(\d+m|\d+h)\b/i);
+    const newDuration = durationMatch
+      ? (durationMatch[1].toLowerCase() as "15m" | "30m" | "1h" | "flex")
+      : "flex";
+
     setSuggestion((prev) => {
       if (!prev) return null;
       return {
         ...prev,
         primarySuggestion: alt,
+        estimatedDuration: newDuration,
+        categoryTags: ["mindful", "refresh"],
+        supportingContext: "A quick change of pace to reset your day.",
       };
     });
-    // We update the DB via updateStatus which also persists the choice locally.
-    updateStatus("alternative_requested", alt);
   };
 
   const handleAdoptRefinement = (text: string) => {
-    // Update local suggestion primary text without immediate DB save, let the user click "Do it"
+    // Extract a concise title (first sentence or max 80 chars)
+    let conciseTitle = text.split(/[.!?]\s/)[0] || text;
+    if (conciseTitle.length > 80) {
+      conciseTitle = conciseTitle.substring(0, 80).trim() + "...";
+    }
+
     setSuggestion((prev) => {
       if (!prev) return null;
       return {
         ...prev,
-        primarySuggestion: text,
+        primarySuggestion: conciseTitle,
       };
     });
+    setError(null);
   };
 
   if (isLoading) {
@@ -119,14 +134,18 @@ export default function TodayPage() {
     );
   }
 
-  if (
-    !suggestion ||
-    suggestion.status === "accepted" ||
-    suggestion.status === "skipped"
-  ) {
+  if (!suggestion || suggestion.status === "skipped") {
     return (
       <div className="flex-1 w-full h-[100dvh] bg-slate-50 flex items-center justify-center p-4">
         <TodayEmptyState />
+      </div>
+    );
+  }
+
+  if (suggestion.status === "accepted") {
+    return (
+      <div className="flex-1 w-full h-[100dvh] bg-slate-50 flex items-center justify-center p-4">
+        <TodayEmptyState message="Activity recorded. Great job!" />
       </div>
     );
   }
