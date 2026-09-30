@@ -85,30 +85,35 @@ export default function TodayPage() {
 
   const handleAccept = () => updateStatus("accepted");
   const handleSkip = () => updateStatus("skipped");
-  const handleAlternative = (alt: string) =>
+  const handleAlternative = (alt: string) => {
+    // When clicking an alternative, update the active suggestion primary text immediately.
+    setSuggestion((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        primarySuggestion: alt,
+      };
+    });
+    // We update the DB via updateStatus which also persists the choice locally.
     updateStatus("alternative_requested", alt);
+  };
+
+  const handleAdoptRefinement = (text: string) => {
+    // Update local suggestion primary text without immediate DB save, let the user click "Do it"
+    setSuggestion((prev) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        primarySuggestion: text,
+      };
+    });
+  };
 
   if (isLoading) {
     return (
       <div className="flex-1 w-full h-[100dvh] bg-slate-50 flex items-center justify-center p-4">
         <div className="w-full max-w-xl mx-auto">
           <TodaySkeleton />
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex-1 w-full h-[100dvh] bg-slate-50 flex items-center justify-center p-4">
-        <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 flex items-center gap-3 w-full max-w-xl mx-auto">
-          <span>Failed to load suggestion.</span>
-          <button
-            onClick={() => window.location.reload()}
-            className="ml-auto bg-red-100 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors"
-          >
-            Retry
-          </button>
         </div>
       </div>
     );
@@ -138,6 +143,17 @@ export default function TodayPage() {
   return (
     <div className="flex-1 w-full h-[100dvh] bg-slate-50 flex flex-col pt-12 md:pt-24 px-4 overflow-y-auto">
       <div className="w-full max-w-xl mx-auto flex flex-col gap-4 pb-12">
+        {error && (
+          <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 flex items-center gap-3 w-full max-w-xl mx-auto mb-2">
+            <span className="text-sm font-medium">{error}</span>
+            <button
+              onClick={() => setError(null)}
+              className="ml-auto bg-red-100 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
         <TodaySuggestionCard
           title={suggestion.primarySuggestion}
           duration={
@@ -151,6 +167,7 @@ export default function TodayPage() {
             suggestionContext={suggestionContext}
             onStreamingChange={setIsStreaming}
             disabled={isSubmitting}
+            onAdopt={handleAdoptRefinement}
           />
         )}
         <TodayActions

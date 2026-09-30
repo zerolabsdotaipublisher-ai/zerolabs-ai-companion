@@ -384,9 +384,14 @@ describe("TodayPage Integration Tests", () => {
       acceptBtn!.click();
     });
 
-    // UI should show error state
+    // UI should show inline error state instead of full screen error
     const textContent = document.body.textContent || "";
-    assert.ok(textContent.includes("Failed to load suggestion."));
+    assert.ok(
+      textContent.includes("Failed to update suggestion. Please try again."),
+    );
+
+    // The main suggestion card should still be rendered
+    assert.ok(textContent.includes("Take a 15-minute walk without your phone"));
   });
 
   test("TodayPage handles Conversational Refinement correctly", async () => {
