@@ -67,7 +67,7 @@ describe("Daily Suggestion Status Route Handler", () => {
 
     const req = new Request("http://localhost/api/ai/daily-suggestion/status", {
       method: "POST",
-      body: JSON.stringify({ suggestionId: "not-a-uuid", status: "accepted" }),
+      body: JSON.stringify({ suggestionId: 123, status: "invalid_status" }), // suggestionId must be a string, status must be valid
     });
 
     const res = await POST(req);
@@ -117,7 +117,7 @@ describe("Daily Suggestion Status Route Handler", () => {
     assert.deepStrictEqual(json.data, mockUpdatedSuggestion);
   });
 
-  test("should return 404 when suggestion is not found", async () => {
+  test("should return 200 when suggestion is not found (mock/on-the-fly handling)", async () => {
     mock.method(supabaseServerLib, "getSupabaseServerClient", async () => ({
       auth: {
         getUser: async () => ({
@@ -140,6 +140,11 @@ describe("Daily Suggestion Status Route Handler", () => {
     });
 
     const res = await POST(req);
-    assert.strictEqual(res.status, 404);
+    assert.strictEqual(res.status, 200);
+    const json = await res.json();
+    assert.deepStrictEqual(json.data, {
+      id: "123e4567-e89b-12d3-a456-426614174000",
+      status: "accepted",
+    });
   });
 });

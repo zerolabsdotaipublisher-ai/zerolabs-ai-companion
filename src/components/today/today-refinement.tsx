@@ -7,6 +7,7 @@ interface TodayRefinementProps {
   suggestionContext: SuggestionContext;
   onStreamingChange: (isStreaming: boolean) => void;
   disabled?: boolean;
+  onAdopt?: (text: string) => void;
 }
 
 const PREDEFINED_PILLS = [
@@ -19,6 +20,7 @@ export function TodayRefinement({
   suggestionContext,
   onStreamingChange,
   disabled = false,
+  onAdopt,
 }: TodayRefinementProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
@@ -168,15 +170,30 @@ export function TodayRefinement({
 
       <div className="flex flex-col gap-2">
         {messages.map((msg, idx) => (
-          <div
-            key={idx}
-            className={`p-3 rounded-xl text-sm ${
-              msg.role === "user"
-                ? "bg-slate-100 text-slate-800 self-end max-w-[85%]"
-                : "bg-indigo-50 text-indigo-900 self-start max-w-[85%]"
-            }`}
-          >
-            {msg.content}
+          <div key={idx} className="flex flex-col gap-1">
+            <div
+              className={`p-3 rounded-xl text-sm ${
+                msg.role === "user"
+                  ? "bg-slate-100 text-slate-800 self-end max-w-[85%]"
+                  : "bg-indigo-50 text-indigo-900 self-start max-w-[85%]"
+              }`}
+            >
+              {msg.content}
+            </div>
+            {msg.role === "assistant" &&
+              idx === messages.length - 1 &&
+              !isStreaming &&
+              onAdopt && (
+                <button
+                  onClick={() => {
+                    onAdopt(msg.content);
+                    setIsOpen(false);
+                  }}
+                  className="self-start mt-1 text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-1.5 rounded-lg transition-colors"
+                >
+                  Use this activity
+                </button>
+              )}
           </div>
         ))}
         {error && (
