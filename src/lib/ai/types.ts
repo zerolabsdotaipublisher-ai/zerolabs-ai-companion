@@ -128,3 +128,56 @@ export type ClientDailySuggestion = Omit<
   DailySuggestion,
   "userId" | "createdAt"
 >;
+
+export const MediaMetadataSchema = z.object({
+  storagePath: z.string().min(1),
+  mimeType: z.string().min(1),
+  fileSizeBytes: z.number().int().positive(),
+  width: z.number().int().positive().optional(),
+  height: z.number().int().positive().optional(),
+  uploadedAt: z.string().datetime(),
+});
+
+export type MediaMetadata = z.infer<typeof MediaMetadataSchema>;
+
+export const CreateExperienceCaptureInputSchema = z.object({
+  suggestionId: z
+    .string()
+    .uuid()
+    .optional()
+    .nullable()
+    .describe("Optional UUID referencing daily_suggestions.id"),
+  noteText: z
+    .string()
+    .max(1000)
+    .trim()
+    .optional()
+    .nullable()
+    .describe("Optional string for short notes or reflections"),
+  mediaMetadata: MediaMetadataSchema.optional()
+    .nullable()
+    .describe("Optional media attachment metadata"),
+});
+
+export type CreateExperienceCaptureInput = z.infer<
+  typeof CreateExperienceCaptureInputSchema
+>;
+
+export const ExperienceCaptureSchema = z.object({
+  id: z.string().uuid(),
+  userId: z.string().uuid().describe("UUID referencing auth.users(id)"),
+  suggestionId: z.string().uuid().optional().nullable(),
+  noteText: z.string().max(1000).trim().optional().nullable(),
+  mediaMetadata: MediaMetadataSchema.optional().nullable(),
+  createdAt: z
+    .string()
+    .datetime()
+    .describe("UTC TIMESTAMPTZ, defaults to now()"),
+});
+
+export type ExperienceCapture = z.infer<typeof ExperienceCaptureSchema>;
+
+export type ClientExperienceCapture = Omit<
+  ExperienceCapture,
+  "id" | "userId" | "createdAt" | "suggestionId"
+>;
