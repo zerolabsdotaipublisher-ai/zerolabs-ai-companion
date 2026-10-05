@@ -9,6 +9,46 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      captures: {
+        Row: {
+          id: string;
+          user_id: string;
+          suggestion_id: string | null;
+          note_text: string | null;
+          media_metadata: Json | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          suggestion_id?: string | null;
+          note_text?: string | null;
+          media_metadata?: Json | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          suggestion_id?: string | null;
+          note_text?: string | null;
+          media_metadata?: Json | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "captures_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "captures_suggestion_id_fkey";
+            columns: ["suggestion_id"];
+            referencedRelation: "daily_suggestions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       conversations: {
         Row: {
           id: string;
