@@ -31,14 +31,11 @@ describe("CaptureForm - Submission", () => {
   test("submits correctly for spontaneous capture (empty note)", async () => {
     const onSubmitMock = mock.fn();
     const { container } = render(
-      <CaptureForm
-        isSubmitting={false}
-        onSubmit={onSubmitMock as any}
-      />
+      <CaptureForm isSubmitting={false} onSubmit={onSubmitMock as any} />,
     );
 
     const submitButton = container.querySelector(
-      '[data-testid="capture-submit-button"]'
+      '[data-testid="capture-submit-button"]',
     ) as HTMLButtonElement;
 
     const user = userEvent.setup({ document: dom.window.document });
@@ -51,7 +48,7 @@ describe("CaptureForm - Submission", () => {
     assert.deepStrictEqual(callArgs, {
       suggestionId: null,
       noteText: null,
-      mediaMetadata: null
+      mediaMetadata: null,
     });
   });
 
@@ -62,15 +59,15 @@ describe("CaptureForm - Submission", () => {
         suggestionId="123e4567-e89b-12d3-a456-426614174000"
         isSubmitting={false}
         onSubmit={onSubmitMock as any}
-      />
+      />,
     );
 
     const textarea = container.querySelector(
-      '[data-testid="capture-note-textarea"]'
+      '[data-testid="capture-note-textarea"]',
     ) as HTMLTextAreaElement;
 
     const submitButton = container.querySelector(
-      '[data-testid="capture-submit-button"]'
+      '[data-testid="capture-submit-button"]',
     ) as HTMLButtonElement;
 
     const user = userEvent.setup({ document: dom.window.document });
@@ -84,25 +81,22 @@ describe("CaptureForm - Submission", () => {
     assert.deepStrictEqual(callArgs, {
       suggestionId: "123e4567-e89b-12d3-a456-426614174000",
       noteText: "A quick brown fox",
-      mediaMetadata: null
+      mediaMetadata: null,
     });
   });
 
   test("disables inputs when isSubmitting is true", async () => {
     const onSubmitMock = mock.fn();
     const { container } = render(
-      <CaptureForm
-        isSubmitting={true}
-        onSubmit={onSubmitMock as any}
-      />
+      <CaptureForm isSubmitting={true} onSubmit={onSubmitMock as any} />,
     );
 
     const textarea = container.querySelector(
-      '[data-testid="capture-note-textarea"]'
+      '[data-testid="capture-note-textarea"]',
     ) as HTMLTextAreaElement;
 
     const submitButton = container.querySelector(
-      '[data-testid="capture-submit-button"]'
+      '[data-testid="capture-submit-button"]',
     ) as HTMLButtonElement;
 
     assert.strictEqual(textarea.disabled, true);
