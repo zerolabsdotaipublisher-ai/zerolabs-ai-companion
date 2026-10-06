@@ -31,23 +31,20 @@ describe("CaptureForm - Basics", () => {
   test("renders capture form and textarea correctly", async () => {
     const onSubmitMock = mock.fn();
     const { container } = render(
-      <CaptureForm
-        isSubmitting={false}
-        onSubmit={onSubmitMock as any}
-      />
+      <CaptureForm isSubmitting={false} onSubmit={onSubmitMock as any} />,
     );
 
     const textarea = container.querySelector(
-      '[data-testid="capture-note-textarea"]'
+      '[data-testid="capture-note-textarea"]',
     ) as HTMLTextAreaElement;
     assert.ok(textarea, "Textarea should be rendered");
     assert.strictEqual(
       textarea.placeholder,
-      "Add a short note or reflection... (Optional)"
+      "Add a short note or reflection... (Optional)",
     );
 
     const submitButton = container.querySelector(
-      '[data-testid="capture-submit-button"]'
+      '[data-testid="capture-submit-button"]',
     ) as HTMLButtonElement;
     assert.ok(submitButton, "Submit button should be rendered");
     assert.strictEqual(submitButton.textContent, "Done");
@@ -56,14 +53,11 @@ describe("CaptureForm - Basics", () => {
   test("handles text input and enforces length bounds visually", async () => {
     const onSubmitMock = mock.fn();
     const { container } = render(
-      <CaptureForm
-        isSubmitting={false}
-        onSubmit={onSubmitMock as any}
-      />
+      <CaptureForm isSubmitting={false} onSubmit={onSubmitMock as any} />,
     );
 
     const textarea = container.querySelector(
-      '[data-testid="capture-note-textarea"]'
+      '[data-testid="capture-note-textarea"]',
     ) as HTMLTextAreaElement;
 
     const user = userEvent.setup({ document: dom.window.document });
@@ -75,6 +69,9 @@ describe("CaptureForm - Basics", () => {
     assert.strictEqual(textarea.maxLength, 1000);
 
     const counter = container.querySelector(".absolute.bottom-3");
-    assert.ok(counter?.textContent?.includes("16/1000"), "Counter should show 16/1000: " + counter?.textContent);
+    assert.ok(
+      counter?.textContent?.includes("16/1000"),
+      "Counter should show 16/1000: " + counter?.textContent,
+    );
   });
 });

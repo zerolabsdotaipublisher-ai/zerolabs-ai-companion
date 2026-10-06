@@ -78,7 +78,11 @@ function CapturePageContent() {
 export default function CapturePage() {
   return (
     <main className="min-h-[100dvh] flex flex-col bg-neutral-50/50">
-      <Suspense fallback={<div className="min-h-[100dvh] flex flex-col bg-neutral-50/50" />}>
+      <Suspense
+        fallback={
+          <div className="min-h-[100dvh] flex flex-col bg-neutral-50/50" />
+        }
+      >
         <CapturePageContent />
       </Suspense>
     </main>

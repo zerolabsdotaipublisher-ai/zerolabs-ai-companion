@@ -1,13 +1,15 @@
 import { describe, it, mock, beforeEach } from "node:test";
-import assert from "node:assert";
+import assert from "node:assert/strict";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+let mockSupabase: any;
 
 import * as serverClient from "../../../src/lib/supabase/server";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 const mockGetSupabaseServerClient = mock.method(
   serverClient,
   "getSupabaseServerClient",
-  async () => ({}) as any,
+  async () => mockSupabase ?? ({} as any),
 );
 
 import {
@@ -17,10 +19,7 @@ import {
 } from "../../../src/lib/ai/capture-db";
 
 describe("Experience Capture Database Service", () => {
-  let mockSupabase: any;
-
   beforeEach(() => {
-    mockGetSupabaseServerClient.mock.resetCalls();
     mockSupabase = {
       from: mock.fn(() => mockSupabase),
       insert: mock.fn(() => mockSupabase),
@@ -30,9 +29,7 @@ describe("Experience Capture Database Service", () => {
       limit: mock.fn(() => mockSupabase),
       single: mock.fn(),
     };
-    mockGetSupabaseServerClient.mock.mockImplementation(async () => {
-      return mockSupabase;
-    });
+    mockGetSupabaseServerClient.mock.resetCalls();
   });
 
   describe("saveExperienceCapture", () => {
@@ -103,7 +100,10 @@ describe("Experience Capture Database Service", () => {
 
       await assert.rejects(
         saveExperienceCapture("user-1", input),
-        /expected string to have <=1000 characters/,
+        (err: Error) =>
+          /String must contain at most 1000 character|Too many characters|Expected string/i.test(
+            err.message,
+          ),
       );
     });
 

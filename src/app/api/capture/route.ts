@@ -26,10 +26,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const capture = await saveExperienceCapture(
-      user.id,
-      validationResult.data,
-    );
+    const capture = await saveExperienceCapture(user.id, validationResult.data);
 
     return NextResponse.json({ capture }, { status: 201 });
   } catch (error: unknown) {
