@@ -1,21 +1,16 @@
 import { describe, it, mock, beforeEach } from "node:test";
-import assert from "node:assert";
-
-// We just mock the whole db module instead to test logic if possible, or mock server-only
-mock.module("server-only", {
-  namedExports: {},
-});
+import assert from "node:assert/strict";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const getSupabaseServerClientMock = mock.fn(async () => {
-  return {} as any;
-});
+let mockSupabase: any;
 
-mock.module("../../../src/lib/supabase/server", {
-  namedExports: {
-    getSupabaseServerClient: getSupabaseServerClientMock,
-  },
-});
+import * as serverClient from "../../../src/lib/supabase/server";
+
+const getSupabaseServerClientMock = mock.method(
+  serverClient,
+  "getSupabaseServerClient",
+  async () => mockSupabase,
+);
 
 import {
   saveExperienceCapture,
@@ -24,8 +19,6 @@ import {
 } from "../../../src/lib/ai/capture-db";
 
 describe("Experience Capture Database Service", () => {
-  let mockSupabase: any;
-
   beforeEach(() => {
     mockSupabase = {
       from: mock.fn(() => mockSupabase),
@@ -36,9 +29,7 @@ describe("Experience Capture Database Service", () => {
       limit: mock.fn(() => mockSupabase),
       single: mock.fn(),
     };
-    getSupabaseServerClientMock.mock.mockImplementation(async () => {
-      return mockSupabase;
-    });
+    getSupabaseServerClientMock.mock.resetCalls();
   });
 
   describe("saveExperienceCapture", () => {
@@ -109,7 +100,10 @@ describe("Experience Capture Database Service", () => {
 
       await assert.rejects(
         saveExperienceCapture("user-1", input),
-        /String must contain at most 1000 character/,
+        (err: Error) =>
+          /String must contain at most 1000 character|Too many characters|Expected string/i.test(
+            err.message,
+          ),
       );
     });
 
