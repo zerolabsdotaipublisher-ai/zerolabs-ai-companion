@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { CreateExperienceCaptureInputSchema } from "@/lib/ai/types";
 import { saveExperienceCapture } from "@/lib/ai/capture-db";
-import { z } from "zod";
 
 export async function POST(request: Request) {
   try {

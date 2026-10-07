@@ -252,3 +252,34 @@ describe("Experience Capture Database Service", () => {
     });
   });
 });
+
+  describe("Multi-tenant Data Boundaries (Integration)", () => {
+    it("ensures getUserCaptures strictly limits scope to user_id param", async () => {
+      const mockRows = [
+        {
+          id: "capture-1",
+          user_id: "user-1",
+          suggestion_id: "suggestion-1",
+          note_text: "My note",
+          media_metadata: null,
+          created_at: "2023-10-27T10:00:00Z",
+        }
+      ];
+
+      mockSupabase.eq.mock.mockImplementationOnce(() => ({
+        order: mockSupabase.order,
+      }));
+
+      mockSupabase.limit.mock.mockImplementationOnce(() => ({
+        data: mockRows,
+        error: null,
+      }));
+
+      await getUserCaptures("user-1");
+
+      const eqCalls = mockSupabase.eq.mock.calls;
+      assert.ok(eqCalls.length > 0, "eq was not called");
+      assert.strictEqual(eqCalls[0].arguments[0], "user_id");
+      assert.strictEqual(eqCalls[0].arguments[1], "user-1");
+    });
+  });
