@@ -1,8 +1,9 @@
-import { test, describe, afterEach, beforeEach, mock } from "node:test";
+import { CreateExperienceCaptureInput } from "../../src/lib/ai/types";
+import { test, describe, afterEach, mock } from "node:test";
 import assert from "node:assert";
 import { JSDOM } from "jsdom";
 import React from "react";
-import { render, act, fireEvent, screen } from "@testing-library/react";
+import { render, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 const dom = new JSDOM("<!DOCTYPE html><html><body></body></html>", {
@@ -31,7 +32,14 @@ describe("CaptureForm - Basics", () => {
   test("renders capture form and textarea correctly", async () => {
     const onSubmitMock = mock.fn();
     const { container } = render(
-      <CaptureForm isSubmitting={false} onSubmit={onSubmitMock as any} />,
+      <CaptureForm
+        isSubmitting={false}
+        onSubmit={
+          onSubmitMock as unknown as (
+            data: CreateExperienceCaptureInput,
+          ) => Promise<void>
+        }
+      />,
     );
 
     const textarea = container.querySelector(
@@ -53,7 +61,14 @@ describe("CaptureForm - Basics", () => {
   test("handles text input and enforces length bounds visually", async () => {
     const onSubmitMock = mock.fn();
     const { container } = render(
-      <CaptureForm isSubmitting={false} onSubmit={onSubmitMock as any} />,
+      <CaptureForm
+        isSubmitting={false}
+        onSubmit={
+          onSubmitMock as unknown as (
+            data: CreateExperienceCaptureInput,
+          ) => Promise<void>
+        }
+      />,
     );
 
     const textarea = container.querySelector(

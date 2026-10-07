@@ -1,8 +1,9 @@
-import { test, describe, afterEach, beforeEach, mock } from "node:test";
+import { CreateExperienceCaptureInput } from "../../src/lib/ai/types";
+import { test, describe, afterEach, mock } from "node:test";
 import assert from "node:assert";
 import { JSDOM } from "jsdom";
 import React from "react";
-import { render, act, screen } from "@testing-library/react";
+import { render, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 const dom = new JSDOM("<!DOCTYPE html><html><body></body></html>", {
@@ -31,7 +32,14 @@ describe("CaptureForm - Submission", () => {
   test("submits correctly for spontaneous capture (empty note)", async () => {
     const onSubmitMock = mock.fn();
     const { container } = render(
-      <CaptureForm isSubmitting={false} onSubmit={onSubmitMock as any} />,
+      <CaptureForm
+        isSubmitting={false}
+        onSubmit={
+          onSubmitMock as unknown as (
+            data: CreateExperienceCaptureInput,
+          ) => Promise<void>
+        }
+      />,
     );
 
     const submitButton = container.querySelector(
@@ -58,7 +66,11 @@ describe("CaptureForm - Submission", () => {
       <CaptureForm
         suggestionId="123e4567-e89b-12d3-a456-426614174000"
         isSubmitting={false}
-        onSubmit={onSubmitMock as any}
+        onSubmit={
+          onSubmitMock as unknown as (
+            data: CreateExperienceCaptureInput,
+          ) => Promise<void>
+        }
       />,
     );
 
@@ -88,7 +100,14 @@ describe("CaptureForm - Submission", () => {
   test("disables inputs when isSubmitting is true", async () => {
     const onSubmitMock = mock.fn();
     const { container } = render(
-      <CaptureForm isSubmitting={true} onSubmit={onSubmitMock as any} />,
+      <CaptureForm
+        isSubmitting={true}
+        onSubmit={
+          onSubmitMock as unknown as (
+            data: CreateExperienceCaptureInput,
+          ) => Promise<void>
+        }
+      />,
     );
 
     const textarea = container.querySelector(
