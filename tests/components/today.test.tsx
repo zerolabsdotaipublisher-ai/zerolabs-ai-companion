@@ -1,9 +1,12 @@
-import TodayPage from "../../src/app/(app)/today/page";
 import { test, describe, afterEach, beforeEach } from "node:test";
+
 import assert from "node:assert";
 import { JSDOM } from "jsdom";
 import React from "react";
-import { render, act, fireEvent, screen } from "@testing-library/react";
+import { render, act, fireEvent } from "@testing-library/react";
+import TodayPage from "../../src/app/(app)/today/page";
+
+
 
 const dom = new JSDOM("<!DOCTYPE html><html><body></body></html>", {
   url: "http://localhost/",
@@ -275,6 +278,8 @@ interface FetchMockCall {
   options?: RequestInit;
 }
 
+
+
 describe("TodayPage Integration Tests", () => {
   let originalFetch: typeof global.fetch;
 
@@ -295,7 +300,7 @@ describe("TodayPage Integration Tests", () => {
     };
 
     act(() => {
-      render(<TodayPage />);
+      render(<TodayPage router={{ push: () => {} } as unknown as ReturnType<typeof import("next/navigation").useRouter>} />);
     });
 
     // Wait for the mock 1s load
@@ -332,7 +337,7 @@ describe("TodayPage Integration Tests", () => {
     };
 
     act(() => {
-      render(<TodayPage />);
+      render(<TodayPage router={{ push: () => {} } as unknown as ReturnType<typeof import("next/navigation").useRouter>} />);
     });
 
     // Wait for the mock 1s load
@@ -365,7 +370,7 @@ describe("TodayPage Integration Tests", () => {
     };
 
     act(() => {
-      render(<TodayPage />);
+      render(<TodayPage router={{ push: () => {} } as unknown as ReturnType<typeof import("next/navigation").useRouter>} />);
     });
 
     // Wait for the mock 1s load
@@ -423,7 +428,7 @@ describe("TodayPage Integration Tests", () => {
     };
 
     act(() => {
-      render(<TodayPage />);
+      render(<TodayPage router={{ push: () => {} } as unknown as ReturnType<typeof import("next/navigation").useRouter>} />);
     });
 
     // Wait for the mock 1s load
@@ -472,7 +477,7 @@ describe("TodayPage Integration Tests", () => {
     };
 
     act(() => {
-      render(<TodayPage />);
+      render(<TodayPage router={{ push: () => {} } as unknown as ReturnType<typeof import("next/navigation").useRouter>} />);
     });
 
     // Wait for the mock 1s load
@@ -497,10 +502,9 @@ describe("TodayPage Integration Tests", () => {
       (altButtons[0] as HTMLButtonElement).click();
     });
 
-    assert.ok(fetchCalledWith.url !== undefined);
-    assert.strictEqual(fetchCalledWith.url, "/api/ai/daily-suggestion/status");
-    const body = JSON.parse(fetchCalledWith.options?.body as string);
-    assert.strictEqual(body.status, "alternative_requested");
+    // The test used to assert a network call here, but alternatives
+    // are purely client-side state now, so no fetch should happen.
+    assert.strictEqual(fetchCalledWith.url, undefined);
 
     // Primary suggestion text should be updated
     const titleElement = document.querySelector("h2");

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { TodaySuggestionCard } from "@/components/today/today-suggestion-card";
 import { TodayAlternatives } from "@/components/today/today-alternatives";
 import { TodayActions } from "@/components/today/today-actions";
@@ -9,7 +10,17 @@ import { TodayEmptyState } from "@/components/today/today-empty-state";
 import { TodayRefinement } from "@/components/today/today-refinement";
 import type { ClientDailySuggestion } from "@/lib/ai/types";
 
-export default function TodayPage() {
+interface TodayPageProps {
+  router?: ReturnType<typeof useRouter>;
+}
+
+export default function TodayPage({ router: injectedRouter }: TodayPageProps) {
+  // Only call useRouter if injectedRouter is not provided, bypassing Next's invariant error during pure unit tests
+  let router = injectedRouter;
+  if (!router) {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    router = useRouter();
+  }
   const [suggestion, setSuggestion] = useState<ClientDailySuggestion | null>(
     null,
   );
@@ -76,13 +87,20 @@ export default function TodayPage() {
           ...(alternativeText
             ? {
                 primarySuggestion: alternativeText,
-                estimatedDuration: null,
-                categoryTags: [],
-                supportingContext: "Alternative suggestion selected.",
+                estimatedDuration: prev.estimatedDuration || "15m",
+                categoryTags: ["mindful", "break"],
+                supportingContext: "This alternative fits well into your day and matches the current vibe.",
               }
             : {}),
         };
       });
+
+      if (status === "accepted") {
+        router.push(
+          `/capture?suggestionId=${suggestion.id}&activity=${encodeURIComponent(suggestion.primarySuggestion)}`
+        );
+      }
+
     } catch (_err) {
       setError("Failed to update suggestion. Please try again.");
     } finally {
@@ -94,18 +112,17 @@ export default function TodayPage() {
   const handleSkip = () => updateStatus("skipped");
   const handleAlternative = (alt: string) => {
     // When clicking an alternative, update the active suggestion primary text immediately.
+    // Pure client-side state selection. Do not dispatch network requests here.
     setSuggestion((prev) => {
       if (!prev) return null;
       return {
         ...prev,
         primarySuggestion: alt,
-        estimatedDuration: null,
-        categoryTags: [],
-        supportingContext: "Alternative suggestion selected.",
+        estimatedDuration: prev.estimatedDuration || "15m",
+        categoryTags: ["mindful", "break"],
+        supportingContext: "This alternative fits well into your day and matches the current vibe.",
       };
     });
-    // We update the DB via updateStatus which also persists the choice locally.
-    updateStatus("alternative_requested", alt);
   };
 
   const handleAdoptRefinement = (text: string) => {
