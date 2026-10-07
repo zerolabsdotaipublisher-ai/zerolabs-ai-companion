@@ -81,14 +81,26 @@ export default function TodayPage({ router: injectedRouter }: TodayPageProps) {
 
       setSuggestion((prev) => {
         if (!prev) return null;
+
+        let altDuration: ClientDailySuggestion["estimatedDuration"] = prev.estimatedDuration || "15m";
+        let altTags = ["mindful", "break"];
+
+        if (alternativeText) {
+          const durationMatch = alternativeText.match(/(\d+)\s*(?:minute|min)/i);
+          altDuration = (durationMatch ? `${durationMatch[1]}m` : "10m") as ClientDailySuggestion["estimatedDuration"];
+          if (alternativeText.toLowerCase().includes("stretch")) {
+            altTags = ["stretch", "reset"];
+          }
+        }
+
         return {
           ...prev,
           status: status as ClientDailySuggestion["status"],
           ...(alternativeText
             ? {
                 primarySuggestion: alternativeText,
-                estimatedDuration: prev.estimatedDuration || "15m",
-                categoryTags: ["mindful", "break"],
+                estimatedDuration: altDuration,
+                categoryTags: altTags,
                 supportingContext: "This alternative fits well into your day and matches the current vibe.",
               }
             : {}),
@@ -97,11 +109,11 @@ export default function TodayPage({ router: injectedRouter }: TodayPageProps) {
 
       if (status === "accepted") {
         router.push(
-          `/capture?suggestionId=${suggestion.id}&activity=${encodeURIComponent(suggestion.primarySuggestion)}`
+          `/capture?suggestionId=${suggestion.id}&activity=${encodeURIComponent(alternativeText || suggestion.primarySuggestion)}`
         );
       }
 
-    } catch (_err) {
+    } catch {
       setError("Failed to update suggestion. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -113,13 +125,17 @@ export default function TodayPage({ router: injectedRouter }: TodayPageProps) {
   const handleAlternative = (alt: string) => {
     // When clicking an alternative, update the active suggestion primary text immediately.
     // Pure client-side state selection. Do not dispatch network requests here.
+    const durationMatch = alt.match(/(\d+)\s*(?:minute|min)/i);
+    const durationStr = (durationMatch ? `${durationMatch[1]}m` : "10m") as ClientDailySuggestion["estimatedDuration"];
+    const tags = alt.toLowerCase().includes("stretch") ? ["stretch", "reset"] : ["mindful", "break"];
+
     setSuggestion((prev) => {
       if (!prev) return null;
       return {
         ...prev,
         primarySuggestion: alt,
-        estimatedDuration: prev.estimatedDuration || "15m",
-        categoryTags: ["mindful", "break"],
+        estimatedDuration: durationStr,
+        categoryTags: tags,
         supportingContext: "This alternative fits well into your day and matches the current vibe.",
       };
     });
