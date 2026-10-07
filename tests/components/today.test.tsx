@@ -6,8 +6,6 @@ import React from "react";
 import { render, act, fireEvent } from "@testing-library/react";
 import TodayPage from "../../src/app/(app)/today/page";
 
-
-
 const dom = new JSDOM("<!DOCTYPE html><html><body></body></html>", {
   url: "http://localhost/",
 });
@@ -278,8 +276,6 @@ interface FetchMockCall {
   options?: RequestInit;
 }
 
-
-
 describe("TodayPage Integration Tests", () => {
   let originalFetch: typeof global.fetch;
 
@@ -300,7 +296,15 @@ describe("TodayPage Integration Tests", () => {
     };
 
     act(() => {
-      render(<TodayPage router={{ push: () => {} } as unknown as ReturnType<typeof import("next/navigation").useRouter>} />);
+      render(
+        <TodayPage
+          router={
+            { push: () => {} } as unknown as ReturnType<
+              typeof import("next/navigation").useRouter
+            >
+          }
+        />,
+      );
     });
 
     // Wait for the mock 1s load
@@ -337,7 +341,15 @@ describe("TodayPage Integration Tests", () => {
     };
 
     act(() => {
-      render(<TodayPage router={{ push: () => {} } as unknown as ReturnType<typeof import("next/navigation").useRouter>} />);
+      render(
+        <TodayPage
+          router={
+            { push: () => {} } as unknown as ReturnType<
+              typeof import("next/navigation").useRouter
+            >
+          }
+        />,
+      );
     });
 
     // Wait for the mock 1s load
@@ -370,7 +382,15 @@ describe("TodayPage Integration Tests", () => {
     };
 
     act(() => {
-      render(<TodayPage router={{ push: () => {} } as unknown as ReturnType<typeof import("next/navigation").useRouter>} />);
+      render(
+        <TodayPage
+          router={
+            { push: () => {} } as unknown as ReturnType<
+              typeof import("next/navigation").useRouter
+            >
+          }
+        />,
+      );
     });
 
     // Wait for the mock 1s load
@@ -428,7 +448,15 @@ describe("TodayPage Integration Tests", () => {
     };
 
     act(() => {
-      render(<TodayPage router={{ push: () => {} } as unknown as ReturnType<typeof import("next/navigation").useRouter>} />);
+      render(
+        <TodayPage
+          router={
+            { push: () => {} } as unknown as ReturnType<
+              typeof import("next/navigation").useRouter
+            >
+          }
+        />,
+      );
     });
 
     // Wait for the mock 1s load
@@ -477,7 +505,15 @@ describe("TodayPage Integration Tests", () => {
     };
 
     act(() => {
-      render(<TodayPage router={{ push: () => {} } as unknown as ReturnType<typeof import("next/navigation").useRouter>} />);
+      render(
+        <TodayPage
+          router={
+            { push: () => {} } as unknown as ReturnType<
+              typeof import("next/navigation").useRouter
+            >
+          }
+        />,
+      );
     });
 
     // Wait for the mock 1s load

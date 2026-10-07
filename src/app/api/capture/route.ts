@@ -16,6 +16,14 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    if (
+      body.suggestionId &&
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        body.suggestionId,
+      )
+    ) {
+      body.suggestionId = null;
+    }
     const validationResult = CreateExperienceCaptureInputSchema.safeParse(body);
 
     if (!validationResult.success) {

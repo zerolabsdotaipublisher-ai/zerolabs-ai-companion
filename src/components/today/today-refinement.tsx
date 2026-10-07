@@ -186,7 +186,20 @@ export function TodayRefinement({
               onAdopt && (
                 <button
                   onClick={() => {
-                    onAdopt(msg.content);
+                    if (onAdopt) {
+                      let title = msg.content.replace(
+                        /^(Sure!|Here's an idea:|Okay,|Alright,|Absolutely,|Great idea,)\s*/i,
+                        "",
+                      );
+                      const sentenceMatch = title.match(/^([^\n.]+)/);
+                      if (sentenceMatch) {
+                        title = sentenceMatch[1];
+                      }
+                      if (title.length > 70) {
+                        title = title.substring(0, 67).trim() + "...";
+                      }
+                      onAdopt(title);
+                    }
                     setIsOpen(false);
                   }}
                   className="self-start mt-1 text-xs bg-indigo-100 hover:bg-indigo-200 text-indigo-700 px-3 py-1.5 rounded-lg transition-colors"
