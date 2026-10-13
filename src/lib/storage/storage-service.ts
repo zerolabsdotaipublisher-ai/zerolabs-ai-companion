@@ -76,9 +76,7 @@ class SupabaseStorageService implements StorageProvider {
       return data.path;
     } catch (error) {
       const e = error as Error;
-      throw new Error(
-        `Failed to upload file: ${e.message || "Unknown error"}`,
-      );
+      throw new Error(`Failed to upload file: ${e.message || "Unknown error"}`);
     }
   }
 
@@ -121,9 +119,7 @@ class SupabaseStorageService implements StorageProvider {
       }
     } catch (error) {
       const e = error as Error;
-      throw new Error(
-        `Failed to delete file: ${e.message || "Unknown error"}`,
-      );
+      throw new Error(`Failed to delete file: ${e.message || "Unknown error"}`);
     }
   }
 }

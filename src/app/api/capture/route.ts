@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { CreateExperienceCaptureInputSchema } from "@/lib/ai/types";
 import { saveExperienceCapture } from "@/lib/ai/capture-db";
+import { storageService } from "@/lib/storage/storage-service";
 
 export async function POST(request: Request) {
   try {
@@ -35,7 +36,18 @@ export async function POST(request: Request) {
 
     const capture = await saveExperienceCapture(user.id, validationResult.data);
 
-    return NextResponse.json({ capture }, { status: 201 });
+    let signedUrl: string | null = null;
+    if (capture.mediaMetadata?.storagePath) {
+      try {
+        signedUrl = await storageService.getSignedUrl(
+          capture.mediaMetadata.storagePath,
+        );
+      } catch (err) {
+        console.error("Failed to generate signed URL for saved capture:", err);
+      }
+    }
+
+    return NextResponse.json({ capture, signedUrl }, { status: 201 });
   } catch (error: unknown) {
     console.error("Error creating capture:", error);
     return NextResponse.json(

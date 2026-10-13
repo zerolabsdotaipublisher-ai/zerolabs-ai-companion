@@ -16,31 +16,29 @@ describe("Storage Service", () => {
   describe("validateFileConstraints", () => {
     it("should accept valid MIME types and sizes", () => {
       assert.doesNotThrow(() =>
-        validateFileConstraints("image/jpeg", 5 * 1024 * 1024)
+        validateFileConstraints("image/jpeg", 5 * 1024 * 1024),
       );
       assert.doesNotThrow(() =>
-        validateFileConstraints("image/png", 10 * 1024 * 1024)
+        validateFileConstraints("image/png", 10 * 1024 * 1024),
       );
-      assert.doesNotThrow(() =>
-        validateFileConstraints("image/webp", 1024)
-      );
+      assert.doesNotThrow(() => validateFileConstraints("image/webp", 1024));
     });
 
     it("should reject invalid MIME types", () => {
       assert.throws(
         () => validateFileConstraints("application/pdf", 1024),
-        /Unsupported file type/
+        /Unsupported file type/,
       );
       assert.throws(
         () => validateFileConstraints("image/gif", 1024),
-        /Unsupported file type/
+        /Unsupported file type/,
       );
     });
 
     it("should reject files larger than 10MB", () => {
       assert.throws(
         () => validateFileConstraints("image/jpeg", 10 * 1024 * 1024 + 1),
-        /File too large/
+        /File too large/,
       );
     });
   });
@@ -54,16 +52,21 @@ describe("Storage Service", () => {
     it("should sanitize malicious paths (directory traversal)", () => {
       assert.throws(
         () => generateStoragePath("user-123", "capture-456", "../photo.jpg"),
-        /Invalid filename/
+        /Invalid filename/,
       );
       assert.throws(
-        () => generateStoragePath("user-123", "capture-456", "folder/photo.jpg"),
-        /Invalid filename/
+        () =>
+          generateStoragePath("user-123", "capture-456", "folder/photo.jpg"),
+        /Invalid filename/,
       );
     });
 
     it("should strip invalid characters from filename", () => {
-      const path = generateStoragePath("user-123", "capture-456", "photo @#$%^&.jpg");
+      const path = generateStoragePath(
+        "user-123",
+        "capture-456",
+        "photo @#$%^&.jpg",
+      );
       assert.strictEqual(path, "user-123/capture-456/photo_______.jpg");
     });
   });
@@ -91,7 +94,7 @@ describe("Storage Service", () => {
       const path = await storageService.uploadFile(
         "user/capture/file.jpg",
         new Blob(["test"]),
-        "image/jpeg"
+        "image/jpeg",
       );
       assert.strictEqual(path, "user/capture/file.jpg");
       assert.strictEqual(mockUpload.mock.calls.length, 1);
@@ -164,8 +167,13 @@ describe("Storage Service", () => {
       );
 
       await assert.rejects(
-        () => storageService.uploadFile("user/capture/file.jpg", new Blob(), "image/jpeg"),
-        /Failed to upload file: Storage error/
+        () =>
+          storageService.uploadFile(
+            "user/capture/file.jpg",
+            new Blob(),
+            "image/jpeg",
+          ),
+        /Failed to upload file: Storage error/,
       );
     });
   });

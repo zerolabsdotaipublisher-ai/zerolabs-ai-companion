@@ -15,6 +15,7 @@ function CapturePageContent() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [savedSignedUrl, setSavedSignedUrl] = useState<string | null>(null);
 
   const handleSubmit = async (data: CreateExperienceCaptureInput) => {
     setIsSubmitting(true);
@@ -31,6 +32,11 @@ function CapturePageContent() {
         throw new Error("Failed to save capture");
       }
 
+      const responseData = await response.json();
+      if (responseData.signedUrl) {
+        setSavedSignedUrl(responseData.signedUrl);
+      }
+
       setIsSuccess(true);
     } catch (err) {
       console.error(err);
@@ -43,7 +49,7 @@ function CapturePageContent() {
   if (isSuccess) {
     return (
       <div className="flex-1 flex flex-col justify-center max-w-xl mx-auto w-full px-6">
-        <CaptureSaveState />
+        <CaptureSaveState signedUrl={savedSignedUrl} />
       </div>
     );
   }
