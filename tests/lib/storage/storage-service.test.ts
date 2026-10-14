@@ -178,3 +178,18 @@ describe("Storage Service", () => {
     });
   });
 });
+
+describe("Multi-tenant Isolation and Boundaries", () => {
+  it("should strictly ensure generated path starts with the isolated userId", () => {
+    const path = generateStoragePath(
+      "user-uuid-1",
+      "capture-2",
+      "my-photo.jpg",
+    );
+    assert.strictEqual(
+      path.startsWith("user-uuid-1/"),
+      true,
+      "Path must strictly start with the user's isolated folder",
+    );
+  });
+});
