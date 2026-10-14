@@ -18,12 +18,24 @@ export function CaptureForm({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError(null);
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        setError("File too large. Maximum size is 10MB.");
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        return;
+      }
+      if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+        setError("Unsupported file type. Allowed types are: image/jpeg, image/png, image/webp.");
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        return;
+      }
       if (previewUrl) URL.revokeObjectURL(previewUrl);
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
@@ -63,11 +75,11 @@ export function CaptureForm({
 
         const data = await response.json();
         mediaMetadata = data.mediaMetadata;
-      } catch (error) {
-        console.error("Upload failed", error);
-        // Fallback or show error (in this simple flow we might just proceed without media or abort)
+      } catch (err) {
+        console.error("Upload failed", err);
+        setError("Failed to save experience. Please try again.");
         setIsUploading(false);
-        return; // Alternatively, could show an error toast and abort submission
+        return;
       }
       setIsUploading(false);
     }
@@ -92,6 +104,18 @@ export function CaptureForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col space-y-4 w-full">
+      {error && (
+        <div className="p-4 bg-red-50 text-red-600 rounded-xl text-sm flex items-center justify-between">
+          <span>{error}</span>
+          <button
+            type="button"
+            onClick={() => setError(null)}
+            className="px-3 py-1.5 bg-red-100 hover:bg-red-200 rounded-lg transition-colors font-medium"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
       {previewUrl ? (
         <div className="relative w-full h-48 rounded-2xl overflow-hidden bg-neutral-100 group">
           {/* eslint-disable-next-line @next/next/no-img-element */}
