@@ -283,3 +283,44 @@ describe("Multi-tenant Data Boundaries (Integration)", () => {
     assert.strictEqual(eqCalls[0].arguments[1], "user-1");
   });
 });
+
+it("ensures mediaMetadata is persisted and safely stripped of internal db IDs", async () => {
+  const mockCaptureRow = {
+    id: "capture-1",
+    user_id: "user-1",
+    suggestion_id: "suggestion-1",
+    note_text: "Great photo!",
+    media_metadata: {
+      storagePath: "user-1/capture-1/photo.jpg",
+      mimeType: "image/jpeg",
+      fileSizeBytes: 1024,
+      uploadedAt: "2023-10-27T10:00:00Z",
+    },
+    created_at: "2023-10-27T10:00:00Z",
+  };
+
+  mockSupabase.single.mock.mockImplementationOnce(() => ({
+    data: mockCaptureRow,
+    error: null,
+  }));
+
+  const input = {
+    noteText: "Great photo!",
+    mediaMetadata: {
+      storagePath: "user-1/capture-1/photo.jpg",
+      mimeType: "image/jpeg",
+      fileSizeBytes: 1024,
+      uploadedAt: "2023-10-27T10:00:00Z",
+    },
+  };
+
+  const result = await saveExperienceCapture("user-1", input);
+
+  assert.ok(result.mediaMetadata);
+  assert.strictEqual(
+    result.mediaMetadata.storagePath,
+    "user-1/capture-1/photo.jpg",
+  );
+  assert.strictEqual((result as any).id, undefined);
+  assert.strictEqual((result as any).user_id, undefined);
+});

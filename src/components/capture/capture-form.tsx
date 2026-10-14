@@ -32,7 +32,9 @@ export function CaptureForm({
         return;
       }
       if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-        setError("Unsupported file type. Allowed types are: image/jpeg, image/png, image/webp.");
+        setError(
+          "Unsupported file type. Allowed types are: image/jpeg, image/png, image/webp.",
+        );
         if (fileInputRef.current) fileInputRef.current.value = "";
         return;
       }
