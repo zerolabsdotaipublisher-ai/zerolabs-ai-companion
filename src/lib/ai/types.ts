@@ -181,3 +181,16 @@ export type ClientExperienceCapture = Omit<
   ExperienceCapture,
   "id" | "userId" | "createdAt" | "suggestionId"
 >;
+
+export const MemorySummaryOutputSchema = z.object({
+  summaryText: z.string().min(1).max(280),
+});
+
+export type MemorySummaryOutput = z.infer<typeof MemorySummaryOutputSchema>;
+
+export interface GenerateMemorySummaryInput {
+  id?: string;
+  noteText?: string | null;
+  mediaMetadata?: unknown;
+  suggestionTitle?: string | null;
+}
