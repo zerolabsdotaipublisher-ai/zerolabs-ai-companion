@@ -42,15 +42,20 @@ describe("generateMemorySummary", () => {
     );
 
     // Check that primary key/RLS is NOT in the prompt (as it only contains noteText/etc)
-    const fetchCall = (global.fetch as any).mock.calls[0];
-    const fetchBody = JSON.parse(fetchCall.arguments[1].body);
+    const fetchMock = global.fetch as unknown as ReturnType<typeof mock.fn>;
+    const fetchCall = fetchMock.mock.calls[0];
+    const fetchBody = JSON.parse(
+      (fetchCall.arguments[1] as RequestInit).body as string,
+    );
     const messages = fetchBody.messages;
     assert.ok(
-      messages.some((m: any) =>
+      messages.some((m: { content: string }) =>
         m.content.includes("Saw a beautiful cardinal"),
       ),
     );
-    assert.ok(!messages.some((m: any) => m.content.includes(userId)));
+    assert.ok(
+      !messages.some((m: { content: string }) => m.content.includes(userId)),
+    );
 
     global.fetch = originalFetch;
   });

@@ -194,3 +194,52 @@ export interface GenerateMemorySummaryInput {
   mediaMetadata?: unknown;
   suggestionTitle?: string | null;
 }
+
+export const MediaMetadataRefSchema = z.object({
+  storagePath: z.string().min(1),
+  mimeType: z.enum(["image/jpeg", "image/png", "image/webp"]),
+  fileSizeBytes: z.number().int().positive(),
+  width: z.number().int().positive().optional(),
+  height: z.number().int().positive().optional(),
+  uploadedAt: z.string().datetime(),
+});
+
+export type MediaMetadataRef = z.infer<typeof MediaMetadataRefSchema>;
+
+export const CreateMemoryInputSchema = z.object({
+  captureId: z.string().uuid().describe("UUID referencing captures.id"),
+  suggestionId: z
+    .string()
+    .uuid()
+    .optional()
+    .nullable()
+    .describe("Optional UUID referencing daily_suggestions.id"),
+  summaryText: z
+    .string()
+    .max(280)
+    .trim()
+    .describe(
+      "Concise string representing the AI-generated 1-line memory summary",
+    ),
+  mediaMetadataRef: MediaMetadataRefSchema.optional().nullable(),
+});
+
+export type CreateMemoryInput = z.infer<typeof CreateMemoryInputSchema>;
+
+export const MemorySchema = z.object({
+  id: z.string().uuid(),
+  userId: z.string().uuid().describe("UUID referencing auth.users(id)"),
+  captureId: z.string().uuid().describe("UUID referencing captures.id"),
+  suggestionId: z.string().uuid().optional().nullable(),
+  summaryText: z.string().max(280).trim(),
+  mediaMetadataRef: MediaMetadataRefSchema.optional().nullable(),
+  createdAt: z.string().datetime().describe("UTC TIMESTAMPTZ"),
+  updatedAt: z.string().datetime().describe("UTC TIMESTAMPTZ"),
+});
+
+export type Memory = z.infer<typeof MemorySchema>;
+
+export type ClientMemory = Omit<
+  Memory,
+  "id" | "userId" | "captureId" | "suggestionId" | "createdAt" | "updatedAt"
+>;
