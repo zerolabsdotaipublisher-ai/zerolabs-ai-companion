@@ -166,6 +166,58 @@ export interface Database {
           },
         ];
       };
+      memories: {
+        Row: {
+          id: string;
+          user_id: string;
+          capture_id: string;
+          suggestion_id: string | null;
+          summary_text: string;
+          media_metadata_ref: Json | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          capture_id: string;
+          suggestion_id?: string | null;
+          summary_text: string;
+          media_metadata_ref?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          capture_id?: string;
+          suggestion_id?: string | null;
+          summary_text?: string;
+          media_metadata_ref?: Json | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "memories_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "memories_capture_id_fkey";
+            columns: ["capture_id"];
+            referencedRelation: "captures";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "memories_suggestion_id_fkey";
+            columns: ["suggestion_id"];
+            referencedRelation: "daily_suggestions";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
