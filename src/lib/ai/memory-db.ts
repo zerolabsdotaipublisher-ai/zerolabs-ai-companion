@@ -178,3 +178,110 @@ export async function getMemoryByCaptureId(
     throw e;
   }
 }
+
+export async function updateMemoryText(
+  userId: string,
+  memoryId: string,
+  summaryText: string,
+): Promise<ClientMemory> {
+  if (!summaryText || summaryText.length < 1 || summaryText.length > 280) {
+    throw new Error(
+      "Invalid summary text: must be between 1 and 280 characters",
+    );
+  }
+
+  const supabase = await getSupabaseServerClient();
+
+  try {
+    const { data, error } = await supabase
+      .from("memories")
+      .update({ summary_text: summaryText })
+      .eq("id", memoryId)
+      .eq("user_id", userId)
+      .select()
+      .single();
+
+    if (error) {
+      logger.error(`Error updating memory text: ${error.message}`);
+      throw new Error("Failed to update memory text");
+    }
+
+    if (!data) {
+      throw new Error("Memory not found or not owned by user");
+    }
+
+    return mapRowToClientMemory(data);
+  } catch (error) {
+    const e = error as Error;
+    logger.error("Error in updateMemoryText:", { error: e.message });
+    throw e;
+  }
+}
+
+export async function deleteMemory(
+  userId: string,
+  memoryId: string,
+): Promise<boolean> {
+  const supabase = await getSupabaseServerClient();
+
+  try {
+    const { error } = await supabase
+      .from("memories")
+      .delete()
+      .eq("id", memoryId)
+      .eq("user_id", userId);
+
+    if (error) {
+      logger.error(`Error deleting memory: ${error.message}`);
+      throw new Error("Failed to delete memory");
+    }
+
+    return true;
+  } catch (error) {
+    const e = error as Error;
+    logger.error("Error in deleteMemory:", { error: e.message });
+    throw e;
+  }
+}
+
+export async function getMemoryById(
+  userId: string,
+  memoryId: string,
+): Promise<
+  | (ClientMemory & {
+      captureId: string;
+      suggestionId: string | null;
+      id: string;
+    })
+  | null
+> {
+  const supabase = await getSupabaseServerClient();
+  try {
+    const { data, error } = await supabase
+      .from("memories")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("id", memoryId)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") {
+        return null;
+      }
+      logger.error(`Error fetching memory by ID: ${error.message}`);
+      throw new Error("Failed to fetch memory by ID");
+    }
+
+    const clientMem = mapRowToClientMemory(data);
+    return {
+      ...clientMem,
+      captureId: data.capture_id,
+      suggestionId: data.suggestion_id,
+      id: data.id,
+    };
+  } catch (error) {
+    const e = error as Error;
+    logger.error("Error in getMemoryById:", { error: e.message });
+    throw e;
+  }
+}

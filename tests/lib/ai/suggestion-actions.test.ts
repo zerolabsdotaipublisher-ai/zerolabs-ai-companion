@@ -1,4 +1,4 @@
-import { describe, test, beforeEach, mock, afterEach } from "node:test";
+import { describe, test, beforeEach, mock } from "node:test";
 import assert from "node:assert";
 
 import * as supabaseServerLib from "../../../src/lib/supabase/server";
