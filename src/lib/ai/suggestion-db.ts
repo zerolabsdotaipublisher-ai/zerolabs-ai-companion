@@ -163,3 +163,38 @@ export async function getRecentDailySuggestions(
     };
   }
 }
+
+export async function getSuggestionById(
+  userId: string,
+  suggestionId: string,
+): Promise<ClientDailySuggestion | null> {
+  try {
+    const supabase = await getSupabaseServerClient();
+    const typedSupabase =
+      supabase as unknown as import("@supabase/supabase-js").SupabaseClient<Database>;
+
+    const { data, error } = await typedSupabase
+      .from("daily_suggestions")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("id", suggestionId)
+      .single();
+
+    if (error) {
+      if (error.code === "PGRST116") return null;
+      logger.error("Failed to get suggestion by id", {
+        error,
+        metadata: { userId, suggestionId },
+      });
+      return null;
+    }
+
+    return mapRowToClientSuggestion(data);
+  } catch (error: unknown) {
+    logger.error("Unexpected error getting suggestion by id", {
+      error,
+      metadata: { userId, suggestionId },
+    });
+    return null;
+  }
+}

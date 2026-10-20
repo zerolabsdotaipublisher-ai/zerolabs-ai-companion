@@ -7,6 +7,9 @@ import {
   saveMemory,
   getUserMemories,
   getMemoryByCaptureId,
+  updateMemoryText,
+  deleteMemory,
+  getMemoryById,
 } from "@/lib/ai/memory-db";
 import * as serverClient from "@/lib/supabase/server";
 import { SupabaseClient } from "@supabase/supabase-js";
@@ -213,4 +216,155 @@ test("Memory DB Service Helpers", async (t) => {
       getClientMock.mock.restore();
     },
   );
+
+  await t.test(
+    "updateMemoryText throws on invalid summary length",
+    async () => {
+      await assert.rejects(
+        async () => await updateMemoryText("user-1", "mem-1", ""),
+        /Invalid summary text/,
+      );
+      await assert.rejects(
+        async () => await updateMemoryText("user-1", "mem-1", "a".repeat(281)),
+        /Invalid summary text/,
+      );
+    },
+  );
+
+  await t.test("updateMemoryText calls supabase update", async () => {
+    const mockData = {
+      id: "mem-1",
+      user_id: "user-1",
+      capture_id: "cap-1",
+      suggestion_id: null,
+      summary_text: "new text",
+      media_metadata_ref: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    const eqMock2 = mock.fn(() => ({
+      select: mock.fn(() => ({
+        single: mock.fn(async () => ({
+          data: mockData,
+          error: null,
+        })),
+      })),
+    }));
+    const eqMock1 = mock.fn(() => ({
+      eq: eqMock2,
+    }));
+    const updateMock = mock.fn(() => ({
+      eq: eqMock1,
+    }));
+    const mockSupabase = {
+      from: mock.fn(() => ({
+        update: updateMock,
+      })),
+    } as unknown as SupabaseClient;
+
+    const getClientMock = mock.method(
+      serverClient,
+      "getSupabaseServerClient",
+      async () => mockSupabase,
+    );
+
+    const result = await updateMemoryText("user-1", "mem-1", "new text");
+    assert.equal(result.summaryText, "new text");
+
+    const updateCall = updateMock.mock.calls[0] as { arguments: unknown[] };
+    assert.deepEqual(updateCall.arguments[0], {
+      summary_text: "new text",
+    });
+    const eqCall1Params = eqMock1.mock.calls[0] as { arguments: unknown[] };
+    assert.equal(eqCall1Params.arguments[0], "id");
+    assert.equal(eqCall1Params.arguments[1], "mem-1");
+    const eqCall2Params = eqMock2.mock.calls[0] as { arguments: unknown[] };
+    assert.equal(eqCall2Params.arguments[0], "user_id");
+    assert.equal(eqCall2Params.arguments[1], "user-1");
+
+    getClientMock.mock.restore();
+  });
+
+  await t.test("deleteMemory calls supabase delete", async () => {
+    const eqMock2 = mock.fn(async () => ({
+      error: null,
+    }));
+    const eqMock1 = mock.fn(() => ({
+      eq: eqMock2,
+    }));
+    const deleteMock = mock.fn(() => ({
+      eq: eqMock1,
+    }));
+    const mockSupabase = {
+      from: mock.fn(() => ({
+        delete: deleteMock,
+      })),
+    } as unknown as SupabaseClient;
+
+    const getClientMock = mock.method(
+      serverClient,
+      "getSupabaseServerClient",
+      async () => mockSupabase,
+    );
+
+    const result = await deleteMemory("user-1", "mem-1");
+    assert.equal(result, true);
+
+    const eqCall1Params = eqMock1.mock.calls[0] as { arguments: unknown[] };
+    assert.equal(eqCall1Params.arguments[0], "id");
+    assert.equal(eqCall1Params.arguments[1], "mem-1");
+    const eqCall2Params = eqMock2.mock.calls[0] as { arguments: unknown[] };
+    assert.equal(eqCall2Params.arguments[0], "user_id");
+    assert.equal(eqCall2Params.arguments[1], "user-1");
+
+    getClientMock.mock.restore();
+  });
+
+  await t.test("getMemoryById fetches a specific memory by ID", async () => {
+    const mockData = {
+      id: "mem-1",
+      user_id: "user-1",
+      capture_id: "cap-1",
+      suggestion_id: "sug-1",
+      summary_text: "some text",
+      media_metadata_ref: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    const singleMock = mock.fn(async () => ({
+      data: mockData,
+      error: null,
+    }));
+    const eqMock2 = mock.fn(() => ({
+      single: singleMock,
+    }));
+    const eqMock1 = mock.fn(() => ({
+      eq: eqMock2,
+    }));
+    const selectMock = mock.fn(() => ({
+      eq: eqMock1,
+    }));
+    const mockSupabase = {
+      from: mock.fn(() => ({
+        select: selectMock,
+      })),
+    } as unknown as SupabaseClient;
+
+    const getClientMock = mock.method(
+      serverClient,
+      "getSupabaseServerClient",
+      async () => mockSupabase,
+    );
+
+    const result = await getMemoryById("user-1", "mem-1");
+    assert.ok(result);
+    assert.equal(result?.id, "mem-1");
+    assert.equal(result?.captureId, "cap-1");
+    assert.equal(result?.suggestionId, "sug-1");
+    assert.equal(result?.summaryText, "some text");
+
+    getClientMock.mock.restore();
+  });
 });
