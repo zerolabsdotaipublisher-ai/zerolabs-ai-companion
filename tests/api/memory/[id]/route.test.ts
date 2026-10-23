@@ -110,13 +110,9 @@ describe("Memory API Routes", () => {
         noteText: "My quick note.",
         mediaMetadata: null,
       }));
-      mock.method(
-        suggestionDb,
-        "getSuggestionById",
-        async () => ({
-          primarySuggestion: "Go for a run",
-        }),
-      );
+      mock.method(suggestionDb, "getSuggestionById", async () => ({
+        primarySuggestion: "Go for a run",
+      }));
 
       const genMock = mock.method(
         memoryGenerator,
