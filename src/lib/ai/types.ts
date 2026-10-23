@@ -243,3 +243,15 @@ export type ClientMemory = Omit<
   Memory,
   "id" | "userId" | "captureId" | "suggestionId" | "createdAt" | "updatedAt"
 >;
+
+export const ClientTimelineItemSchema = z.object({
+  id: z.string().uuid(),
+  summaryText: z.string(),
+  displayDate: z.string(),
+  displayTime: z.string(),
+  photoUrl: z.string().optional(),
+  suggestionTitle: z.string().optional(),
+  originType: z.enum(["suggestion", "direct"]),
+});
+
+export type ClientTimelineItem = z.infer<typeof ClientTimelineItemSchema>;

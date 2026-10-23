@@ -6,6 +6,7 @@ import {
   CreateMemoryInput,
   CreateMemoryInputSchema,
   ClientMemory,
+  ClientTimelineItem,
 } from "./types";
 import { Database } from "@/types/database.types";
 
@@ -282,6 +283,110 @@ export async function getMemoryById(
   } catch (error) {
     const e = error as Error;
     logger.error("Error in getMemoryById:", { error: e.message });
+    throw e;
+  }
+}
+
+export async function getTimelineMemories(
+  userId: string,
+): Promise<ClientTimelineItem[]> {
+  const supabase = await getSupabaseServerClient();
+
+  try {
+    const { data: memories, error: memoriesError } = await supabase
+      .from("memories")
+      .select(
+        `
+        id,
+        summary_text,
+        created_at,
+        suggestion_id,
+        media_metadata_ref,
+        captures:capture_id (
+          media_metadata
+        ),
+        daily_suggestions:suggestion_id (
+          primary_suggestion
+        )
+      `,
+      )
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (memoriesError) {
+      logger.error(
+        `Error fetching timeline memories: ${memoriesError.message}`,
+      );
+      throw new Error("Failed to fetch timeline memories");
+    }
+
+    if (!memories || memories.length === 0) {
+      return [];
+    }
+
+    const { storageService } = await import("@/lib/storage/storage-service");
+
+    const timelineItems = await Promise.all(
+      memories.map(async (memory) => {
+        const captureData = memory.captures as unknown as { media_metadata?: unknown }; // Type workaround for join
+        const suggestionData = memory.daily_suggestions as unknown as { primary_suggestion?: string }; // Type workaround for join
+
+        const mediaMeta =
+          memory.media_metadata_ref ||
+          (captureData ? captureData.media_metadata : null);
+        let photoUrl: string | undefined = undefined;
+
+        if (
+          mediaMeta &&
+          typeof mediaMeta === "object" &&
+          "storagePath" in mediaMeta
+        ) {
+          try {
+            photoUrl = await storageService.getSignedUrl(
+              (mediaMeta as { storagePath: string }).storagePath,
+            );
+          } catch (e) {
+            logger.error(
+              `Failed to get signed url for timeline item ${memory.id}: ${e instanceof Error ? e.message : String(e)}`,
+            );
+          }
+        }
+
+        const dateObj = new Date(memory.created_at);
+
+        // We'll format the displayDate and displayTime cleanly
+        // e.g. "Oct 24, 2023" and "3:45 PM"
+        const displayDate = dateObj.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        });
+        const displayTime = dateObj.toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+        });
+
+        let suggestionTitle: string | undefined = undefined;
+        if (suggestionData && suggestionData.primary_suggestion) {
+          suggestionTitle = suggestionData.primary_suggestion;
+        }
+
+        return {
+          id: memory.id,
+          summaryText: memory.summary_text,
+          displayDate,
+          displayTime,
+          photoUrl,
+          suggestionTitle,
+          originType: memory.suggestion_id ? "suggestion" : "direct",
+        } as import("./types").ClientTimelineItem;
+      }),
+    );
+
+    return timelineItems;
+  } catch (error) {
+    const e = error as Error;
+    logger.error("Error in getTimelineMemories:", { error: e.message });
     throw e;
   }
 }
