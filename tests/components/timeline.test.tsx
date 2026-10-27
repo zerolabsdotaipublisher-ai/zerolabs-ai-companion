@@ -16,7 +16,9 @@ mock.module("next/navigation", {
   namedExports: {
     useRouter: () => ({
       refresh: () => {
-        (globalThis as unknown as Record<string, boolean>).__routerRefreshCalled = true;
+        (
+          globalThis as unknown as Record<string, boolean>
+        ).__routerRefreshCalled = true;
       },
     }),
   },
@@ -91,7 +93,8 @@ describe("Timeline Components", () => {
 
   describe("TimelineError", () => {
     it("renders correctly and handles retry click", async () => {
-      (globalThis as unknown as Record<string, boolean>).__routerRefreshCalled = false;
+      (globalThis as unknown as Record<string, boolean>).__routerRefreshCalled =
+        false;
       render(<TimelineError />);
 
       const msg = screen.getByText("We couldn't load your timeline right now.");
@@ -103,7 +106,11 @@ describe("Timeline Components", () => {
         fireEvent.click(btn);
       });
 
-      assert.strictEqual((globalThis as unknown as Record<string, boolean>).__routerRefreshCalled, true);
+      assert.strictEqual(
+        (globalThis as unknown as Record<string, boolean>)
+          .__routerRefreshCalled,
+        true,
+      );
     });
   });
 });

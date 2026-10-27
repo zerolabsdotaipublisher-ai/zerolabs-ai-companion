@@ -328,8 +328,12 @@ export async function getTimelineMemories(
 
     const timelineItems = await Promise.all(
       memories.map(async (memory) => {
-        const captureData = memory.captures as unknown as { media_metadata?: unknown }; // Type workaround for join
-        const suggestionData = memory.daily_suggestions as unknown as { primary_suggestion?: string }; // Type workaround for join
+        const captureData = memory.captures as unknown as {
+          media_metadata?: unknown;
+        }; // Type workaround for join
+        const suggestionData = memory.daily_suggestions as unknown as {
+          primary_suggestion?: string;
+        }; // Type workaround for join
 
         const mediaMeta =
           memory.media_metadata_ref ||
@@ -387,6 +391,113 @@ export async function getTimelineMemories(
   } catch (error) {
     const e = error as Error;
     logger.error("Error in getTimelineMemories:", { error: e.message });
+    throw e;
+  }
+}
+
+export async function getTimelineMemoryDetail(
+  userId: string,
+  memoryId: string,
+): Promise<import("./types").ClientTimelineDetail | null> {
+  const supabase = await getSupabaseServerClient();
+
+  try {
+    const { data: memory, error: memoryError } = await supabase
+      .from("memories")
+      .select(
+        `
+        id,
+        summary_text,
+        created_at,
+        suggestion_id,
+        media_metadata_ref,
+        captures:capture_id (
+          note_text,
+          media_metadata
+        ),
+        daily_suggestions:suggestion_id (
+          primary_suggestion
+        )
+      `,
+      )
+      .eq("id", memoryId)
+      .eq("user_id", userId)
+      .single();
+
+    if (memoryError) {
+      if (memoryError.code === "PGRST116") {
+        return null; // Not found
+      }
+      logger.error(`Error fetching memory detail: ${memoryError.message}`);
+      throw new Error("Failed to fetch memory detail");
+    }
+
+    if (!memory) {
+      return null;
+    }
+
+    const { storageService } = await import("@/lib/storage/storage-service");
+
+    const captureData = memory.captures as unknown as {
+      media_metadata?: unknown;
+      note_text?: string | null;
+    }; // Type workaround for join
+    const suggestionData = memory.daily_suggestions as unknown as {
+      primary_suggestion?: string;
+    }; // Type workaround for join
+
+    const mediaMeta =
+      memory.media_metadata_ref ||
+      (captureData ? captureData.media_metadata : null);
+    let photoUrl: string | undefined = undefined;
+
+    if (
+      mediaMeta &&
+      typeof mediaMeta === "object" &&
+      "storagePath" in mediaMeta
+    ) {
+      try {
+        photoUrl = await storageService.getSignedUrl(
+          (mediaMeta as { storagePath: string }).storagePath,
+        );
+      } catch (e) {
+        logger.error(
+          `Failed to get signed url for detail item ${memory.id}: ${e instanceof Error ? e.message : String(e)}`,
+        );
+      }
+    }
+
+    const dateObj = new Date(memory.created_at);
+
+    // We'll format the displayDate and displayTime cleanly
+    const displayDate = dateObj.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+    const displayTime = dateObj.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+
+    let suggestionTitle: string | undefined = undefined;
+    if (suggestionData && suggestionData.primary_suggestion) {
+      suggestionTitle = suggestionData.primary_suggestion;
+    }
+
+    return {
+      id: memory.id,
+      summaryText: memory.summary_text,
+      noteText: captureData?.note_text || null,
+      displayDate,
+      displayTime,
+      photoUrl,
+      suggestionTitle,
+      originType: memory.suggestion_id ? "suggestion" : "direct",
+    };
+  } catch (error) {
+    const e = error as Error;
+    logger.error("Error in getTimelineMemoryDetail:", { error: e.message });
     throw e;
   }
 }
