@@ -255,3 +255,16 @@ export const ClientTimelineItemSchema = z.object({
 });
 
 export type ClientTimelineItem = z.infer<typeof ClientTimelineItemSchema>;
+
+export const ClientTimelineDetailSchema = z.object({
+  id: z.string().uuid(),
+  summaryText: z.string(),
+  noteText: z.string().nullable().optional(),
+  displayDate: z.string(),
+  displayTime: z.string(),
+  photoUrl: z.string().optional(),
+  suggestionTitle: z.string().optional(),
+  originType: z.enum(["suggestion", "direct"]),
+});
+
+export type ClientTimelineDetail = z.infer<typeof ClientTimelineDetailSchema>;
