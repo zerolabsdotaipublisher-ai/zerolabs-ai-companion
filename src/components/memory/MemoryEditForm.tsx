@@ -3,6 +3,11 @@
 import React, { useState } from "react";
 
 export interface MemoryEditFormProps {
+  router?: {
+    refresh: () => void;
+    push?: (path: string) => void;
+    back?: () => void;
+  };
   memoryId: string;
   initialSummaryText: string;
   captureContext?: {

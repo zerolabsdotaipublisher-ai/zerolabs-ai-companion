@@ -17,8 +17,8 @@ import { CreateMemoryInput } from "@/lib/ai/types";
 
 test("Memory DB Service Helpers", async (t) => {
   const userId = "user-123";
-  const captureId = "00000000-0000-0000-0000-000000000001";
-  const suggestionId = "00000000-0000-0000-0000-000000000002";
+  const captureId = "00000000-0000-4000-8000-000000000001";
+  const suggestionId = "00000000-0000-4000-8000-000000000002";
 
   const dbRow = {
     id: "mem-123",

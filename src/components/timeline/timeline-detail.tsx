@@ -10,8 +10,18 @@ interface TimelineDetailProps {
   memory: ClientTimelineDetail;
 }
 
-export function TimelineDetail({ memory }: TimelineDetailProps) {
-  const router = useRouter();
+export function TimelineDetail({
+  memory,
+  router: injectedRouter,
+}: TimelineDetailProps & {
+  router?: {
+    refresh: () => void;
+    push: (path: string) => void;
+    back: () => void;
+  };
+}) {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const router = injectedRouter || useRouter();
 
   const [isEditing, setIsEditing] = useState(false);
   const [summaryText, setSummaryText] = useState(memory.summaryText);
