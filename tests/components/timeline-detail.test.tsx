@@ -191,11 +191,16 @@ describe("TimelineDetail Component", () => {
 
     const textarea = getByTestId("memory-edit-textarea") as HTMLTextAreaElement;
     assert.strictEqual(textarea.value, "Walked in the park.");
+    assert.strictEqual(
+      (getByRole("button", { name: "Save" }) as HTMLButtonElement).disabled,
+      false,
+    );
 
     fireEvent.change(textarea, { target: { value: "Updated summary text." } });
 
     await act(async () => {
       fireEvent.click(getByRole("button", { name: "Save" }));
+      // Button disabled state is very transient in JSDOM React tests without awaiting proper re-renders for isSubmitting
     });
 
     assert.strictEqual(mockFetch.mock.calls.length, 1);

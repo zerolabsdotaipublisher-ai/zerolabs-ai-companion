@@ -102,6 +102,7 @@ describe("Timeline Components", () => {
       );
 
       const summary1 = getByText("Walked in the park.");
+      assert.equal(queryByTestId("suggestion-pill-1"), null); // Should be null for direct capture
       const summary2 = getByText("Completed a focus session.");
       assert.ok(summary1);
       assert.ok(summary2);
@@ -110,6 +111,7 @@ describe("Timeline Components", () => {
       assert.ok(dateText);
 
       const suggestionPill = getByText("Deep Work");
+      assert.equal(suggestionPill.textContent, "Deep Work"); // Suggestion linked capture
       assert.ok(suggestionPill);
     });
 

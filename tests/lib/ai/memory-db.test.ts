@@ -286,6 +286,51 @@ test("Memory DB Service Helpers", async (t) => {
     getClientMock.mock.restore();
   });
 
+  await t.test(
+    "rejects cross-tenant operations via RLS simulation",
+    async () => {
+      // We already use mockSupabase which acts like an RLS enforced context since it passes auth.uid() properly.
+      // However, to explicitly document it for tests:
+      const mockSupabase = {
+        from: mock.fn(() => ({
+          select: mock.fn(() => ({
+            eq: mock.fn(() => ({
+              eq: mock.fn(() => ({
+                single: mock.fn(async () => ({
+                  data: null,
+                  error: { code: "PGRST116" }, // Simulated RLS rejecting cross-tenant read
+                })),
+              })),
+            })),
+          })),
+          delete: mock.fn(() => ({
+            eq: mock.fn(() => ({
+              eq: mock.fn(async () => ({
+                error: { code: "403", message: "RLS violation" },
+              })),
+            })),
+          })),
+        })),
+      } as unknown as SupabaseClient;
+
+      const getClientMock = mock.method(
+        serverClient,
+        "getSupabaseServerClient",
+        async () => mockSupabase,
+      );
+
+      const result = await getMemoryById("user-1", "mem-other-tenant");
+      assert.equal(result, null);
+
+      await assert.rejects(
+        async () => await deleteMemory("user-1", "mem-other-tenant"),
+        /Failed to delete memory/,
+      );
+
+      getClientMock.mock.restore();
+    },
+  );
+
   await t.test("deleteMemory calls supabase delete", async () => {
     const eqMock2 = mock.fn(async () => ({
       error: null,

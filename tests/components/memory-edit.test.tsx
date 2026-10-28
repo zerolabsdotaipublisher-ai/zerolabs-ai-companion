@@ -135,7 +135,7 @@ describe("MemoryEditForm", () => {
     );
 
     fireEvent.click(getByText("Edit"));
-    const textarea = getByTestId("memory-edit-textarea");
+    const textarea = getByTestId("memory-edit-textarea") as HTMLTextAreaElement;
 
     // Try to save empty
     await act(async () => {

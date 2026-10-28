@@ -80,6 +80,19 @@ describe("Memory API Routes", () => {
   });
 
   describe("DELETE /api/memory/[id]", () => {
+    test("rejects unauthorized users (RLS simulation) for DELETE", async () => {
+      mockSupabase.auth.getUser = mock.fn(async () => ({
+        data: { user: null },
+        error: new Error("Unauthorized"),
+      }));
+
+      const req = new Request("http://localhost", { method: "DELETE" });
+      const params = Promise.resolve({ id: "mem-1" });
+
+      const res = await DELETE(req, { params });
+      assert.equal(res.status, 401);
+    });
+
     test("deletes memory via deleteMemory keeping capture intact (source preservation)", async () => {
       const deleteMock = mock.method(
         memoryDb,
