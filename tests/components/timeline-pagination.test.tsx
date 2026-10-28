@@ -191,7 +191,7 @@ describe("Timeline Pagination", () => {
       fireEvent.click(loadMoreBtn);
     });
 
-    assert.strictEqual(loadMoreBtn.disabled, true);
+    assert.strictEqual(loadMoreBtn.disabled, true); // Assert in-flight state locking
 
     const skeletons = container.querySelectorAll(".animate-pulse");
     assert.ok(skeletons.length > 0);

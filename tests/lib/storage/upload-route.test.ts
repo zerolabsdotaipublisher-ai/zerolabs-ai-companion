@@ -3,6 +3,7 @@ import "server-only";
 import { describe, it, mock, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
 import { POST } from "../../../src/app/api/capture/upload/route";
+import { storageService } from "../../../src/lib/storage/storage-service";
 import * as serverClient from "../../../src/lib/supabase/server";
 
 describe("Upload Route", () => {
@@ -99,9 +100,10 @@ describe("Upload Route", () => {
   });
 
   it("returns 500 on upload failure", async () => {
-    mockSupabase.storage.from.mock.mockImplementationOnce(() => ({
-      upload: async () => ({ data: null, error: new Error("Storage Error") }),
-    }));
+    mock.method(storageService, "uploadFile", async () => {
+      throw new Error("Storage Error");
+    });
+
     const formData = new FormData();
     formData.append(
       "file",
