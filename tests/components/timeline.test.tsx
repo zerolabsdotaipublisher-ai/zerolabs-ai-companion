@@ -8,21 +8,22 @@ import {
   fireEvent,
 } from "@testing-library/react";
 import React from "react";
+import { JSDOM } from "jsdom";
+const dom = new JSDOM("<!doctype html><html><body></body></html>", {
+  url: "http://localhost",
+});
+global.window = dom.window as unknown as Window & typeof globalThis;
+(globalThis as unknown as Record<string, unknown>).self = global.window;
+global.document = dom.window.document;
+Object.defineProperty(global, "navigator", {
+  value: dom.window.navigator,
+  writable: true,
+  configurable: true,
+});
+
 import { TimelineList } from "@/components/timeline/timeline-list";
 import { TimelineError } from "@/components/timeline/timeline-error";
 import { ClientTimelineItem } from "@/lib/ai/types";
-
-mock.module("next/navigation", {
-  namedExports: {
-    useRouter: () => ({
-      refresh: () => {
-        (
-          globalThis as unknown as Record<string, boolean>
-        ).__routerRefreshCalled = true;
-      },
-    }),
-  },
-});
 
 // Setup global fetch and standard JSDOM mocks for React tests
 if (typeof global.matchMedia === "undefined") {
@@ -47,7 +48,7 @@ const mockMemories: ClientTimelineItem[] = [
     summaryText: "Completed a focus session.",
     displayDate: "Oct 25, 2023",
     displayTime: "10:00 AM",
-    photoUrl: "https://example.com/photo.jpg",
+    photoUrl: "/photo.jpg",
     suggestionTitle: "Deep Work",
     originType: "suggestion",
   },
@@ -60,32 +61,80 @@ describe("Timeline Components", () => {
 
   describe("TimelineList Rendering", () => {
     it("should render calm empty state when there are no memories", () => {
-      render(<TimelineList memories={[]} />);
-      const text = screen.getByText(
-        /Your timeline will quietly collect moments/i,
+      const {
+        getByText,
+        getByAltText,
+        queryByTestId,
+        getAllByText,
+        queryByText,
+        getByPlaceholderText,
+        getByRole,
+        getByLabelText,
+        container,
+      } = render(
+        <TimelineList
+          initialData={{ items: [], hasMore: false, nextCursor: null }}
+        />,
       );
+      const text = getByText(/Your timeline will quietly collect moments/i);
       assert.ok(text, "Empty state text should be visible");
     });
 
     it("should render memories correctly", () => {
-      render(<TimelineList memories={mockMemories} />);
+      const {
+        getByText,
+        getByAltText,
+        queryByTestId,
+        getAllByText,
+        queryByText,
+        getByPlaceholderText,
+        getByRole,
+        getByLabelText,
+        container,
+      } = render(
+        <TimelineList
+          initialData={{
+            items: mockMemories,
+            hasMore: false,
+            nextCursor: null,
+          }}
+        />,
+      );
 
-      const summary1 = screen.getByText("Walked in the park.");
-      const summary2 = screen.getByText("Completed a focus session.");
+      const summary1 = getByText("Walked in the park.");
+      const summary2 = getByText("Completed a focus session.");
       assert.ok(summary1);
       assert.ok(summary2);
 
-      const dateText = screen.getByText(/Oct 24, 2023.*3:45 PM/i);
+      const dateText = getByText(/Oct 24, 2023.*3:45 PM/i);
       assert.ok(dateText);
 
-      const suggestionPill = screen.getByText("Deep Work");
+      const suggestionPill = getByText("Deep Work");
       assert.ok(suggestionPill);
     });
 
     it("should render photo attachment if present", () => {
-      render(<TimelineList memories={[mockMemories[1]]} />);
+      const {
+        getByText,
+        getByAltText,
+        queryByTestId,
+        getAllByText,
+        queryByText,
+        getByPlaceholderText,
+        getByRole,
+        getByLabelText,
+        container,
+      } = render(
+        <TimelineList
+          initialData={{
+            items: [mockMemories[1]],
+            hasMore: false,
+            nextCursor: null,
+          }}
+        />,
+      );
 
-      const img = screen.getByAltText("Memory attachment") as HTMLImageElement;
+      const img = getByAltText("Memory attachment") as HTMLImageElement;
       assert.ok(img);
       assert.match(img.src, /photo\.jpg/);
     });
@@ -95,12 +144,32 @@ describe("Timeline Components", () => {
     it("renders correctly and handles retry click", async () => {
       (globalThis as unknown as Record<string, boolean>).__routerRefreshCalled =
         false;
-      render(<TimelineError />);
+      const {
+        getByText,
+        getByAltText,
+        queryByTestId,
+        getAllByText,
+        queryByText,
+        getByPlaceholderText,
+        getByRole,
+        getByLabelText,
+        container,
+      } = render(
+        <TimelineError
+          router={{
+            refresh: () => {
+              (
+                globalThis as unknown as Record<string, boolean>
+              ).__routerRefreshCalled = true;
+            },
+          }}
+        />,
+      );
 
-      const msg = screen.getByText("We couldn't load your timeline right now.");
+      const msg = getByText("We couldn't load your timeline right now.");
       assert.ok(msg);
 
-      const btn = screen.getByRole("button", { name: /try again/i });
+      const btn = getByRole("button", { name: /try again/i });
 
       act(() => {
         fireEvent.click(btn);

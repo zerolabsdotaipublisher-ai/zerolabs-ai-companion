@@ -7,6 +7,9 @@ import {
   CreateMemoryInputSchema,
   ClientMemory,
   ClientTimelineItem,
+  TimelineQueryInput,
+  TimelineQueryInputSchema,
+  TimelineResponse,
 } from "./types";
 import { Database } from "@/types/database.types";
 
@@ -289,11 +292,16 @@ export async function getMemoryById(
 
 export async function getTimelineMemories(
   userId: string,
-): Promise<ClientTimelineItem[]> {
+  input?: TimelineQueryInput,
+): Promise<TimelineResponse> {
   const supabase = await getSupabaseServerClient();
 
   try {
-    const { data: memories, error: memoriesError } = await supabase
+    const validatedInput = TimelineQueryInputSchema.parse(input || {});
+    const limit = validatedInput.limit;
+    const fetchLimit = limit + 1; // Fetch one extra to determine hasMore
+
+    let query = supabase
       .from("memories")
       .select(
         `
@@ -310,8 +318,33 @@ export async function getTimelineMemories(
         )
       `,
       )
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false });
+      .eq("user_id", userId);
+
+    if (validatedInput.cursor) {
+      try {
+        const decoded = JSON.parse(
+          Buffer.from(validatedInput.cursor, "base64").toString("utf-8"),
+        );
+        if (decoded.createdAt && decoded.id) {
+          query = query.or(
+            `created_at.lt.${decoded.createdAt},and(created_at.eq.${decoded.createdAt},id.lt.${decoded.id})`,
+          );
+        }
+      } catch (e) {
+        logger.error("Failed to decode cursor:", { error: e });
+      }
+    }
+
+    if (validatedInput.suggestionId) {
+      query = query.eq("suggestion_id", validatedInput.suggestionId);
+    }
+
+    query = query
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .limit(fetchLimit);
+
+    const { data: memories, error: memoriesError } = await query;
 
     if (memoriesError) {
       logger.error(
@@ -321,13 +354,28 @@ export async function getTimelineMemories(
     }
 
     if (!memories || memories.length === 0) {
-      return [];
+      return {
+        items: [],
+        nextCursor: null,
+        hasMore: false,
+      };
+    }
+
+    const hasMore = memories.length > limit;
+    const itemsToProcess = hasMore ? memories.slice(0, limit) : memories;
+
+    let nextCursor: string | null = null;
+    if (hasMore) {
+      const lastItem = itemsToProcess[itemsToProcess.length - 1];
+      nextCursor = Buffer.from(
+        JSON.stringify({ createdAt: lastItem.created_at, id: lastItem.id }),
+      ).toString("base64");
     }
 
     const { storageService } = await import("@/lib/storage/storage-service");
 
     const timelineItems = await Promise.all(
-      memories.map(async (memory) => {
+      itemsToProcess.map(async (memory) => {
         const captureData = memory.captures as unknown as {
           media_metadata?: unknown;
         }; // Type workaround for join
@@ -351,7 +399,9 @@ export async function getTimelineMemories(
             );
           } catch (e) {
             logger.error(
-              `Failed to get signed url for timeline item ${memory.id}: ${e instanceof Error ? e.message : String(e)}`,
+              `Failed to get signed url for timeline item ${
+                memory.id
+              }: ${e instanceof Error ? e.message : String(e)}`,
             );
           }
         }
@@ -383,11 +433,15 @@ export async function getTimelineMemories(
           photoUrl,
           suggestionTitle,
           originType: memory.suggestion_id ? "suggestion" : "direct",
-        } as import("./types").ClientTimelineItem;
+        } as ClientTimelineItem;
       }),
     );
 
-    return timelineItems;
+    return {
+      items: timelineItems,
+      nextCursor,
+      hasMore,
+    };
   } catch (error) {
     const e = error as Error;
     logger.error("Error in getTimelineMemories:", { error: e.message });

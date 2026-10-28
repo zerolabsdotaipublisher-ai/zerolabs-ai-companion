@@ -2,8 +2,11 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function TimelineError() {
-  const router = useRouter();
+export function TimelineError({
+  router: injectedRouter,
+}: { router?: { refresh: () => void } } = {}) {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const router = injectedRouter || useRouter();
   const [isRetrying, setIsRetrying] = useState(false);
 
   const handleRetry = () => {

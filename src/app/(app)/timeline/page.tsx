@@ -37,14 +37,14 @@ async function TimelineData() {
     );
   }
 
-  let memories: import("@/lib/ai/types").ClientTimelineItem[] = [];
+  let timelineResponse: import("@/lib/ai/types").TimelineResponse | null = null;
   try {
-    memories = await getTimelineMemories(user.id);
+    timelineResponse = await getTimelineMemories(user.id, { limit: 10 });
   } catch (error) {
     logger.error("Failed to load timeline data", { error });
     return <TimelineError />;
   }
-  return <TimelineList memories={memories} />;
+  return <TimelineList initialData={timelineResponse!} />;
 }
 
 export default async function TimelinePage() {

@@ -268,3 +268,26 @@ export const ClientTimelineDetailSchema = z.object({
 });
 
 export type ClientTimelineDetail = z.infer<typeof ClientTimelineDetailSchema>;
+
+export const TimelineQueryInputSchema = z.object({
+  limit: z.number().int().min(1).max(20).default(10),
+  cursor: z
+    .string()
+    .optional()
+    .describe("Keyset cursor: composite of created_at and id"),
+  suggestionId: z
+    .string()
+    .uuid()
+    .optional()
+    .describe("Filter by specific suggestion"),
+});
+
+export type TimelineQueryInput = z.infer<typeof TimelineQueryInputSchema>;
+
+export const TimelineResponseSchema = z.object({
+  items: z.array(ClientTimelineItemSchema),
+  nextCursor: z.string().nullable(),
+  hasMore: z.boolean(),
+});
+
+export type TimelineResponse = z.infer<typeof TimelineResponseSchema>;

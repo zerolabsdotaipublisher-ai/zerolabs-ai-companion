@@ -1,0 +1,2059 @@
+
+> zerolabs-ai-companion@0.1.0 test
+> node scripts/run-tests.mjs
+
+TAP version 13
+# Subtest: exchanges the callback code and redirects to a safe post-auth route
+ok 1 - exchanges the callback code and redirects to a safe post-auth route
+  ---
+  duration_ms: 189.185455
+  type: 'test'
+  ...
+# Subtest: redirects signup callback failures back to signup with a safe error
+ok 2 - redirects signup callback failures back to signup with a safe error
+  ---
+  duration_ms: 1.48825
+  type: 'test'
+  ...
+# Subtest: reports authenticated and unauthenticated client auth states
+ok 3 - reports authenticated and unauthenticated client auth states
+  ---
+  duration_ms: 1.218319
+  type: 'test'
+  ...
+# Subtest: redirects signed-out users away from protected routes
+ok 4 - redirects signed-out users away from protected routes
+  ---
+  duration_ms: 1.332393
+  type: 'test'
+  ...
+# Subtest: does not redirect signed-out users away from unrelated public pages
+ok 5 - does not redirect signed-out users away from unrelated public pages
+  ---
+  duration_ms: 0.210088
+  type: 'test'
+  ...
+# Subtest: redirects signed-in users away from auth entry routes
+ok 6 - redirects signed-in users away from auth entry routes
+  ---
+  duration_ms: 0.268374
+  type: 'test'
+  ...
+# Subtest: avoids unnecessary refresh work when the initial session matches the current public UI
+ok 7 - avoids unnecessary refresh work when the initial session matches the current public UI
+  ---
+  duration_ms: 0.20488
+  type: 'test'
+  ...
+# Subtest: refreshes authenticated UI on non-initial auth updates without redirecting public routes
+ok 8 - refreshes authenticated UI on non-initial auth updates without redirecting public routes
+  ---
+  duration_ms: 0.24821
+  type: 'test'
+  ...
+# Subtest: uses redirectTo from the logout JSON response when it is a safe internal path
+ok 9 - uses redirectTo from the logout JSON response when it is a safe internal path
+  ---
+  duration_ms: 1.4081
+  type: 'test'
+  ...
+# Subtest: falls back to /login when the logout JSON response is missing redirectTo
+ok 10 - falls back to /login when the logout JSON response is missing redirectTo
+  ---
+  duration_ms: 0.25626
+  type: 'test'
+  ...
+# Subtest: falls back to /login when the logout JSON response contains an invalid redirectTo
+ok 11 - falls back to /login when the logout JSON response contains an invalid redirectTo
+  ---
+  duration_ms: 0.191133
+  type: 'test'
+  ...
+# Subtest: falls back to /login when the logout redirect candidate itself is missing
+ok 12 - falls back to /login when the logout redirect candidate itself is missing
+  ---
+  duration_ms: 0.173637
+  type: 'test'
+  ...
+# Subtest: falls back to /login for backslash-based redirect values that normalize into external paths
+ok 13 - falls back to /login for backslash-based redirect values that normalize into external paths
+  ---
+  duration_ms: 0.205035
+  type: 'test'
+  ...
+# Subtest: preserves valid internal logout redirect paths after normalization
+ok 14 - preserves valid internal logout redirect paths after normalization
+  ---
+  duration_ms: 0.2278
+  type: 'test'
+  ...
+# Subtest: allows same-origin auth requests when the origin header matches
+ok 15 - allows same-origin auth requests when the origin header matches
+  ---
+  duration_ms: 39.610099
+  type: 'test'
+  ...
+# Subtest: allows same-origin auth requests when only the referer header matches
+ok 16 - allows same-origin auth requests when only the referer header matches
+  ---
+  duration_ms: 0.493702
+  type: 'test'
+  ...
+# Subtest: allows same-origin auth requests when fetch metadata marks them same-origin
+ok 17 - allows same-origin auth requests when fetch metadata marks them same-origin
+  ---
+  duration_ms: 1.519762
+  type: 'test'
+  ...
+# Subtest: allows state-changing auth requests with the trusted client header
+ok 18 - allows state-changing auth requests with the trusted client header
+  ---
+  duration_ms: 0.37547
+  type: 'test'
+  ...
+# Subtest: allows same-origin auth requests when the trusted client header accompanies matching origin metadata
+ok 19 - allows same-origin auth requests when the trusted client header accompanies matching origin metadata
+  ---
+  duration_ms: 0.758129
+  type: 'test'
+  ...
+# Subtest: allows auth requests that match the configured canonical app origin in proxy deployments
+ok 20 - allows auth requests that match the configured canonical app origin in proxy deployments
+  ---
+  duration_ms: 0.370447
+  type: 'test'
+  ...
+# Subtest: allows forwarded auth origins only when explicitly trusted
+ok 21 - allows forwarded auth origins only when explicitly trusted
+  ---
+  duration_ms: 0.748756
+  type: 'test'
+  ...
+# Subtest: allows canonical same-origin auth requests when proxy forwarded headers are present but untrusted
+ok 22 - allows canonical same-origin auth requests when proxy forwarded headers are present but untrusted
+  ---
+  duration_ms: 0.401292
+  type: 'test'
+  ...
+# Subtest: rejects empty x-forwarded-host metadata when trust is enabled
+ok 23 - rejects empty x-forwarded-host metadata when trust is enabled
+  ---
+  duration_ms: 1.043662
+  type: 'test'
+  ...
+# Subtest: rejects empty x-forwarded-proto metadata when trust is enabled
+ok 24 - rejects empty x-forwarded-proto metadata when trust is enabled
+  ---
+  duration_ms: 0.709222
+  type: 'test'
+  ...
+# Subtest: rejects x-forwarded-host values that start with a comma
+ok 25 - rejects x-forwarded-host values that start with a comma
+  ---
+  duration_ms: 0.432081
+  type: 'test'
+  ...
+# Subtest: rejects x-forwarded-proto values that start with a comma
+ok 26 - rejects x-forwarded-proto values that start with a comma
+  ---
+  duration_ms: 0.251049
+  type: 'test'
+  ...
+# Subtest: rejects partial forwarded metadata when trust is enabled
+ok 27 - rejects partial forwarded metadata when trust is enabled
+  ---
+  duration_ms: 0.272433
+  type: 'test'
+  ...
+# Subtest: does not widen allowed origins from forwarded headers when trust is disabled
+ok 28 - does not widen allowed origins from forwarded headers when trust is disabled
+  ---
+  duration_ms: 0.192084
+  type: 'test'
+  ...
+# Subtest: rejects malformed forwarded metadata
+ok 29 - rejects malformed forwarded metadata
+  ---
+  duration_ms: 0.447735
+  type: 'test'
+  ...
+# Subtest: rejects forwarded host values containing a scheme
+ok 30 - rejects forwarded host values containing a scheme
+  ---
+  duration_ms: 0.241698
+  type: 'test'
+  ...
+# Subtest: rejects forwarded host values containing path, query, or fragment data
+ok 31 - rejects forwarded host values containing path, query, or fragment data
+  ---
+  duration_ms: 0.288859
+  type: 'test'
+  ...
+# Subtest: rejects forwarded host values containing username or password
+ok 32 - rejects forwarded host values containing username or password
+  ---
+  duration_ms: 0.227315
+  type: 'test'
+  ...
+# Subtest: rejects invalid forwarded proto values even when the origin header is otherwise same-origin
+ok 33 - rejects invalid forwarded proto values even when the origin header is otherwise same-origin
+  ---
+  duration_ms: 0.217684
+  type: 'test'
+  ...
+# Subtest: rejects cross-origin auth requests even when the trusted client header is present
+ok 34 - rejects cross-origin auth requests even when the trusted client header is present
+  ---
+  duration_ms: 3.419833
+  type: 'test'
+  ...
+# Subtest: rejects state-changing auth requests without origin metadata
+ok 35 - rejects state-changing auth requests without origin metadata
+  ---
+  duration_ms: 0.541868
+  type: 'test'
+  ...
+# Subtest: retains optional missing-header behavior for non-auth callers
+ok 36 - retains optional missing-header behavior for non-auth callers
+  ---
+  duration_ms: 0.146564
+  type: 'test'
+  ...
+# Subtest: builds auth callback URLs from the active request origin
+ok 37 - builds auth callback URLs from the active request origin
+  ---
+  duration_ms: 1.31592
+  type: 'test'
+  ...
+# Subtest: falls back to the configured app URL for invalid callback request URLs
+ok 38 - falls back to the configured app URL for invalid callback request URLs
+  ---
+  duration_ms: 0.305932
+  type: 'test'
+  ...
+# Subtest: uses the authenticated app route after successful auth callbacks
+ok 39 - uses the authenticated app route after successful auth callbacks
+  ---
+  duration_ms: 0.245024
+  type: 'test'
+  ...
+# Subtest: builds login redirects for protected server routes with normalized search params
+ok 40 - builds login redirects for protected server routes with normalized search params
+  ---
+  duration_ms: 1.769334
+  type: 'test'
+  ...
+# Subtest: treats only a validated user and session pair as an authenticated server session
+ok 41 - treats only a validated user and session pair as an authenticated server session
+  ---
+  duration_ms: 0.275195
+  type: 'test'
+  ...
+# Subtest: detects Supabase session cookies, including chunked cookies used for logout cleanup
+ok 42 - detects Supabase session cookies, including chunked cookies used for logout cleanup
+  ---
+  duration_ms: 2.504066
+  type: 'test'
+  ...
+# Subtest: treats login and auth endpoints as public while keeping protected routes guarded
+ok 43 - treats login and auth endpoints as public while keeping protected routes guarded
+  ---
+  duration_ms: 0.609208
+  type: 'test'
+  ...
+# Subtest: matches protected app routes without treating unrelated paths as protected
+ok 44 - matches protected app routes without treating unrelated paths as protected
+  ---
+  duration_ms: 0.278096
+  type: 'test'
+  ...
+# Subtest: preserves only safe post-auth redirects and avoids auth loops
+ok 45 - preserves only safe post-auth redirects and avoids auth loops
+  ---
+  duration_ms: 0.521475
+  type: 'test'
+  ...
+# Subtest: falls back safely when redirect URL parsing throws
+ok 46 - falls back safely when redirect URL parsing throws
+  ---
+  duration_ms: 0.268551
+  type: 'test'
+  ...
+# Subtest: serializes dashboard search params before building auth redirects
+ok 47 - serializes dashboard search params before building auth redirects
+  ---
+  duration_ms: 2.574748
+  type: 'test'
+  ...
+# Subtest: skips static assets from auth protection checks
+ok 48 - skips static assets from auth protection checks
+  ---
+  duration_ms: 0.638437
+  type: 'test'
+  ...
+# Subtest: creates an identity profile after auth signup
+ok 49 - creates an identity profile after auth signup
+  ---
+  duration_ms: 3.255723
+  type: 'test'
+  ...
+# Subtest: rolls back the auth user when identity profile creation fails
+ok 50 - rolls back the auth user when identity profile creation fails
+  ---
+  duration_ms: 1.507433
+  type: 'test'
+  ...
+# Subtest: avoids creating duplicate identity profiles when one already exists
+ok 51 - avoids creating duplicate identity profiles when one already exists
+  ---
+  duration_ms: 0.354354
+  type: 'test'
+  ...
+# Subtest: returns the existing profile when concurrent signup hits a duplicate insert
+ok 52 - returns the existing profile when concurrent signup hits a duplicate insert
+  ---
+  duration_ms: 0.540278
+  type: 'test'
+  ...
+# Subtest: logs a clear migration diagnostic when identity_profiles is missing
+ok 53 - logs a clear migration diagnostic when identity_profiles is missing
+  ---
+  duration_ms: 0.646396
+  type: 'test'
+  ...
+# Subtest: converts thrown profile lookup errors into a safe rollback failure
+ok 54 - converts thrown profile lookup errors into a safe rollback failure
+  ---
+  duration_ms: 0.566427
+  type: 'test'
+  ...
+# Subtest: converts thrown profile insert errors into the existing safe failure flow
+ok 55 - converts thrown profile insert errors into the existing safe failure flow
+  ---
+  duration_ms: 0.724236
+  type: 'test'
+  ...
+# Subtest: returns a consistent failure when auth user rollback throws
+ok 56 - returns a consistent failure when auth user rollback throws
+  ---
+  duration_ms: 1.609659
+  type: 'test'
+  ...
+# Subtest: keeps the signup route failure response generic when provisioning fails
+ok 57 - keeps the signup route failure response generic when provisioning fails
+  ---
+  duration_ms: 117.087993
+  type: 'test'
+  ...
+# Subtest: uses the request origin for signup email confirmation callbacks
+ok 58 - uses the request origin for signup email confirmation callbacks
+  ---
+  duration_ms: 197.818825
+  type: 'test'
+  ...
+# Subtest: CaptureForm - Photo Integration
+    # Subtest: renders photo attachment button initially
+    ok 1 - renders photo attachment button initially
+      ---
+      duration_ms: 49.63913
+      type: 'test'
+      ...
+    # Subtest: selecting a photo renders the pre-save preview image and buttons
+    ok 2 - selecting a photo renders the pre-save preview image and buttons
+      ---
+      duration_ms: 42.478104
+      type: 'test'
+      ...
+    # Subtest: tapping Remove clears the selected photo
+    ok 3 - tapping Remove clears the selected photo
+      ---
+      duration_ms: 19.810442
+      type: 'test'
+      ...
+    # Subtest: submitting a capture locks form controls during upload and delegates mediaMetadata
+    ok 4 - submitting a capture locks form controls during upload and delegates mediaMetadata
+      ---
+      duration_ms: 25.415797
+      type: 'test'
+      ...
+    # Subtest: submitting without a photo calls onSubmit with mediaMetadata: null
+    ok 5 - submitting without a photo calls onSubmit with mediaMetadata: null
+      ---
+      duration_ms: 6.995199
+      type: 'test'
+      ...
+    # Subtest: rejects invalid file types and sizes with non-destructive client error banners
+    ok 6 - rejects invalid file types and sizes with non-destructive client error banners
+      ---
+      duration_ms: 32.548198
+      type: 'test'
+      ...
+# Upload failed Error: Failed to upload file
+#     at handleSubmit (/app/.test-dist/src/components/capture/capture-form.js:63:27)
+    # Subtest: displays inline error recovery banner when network drops during upload without crashing
+    ok 7 - displays inline error recovery banner when network drops during upload without crashing
+      ---
+      duration_ms: 17.777818
+      type: 'test'
+      ...
+    # Subtest: disables all inputs when isSubmitting is true (in-flight upload state locking)
+    ok 8 - disables all inputs when isSubmitting is true (in-flight upload state locking)
+      ---
+      duration_ms: 5.330889
+      type: 'test'
+      ...
+    1..8
+ok 59 - CaptureForm - Photo Integration
+  ---
+  duration_ms: 202.118379
+  type: 'suite'
+  ...
+# Subtest: rendered DOM strictly avoids leaking raw storage paths or DB metadata
+ok 60 - rendered DOM strictly avoids leaking raw storage paths or DB metadata
+  ---
+  duration_ms: 23.23202
+  type: 'test'
+  ...
+# Subtest: CaptureForm - Submission
+    # Subtest: submits correctly for spontaneous capture (empty note)
+    ok 1 - submits correctly for spontaneous capture (empty note)
+      ---
+      duration_ms: 288.388904
+      type: 'test'
+      ...
+# TypeError: activeElement$1.attachEvent is not a function
+#     at handleEventsForInputEventPolyfill (/app/node_modules/react-dom/cjs/react-dom-client.development.js:3573:27)
+#     at /app/node_modules/react-dom/cjs/react-dom-client.development.js:19638:15
+#     at batchedUpdates$1 (/app/node_modules/react-dom/cjs/react-dom-client.development.js:3255:40)
+#     at dispatchEventForPluginEventSystem (/app/node_modules/react-dom/cjs/react-dom-client.development.js:19320:7)
+#     at dispatchEvent (/app/node_modules/react-dom/cjs/react-dom-client.development.js:23585:11)
+#     at dispatchDiscreteEvent (/app/node_modules/react-dom/cjs/react-dom-client.development.js:23553:11)
+#     at HTMLDivElement.callTheUserObjectsOperation (/app/node_modules/jsdom/lib/generated/idl/EventListener.js:26:30)
+#     at innerInvokeEventListeners (/app/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:360:16)
+#     at invokeEventListeners (/app/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:296:3)
+#     at HTMLTextAreaElementImpl._dispatch (/app/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:243:9)
+# TypeError: activeElement$1.detachEvent is not a function
+#     at stopWatchingForValueChange (/app/node_modules/react-dom/cjs/react-dom-client.development.js:3546:26)
+#     at handleEventsForInputEventPolyfill (/app/node_modules/react-dom/cjs/react-dom-client.development.js:3574:42)
+#     at /app/node_modules/react-dom/cjs/react-dom-client.development.js:19638:15
+#     at batchedUpdates$1 (/app/node_modules/react-dom/cjs/react-dom-client.development.js:3255:40)
+#     at dispatchEventForPluginEventSystem (/app/node_modules/react-dom/cjs/react-dom-client.development.js:19320:7)
+#     at dispatchEvent (/app/node_modules/react-dom/cjs/react-dom-client.development.js:23585:11)
+#     at dispatchDiscreteEvent (/app/node_modules/react-dom/cjs/react-dom-client.development.js:23553:11)
+#     at HTMLDivElement.callTheUserObjectsOperation (/app/node_modules/jsdom/lib/generated/idl/EventListener.js:26:30)
+#     at innerInvokeEventListeners (/app/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:360:16)
+#     at invokeEventListeners (/app/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:296:3)
+    # Subtest: submits correctly for linked capture with note text
+    ok 2 - submits correctly for linked capture with note text
+      ---
+      duration_ms: 150.22913
+      type: 'test'
+      ...
+    # Subtest: disables inputs when isSubmitting is true
+    ok 3 - disables inputs when isSubmitting is true
+      ---
+      duration_ms: 5.98686
+      type: 'test'
+      ...
+    1..3
+ok 61 - CaptureForm - Submission
+  ---
+  duration_ms: 446.619639
+  type: 'suite'
+  ...
+# Subtest: CaptureForm - Basics
+    # Subtest: renders capture form and textarea correctly
+    ok 1 - renders capture form and textarea correctly
+      ---
+      duration_ms: 50.097614
+      type: 'test'
+      ...
+# TypeError: activeElement$1.attachEvent is not a function
+#     at handleEventsForInputEventPolyfill (/app/node_modules/react-dom/cjs/react-dom-client.development.js:3573:27)
+#     at /app/node_modules/react-dom/cjs/react-dom-client.development.js:19638:15
+#     at batchedUpdates$1 (/app/node_modules/react-dom/cjs/react-dom-client.development.js:3255:40)
+#     at dispatchEventForPluginEventSystem (/app/node_modules/react-dom/cjs/react-dom-client.development.js:19320:7)
+#     at dispatchEvent (/app/node_modules/react-dom/cjs/react-dom-client.development.js:23585:11)
+#     at dispatchDiscreteEvent (/app/node_modules/react-dom/cjs/react-dom-client.development.js:23553:11)
+#     at HTMLDivElement.callTheUserObjectsOperation (/app/node_modules/jsdom/lib/generated/idl/EventListener.js:26:30)
+#     at innerInvokeEventListeners (/app/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:360:16)
+#     at invokeEventListeners (/app/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:296:3)
+#     at HTMLTextAreaElementImpl._dispatch (/app/node_modules/jsdom/lib/jsdom/living/events/EventTarget-impl.js:243:9)
+    # Subtest: handles text input and enforces length bounds visually
+    ok 2 - handles text input and enforces length bounds visually
+      ---
+      duration_ms: 299.734359
+      type: 'test'
+      ...
+    1..2
+ok 62 - CaptureForm - Basics
+  ---
+  duration_ms: 351.498095
+  type: 'suite'
+  ...
+# Subtest: Chat Components
+    # Subtest: ChatMessageList renders empty state
+    ok 1 - ChatMessageList renders empty state
+      ---
+      duration_ms: 43.167355
+      type: 'test'
+      ...
+    # Subtest: ChatMessageList renders messages
+    ok 2 - ChatMessageList renders messages
+      ---
+      duration_ms: 5.884691
+      type: 'test'
+      ...
+    # Subtest: ChatInput handles change and enter key
+    ok 3 - ChatInput handles change and enter key # SKIP
+      ---
+      duration_ms: 0.128223
+      type: 'test'
+      ...
+    # Subtest: SendButton triggers click and gets disabled
+    ok 4 - SendButton triggers click and gets disabled
+      ---
+      duration_ms: 222.85443
+      type: 'test'
+      ...
+    # Subtest: ChatPage integration - handles successful message send with streaming
+    ok 5 - ChatPage integration - handles successful message send with streaming # SKIP
+      ---
+      duration_ms: 0.355039
+      type: 'test'
+      ...
+    # Subtest: ChatPage integration - handles stream cancellation
+    ok 6 - ChatPage integration - handles stream cancellation # SKIP
+      ---
+      duration_ms: 0.215332
+      type: 'test'
+      ...
+    # Subtest: ChatPage integration - handles API error response correctly and retries
+    ok 7 - ChatPage integration - handles API error response correctly and retries # SKIP
+      ---
+      duration_ms: 0.419706
+      type: 'test'
+      ...
+    # Subtest: ChatPage integration - handles empty history hydration on mount
+    ok 8 - ChatPage integration - handles empty history hydration on mount
+      ---
+      duration_ms: 53.393535
+      type: 'test'
+      ...
+    # Subtest: ChatSidebar renders conversations and handles clicks
+    ok 9 - ChatSidebar renders conversations and handles clicks
+      ---
+      duration_ms: 10.574683
+      type: 'test'
+      ...
+    # Subtest: ChatPage integration - handles sending a new message and updates conversation list
+    ok 10 - ChatPage integration - handles sending a new message and updates conversation list # SKIP
+      ---
+      duration_ms: 0.322262
+      type: 'test'
+      ...
+    # Subtest: ChatPage integration - handles New Chat button click
+    ok 11 - ChatPage integration - handles New Chat button click
+      ---
+      duration_ms: 54.147413
+      type: 'test'
+      ...
+    # Subtest: ChatPage integration - disables history hydration on mount, shows empty state, and populates sidebar
+    ok 12 - ChatPage integration - disables history hydration on mount, shows empty state, and populates sidebar
+      ---
+      duration_ms: 28.951217
+      type: 'test'
+      ...
+    1..12
+ok 63 - Chat Components
+  ---
+  duration_ms: 423.24419
+  type: 'suite'
+  ...
+# Subtest: MemoryEditForm
+    # Subtest: renders initial read-only state correctly
+    ok 1 - renders initial read-only state correctly
+      ---
+      duration_ms: 51.324083
+      type: 'test'
+      ...
+    # Subtest: enters edit mode and cancels correctly
+    ok 2 - enters edit mode and cancels correctly
+      ---
+      duration_ms: 30.891984
+      type: 'test'
+      ...
+    # Subtest: validates summary length before saving
+    not ok 3 - validates summary length before saving
+      ---
+      duration_ms: 16.118524
+      type: 'test'
+      location: '/app/.test-dist/tests/components/memory-edit.test.js:64:24'
+      failureType: 'testCodeFailure'
+      error: |-
+        The expression evaluated to a falsy value:
+
+          ok(getByText("Save").disabled)
+
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: true
+      actual: false
+      operator: '=='
+      stack: |-
+        TestContext.<anonymous> (/app/.test-dist/tests/components/memory-edit.test.js:74:31)
+        Test.runInAsyncScope (node:async_hooks:214:14)
+        Test.run (node:internal/test_runner/test:1047:25)
+        process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+      ...
+    1..3
+not ok 64 - MemoryEditForm
+  ---
+  duration_ms: 100.157488
+  type: 'suite'
+  location: '/app/.test-dist/tests/components/memory-edit.test.js:24:26'
+  failureType: 'subtestsFailed'
+  error: '1 subtest failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: TimelineDetail Component
+    # Subtest: renders simple memory correctly
+    ok 1 - renders simple memory correctly
+      ---
+      duration_ms: 78.992948
+      type: 'test'
+      ...
+    # Subtest: renders memory with note, photo, and suggestion title
+    ok 2 - renders memory with note, photo, and suggestion title
+      ---
+      duration_ms: 43.732035
+      type: 'test'
+      ...
+    # Subtest: handles edit and save successfully
+    ok 3 - handles edit and save successfully
+      ---
+      duration_ms: 207.389782
+      type: 'test'
+      ...
+    # Subtest: handles delete successfully
+    ok 4 - handles delete successfully
+      ---
+      duration_ms: 30.454331
+      type: 'test'
+      ...
+    # Subtest: handles regenerate successfully
+    ok 5 - handles regenerate successfully
+      ---
+      duration_ms: 53.410626
+      type: 'test'
+      ...
+    1..5
+ok 65 - TimelineDetail Component
+  ---
+  duration_ms: 416.66999
+  type: 'suite'
+  ...
+# Subtest: Timeline Pagination
+    # Subtest: renders initial items and Load More button when hasMore is true
+    ok 1 - renders initial items and Load More button when hasMore is true
+      ---
+      duration_ms: 69.434108
+      type: 'test'
+      ...
+    # Subtest: fetches more items, appends them chronologically, and deduplicates
+    ok 2 - fetches more items, appends them chronologically, and deduplicates
+      ---
+      duration_ms: 48.331839
+      type: 'test'
+      ...
+    # Subtest: locks controls and shows skeleton during fetch
+    ok 3 - locks controls and shows skeleton during fetch
+      ---
+      duration_ms: 34.701195
+      type: 'test'
+      ...
+    # Subtest: displays error banner and preserves items on failure
+    ok 4 - displays error banner and preserves items on failure
+      ---
+      duration_ms: 18.043866
+      type: 'test'
+      ...
+    1..4
+ok 66 - Timeline Pagination
+  ---
+  duration_ms: 172.709736
+  type: 'suite'
+  ...
+# Subtest: Timeline Components
+    # Subtest: TimelineList Rendering
+        # Subtest: should render calm empty state when there are no memories
+        ok 1 - should render calm empty state when there are no memories
+          ---
+          duration_ms: 52.114889
+          type: 'test'
+          ...
+        # Subtest: should render memories correctly
+        ok 2 - should render memories correctly
+          ---
+          duration_ms: 53.126841
+          type: 'test'
+          ...
+        # Subtest: should render photo attachment if present
+        ok 3 - should render photo attachment if present
+          ---
+          duration_ms: 14.453472
+          type: 'test'
+          ...
+        1..3
+    ok 1 - TimelineList Rendering
+      ---
+      duration_ms: 120.807681
+      type: 'suite'
+      ...
+    # Subtest: TimelineError
+        # Subtest: renders correctly and handles retry click
+        ok 1 - renders correctly and handles retry click
+          ---
+          duration_ms: 141.539448
+          type: 'test'
+          ...
+        1..1
+    ok 2 - TimelineError
+      ---
+      duration_ms: 142.004857
+      type: 'suite'
+      ...
+    1..2
+ok 67 - Timeline Components
+  ---
+  duration_ms: 263.704548
+  type: 'suite'
+  ...
+# Subtest: Today UI Components
+    # Subtest: TodaySuggestionCard renders correctly
+    ok 1 - TodaySuggestionCard renders correctly
+      ---
+      duration_ms: 41.011625
+      type: 'test'
+      ...
+    # Subtest: TodayAlternatives toggles correctly
+    ok 2 - TodayAlternatives toggles correctly
+      ---
+      duration_ms: 23.77505
+      type: 'test'
+      ...
+    # Subtest: TodayAlternatives handles disabled state correctly
+    ok 3 - TodayAlternatives handles disabled state correctly
+      ---
+      duration_ms: 11.601774
+      type: 'test'
+      ...
+    # Subtest: TodayActions callbacks and disabled state
+    ok 4 - TodayActions callbacks and disabled state
+      ---
+      duration_ms: 7.635139
+      type: 'test'
+      ...
+    # Subtest: TodaySkeleton renders without crashing
+    ok 5 - TodaySkeleton renders without crashing
+      ---
+      duration_ms: 6.090946
+      type: 'test'
+      ...
+    # Subtest: TodayEmptyState renders with default message
+    ok 6 - TodayEmptyState renders with default message
+      ---
+      duration_ms: 5.409534
+      type: 'test'
+      ...
+    # Subtest: TodayRefinement handles UI interactions properly
+    ok 7 - TodayRefinement handles UI interactions properly
+      ---
+      duration_ms: 17.570693
+      type: 'test'
+      ...
+    1..7
+ok 68 - Today UI Components
+  ---
+  duration_ms: 114.809569
+  type: 'suite'
+  ...
+# Subtest: TodayPage Integration Tests
+    # Subtest: TodayPage handles Accept correctly
+    ok 1 - TodayPage handles Accept correctly
+      ---
+      duration_ms: 1115.959259
+      type: 'test'
+      ...
+    # Subtest: TodayPage handles Skip correctly
+    ok 2 - TodayPage handles Skip correctly
+      ---
+      duration_ms: 1116.553424
+      type: 'test'
+      ...
+    # Subtest: TodayPage handles Error State on failed status update
+    ok 3 - TodayPage handles Error State on failed status update
+      ---
+      duration_ms: 1113.349781
+      type: 'test'
+      ...
+    # Subtest: TodayPage handles Conversational Refinement correctly
+    ok 4 - TodayPage handles Conversational Refinement correctly
+      ---
+      duration_ms: 1124.447209
+      type: 'test'
+      ...
+    # Subtest: TodayPage handles Alternatives correctly
+    ok 5 - TodayPage handles Alternatives correctly
+      ---
+      duration_ms: 1113.86547
+      type: 'test'
+      ...
+    1..5
+ok 69 - TodayPage Integration Tests
+  ---
+  duration_ms: 5584.991282
+  type: 'suite'
+  ...
+# Subtest: returns default companion preferences when the profile row is missing
+ok 70 - returns default companion preferences when the profile row is missing
+  ---
+  duration_ms: 2.538705
+  type: 'test'
+  ...
+# Subtest: updates companion preferences with sanitized values
+ok 71 - updates companion preferences with sanitized values
+  ---
+  duration_ms: 1.59137
+  type: 'test'
+  ...
+# Subtest: creates a missing profile before updating companion preferences
+ok 72 - creates a missing profile before updating companion preferences
+  ---
+  duration_ms: 0.850563
+  type: 'test'
+  ...
+# Subtest: rejects invalid companion preference enum values
+ok 73 - rejects invalid companion preference enum values
+  ---
+  duration_ms: 1.053637
+  type: 'test'
+  ...
+# Subtest: builds a safe companion preference context without ai_context data
+ok 74 - builds a safe companion preference context without ai_context data
+  ---
+  duration_ms: 0.35034
+  type: 'test'
+  ...
+# Subtest: maps identity profile records into editable form values
+ok 75 - maps identity profile records into editable form values
+  ---
+  duration_ms: 2.198336
+  type: 'test'
+  ...
+# Subtest: rejects invalid profile form values with field errors
+ok 76 - rejects invalid profile form values with field errors
+  ---
+  duration_ms: 25.1572
+  type: 'test'
+  ...
+# Subtest: builds normalized update values for valid profile input
+ok 77 - builds normalized update values for valid profile input
+  ---
+  duration_ms: 1.404062
+  type: 'test'
+  ...
+# Subtest: blocks unauthenticated profile update requests
+ok 78 - blocks unauthenticated profile update requests
+  ---
+  duration_ms: 135.704198
+  type: 'test'
+  ...
+# Subtest: rejects invalid profile update input before writing to Supabase
+ok 79 - rejects invalid profile update input before writing to Supabase
+  ---
+  duration_ms: 26.53306
+  type: 'test'
+  ...
+# Subtest: ignores client user_id overrides when updating profile preferences
+ok 80 - ignores client user_id overrides when updating profile preferences
+  ---
+  duration_ms: 3.821702
+  type: 'test'
+  ...
+# Subtest: preserves omitted companion preference fields during partial profile updates
+ok 81 - preserves omitted companion preference fields during partial profile updates
+  ---
+  duration_ms: 2.61607
+  type: 'test'
+  ...
+# Subtest: builds identity profile upsert values with MVP defaults
+ok 82 - builds identity profile upsert values with MVP defaults
+  ---
+  duration_ms: 2.450719
+  type: 'test'
+  ...
+# Subtest: preserves provided identity profile defaults
+ok 83 - preserves provided identity profile defaults
+  ---
+  duration_ms: 0.56544
+  type: 'test'
+  ...
+# Subtest: replaces malformed companion preference defaults during upsert normalization
+ok 84 - replaces malformed companion preference defaults during upsert normalization
+  ---
+  duration_ms: 0.275074
+  type: 'test'
+  ...
+# Subtest: allows identity profile access only for the authenticated user
+ok 85 - allows identity profile access only for the authenticated user
+  ---
+  duration_ms: 0.336445
+  type: 'test'
+  ...
+# Subtest: loads the authenticated user's identity profile
+ok 86 - loads the authenticated user's identity profile
+  ---
+  duration_ms: 0.425806
+  type: 'test'
+  ...
+# Subtest: updates the authenticated user's profile without upserting a duplicate record
+ok 87 - updates the authenticated user's profile without upserting a duplicate record
+  ---
+  duration_ms: 0.46526
+  type: 'test'
+  ...
+# Subtest: rejects profile updates for a different authenticated user
+ok 88 - rejects profile updates for a different authenticated user
+  ---
+  duration_ms: 0.765502
+  type: 'test'
+  ...
+# Subtest: Experience Capture Database Service
+    # Subtest: saveExperienceCapture
+        # Subtest: successfully saves a suggestion-linked capture
+        ok 1 - successfully saves a suggestion-linked capture
+          ---
+          duration_ms: 3.604545
+          type: 'test'
+          ...
+        # Subtest: successfully saves a spontaneous capture (no suggestionId)
+        ok 2 - successfully saves a spontaneous capture (no suggestionId)
+          ---
+          duration_ms: 0.737911
+          type: 'test'
+          ...
+        # Subtest: rejects input with overly long noteText
+        ok 3 - rejects input with overly long noteText
+          ---
+          duration_ms: 1.816414
+          type: 'test'
+          ...
+        # Subtest: throws error if userId is missing
+        ok 4 - throws error if userId is missing
+          ---
+          duration_ms: 0.601484
+          type: 'test'
+          ...
+        # Subtest: throws error if supabase fails to insert
+        ok 5 - throws error if supabase fails to insert
+          ---
+          duration_ms: 0.782238
+          type: 'test'
+          ...
+        1..5
+    ok 1 - saveExperienceCapture
+      ---
+      duration_ms: 8.823644
+      type: 'suite'
+      ...
+    # Subtest: getUserCaptures
+        # Subtest: returns an array of sanitized captures
+        ok 1 - returns an array of sanitized captures
+          ---
+          duration_ms: 0.679291
+          type: 'test'
+          ...
+        # Subtest: throws error if userId is missing
+        ok 2 - throws error if userId is missing
+          ---
+          duration_ms: 0.291271
+          type: 'test'
+          ...
+        # Subtest: throws error if supabase fails to select
+        ok 3 - throws error if supabase fails to select
+          ---
+          duration_ms: 0.497112
+          type: 'test'
+          ...
+        1..3
+    ok 2 - getUserCaptures
+      ---
+      duration_ms: 1.889338
+      type: 'suite'
+      ...
+    # Subtest: getCaptureById
+        # Subtest: returns a sanitized capture by ID
+        ok 1 - returns a sanitized capture by ID
+          ---
+          duration_ms: 0.754959
+          type: 'test'
+          ...
+        # Subtest: returns null if capture not found (PGRST116)
+        ok 2 - returns null if capture not found (PGRST116)
+          ---
+          duration_ms: 0.426736
+          type: 'test'
+          ...
+        # Subtest: throws error if supabase fails with other error
+        ok 3 - throws error if supabase fails with other error
+          ---
+          duration_ms: 0.397551
+          type: 'test'
+          ...
+        # Subtest: throws error if userId is missing
+        ok 4 - throws error if userId is missing
+          ---
+          duration_ms: 0.256651
+          type: 'test'
+          ...
+        # Subtest: throws error if captureId is missing
+        ok 5 - throws error if captureId is missing
+          ---
+          duration_ms: 0.243934
+          type: 'test'
+          ...
+        1..5
+    ok 3 - getCaptureById
+      ---
+      duration_ms: 2.425027
+      type: 'suite'
+      ...
+    1..3
+ok 89 - Experience Capture Database Service
+  ---
+  duration_ms: 13.90338
+  type: 'suite'
+  ...
+# Subtest: Multi-tenant Data Boundaries (Integration)
+    # Subtest: ensures getUserCaptures strictly limits scope to user_id param
+    ok 1 - ensures getUserCaptures strictly limits scope to user_id param
+      ---
+      duration_ms: 0.480143
+      type: 'test'
+      ...
+    1..1
+ok 90 - Multi-tenant Data Boundaries (Integration)
+  ---
+  duration_ms: 0.58311
+  type: 'suite'
+  ...
+# Subtest: ensures mediaMetadata is persisted and safely stripped of internal db IDs
+ok 91 - ensures mediaMetadata is persisted and safely stripped of internal db IDs
+  ---
+  duration_ms: 1.660726
+  type: 'test'
+  ...
+# Subtest: Context Builder
+    # Subtest: returns default context when user is not found or error occurs
+    ok 1 - returns default context when user is not found or error occurs
+      ---
+      duration_ms: 2.320147
+      type: 'test'
+      ...
+    # Subtest: strips raw database fields and internal metadata from the context output
+    ok 2 - strips raw database fields and internal metadata from the context output
+      ---
+      duration_ms: 1.661445
+      type: 'test'
+      ...
+    # Subtest: translates normal user profiles successfully
+    ok 3 - translates normal user profiles successfully
+      ---
+      duration_ms: 0.345145
+      type: 'test'
+      ...
+    # Subtest: handles malformed JSON preferences defensively with defaults
+    ok 4 - handles malformed JSON preferences defensively with defaults
+      ---
+      duration_ms: 0.944047
+      type: 'test'
+      ...
+    # Subtest: handles primitive JSON preferences (string, number, boolean) defensively with defaults
+    ok 5 - handles primitive JSON preferences (string, number, boolean) defensively with defaults
+      ---
+      duration_ms: 0.781271
+      type: 'test'
+      ...
+    # Subtest: handles missing (null/undefined) JSON preferences with defaults
+    ok 6 - handles missing (null/undefined) JSON preferences with defaults
+      ---
+      duration_ms: 0.438132
+      type: 'test'
+      ...
+    1..6
+ok 92 - Context Builder
+  ---
+  duration_ms: 8.207519
+  type: 'suite'
+  ...
+# {"level":"error","message":"Failed to create conversation","timestamp":"2026-10-27T10:07:13.989Z","metadata":{"userId":"user1"},"error":{"name":"Error","message":"DB Insert Failed","stack":"Error: DB Insert Failed\\n    at Object.single (/app/.test-dist/tests/lib/ai/db-service.test.js:53:57)\\n    at Object.createConversation (/app/.test-dist/src/lib/ai/db-service.js:23:14)\\n    at async TestContext.<anonymous> (/app/.test-dist/tests/lib/ai/db-service.test.js:116:24)\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\n    at async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)"}}
+# {"level":"error","message":"Failed to get conversation messages","timestamp":"2026-10-27T10:07:13.997Z","metadata":{"conversationId":"conv1"},"error":{"name":"Error","message":"Read Failed","stack":"Error: Read Failed\\n    at resolveMock (/app/.test-dist/tests/lib/ai/db-service.test.js:79:57)\\n    at Object.range (/app/.test-dist/tests/lib/ai/db-service.test.js:84:44)\\n    at Object.getConversationMessages (/app/.test-dist/src/lib/ai/db-service.js:125:14)\\n    at async TestContext.<anonymous> (/app/.test-dist/tests/lib/ai/db-service.test.js:180:24)\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\n    at async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)"}}
+# {"level":"error","message":"Failed to get user conversations","timestamp":"2026-10-27T10:07:13.998Z","metadata":{"userId":"user1"},"error":{"name":"Error","message":"Read Failed","stack":"Error: Read Failed\\n    at resolveMock (/app/.test-dist/tests/lib/ai/db-service.test.js:79:57)\\n    at Object.then (/app/.test-dist/tests/lib/ai/db-service.test.js:89:52)"}}
+# Subtest: Database Service
+    # Subtest: createConversation - success
+    ok 1 - createConversation - success
+      ---
+      duration_ms: 3.292681
+      type: 'test'
+      ...
+    # Subtest: createConversation - error
+    ok 2 - createConversation - error
+      ---
+      duration_ms: 2.408825
+      type: 'test'
+      ...
+    # Subtest: saveUserMessage - success
+    ok 3 - saveUserMessage - success
+      ---
+      duration_ms: 0.56168
+      type: 'test'
+      ...
+    # Subtest: saveAssistantMessage - success
+    ok 4 - saveAssistantMessage - success
+      ---
+      duration_ms: 2.572825
+      type: 'test'
+      ...
+    # Subtest: getConversationMessages - chronological sorting
+    ok 5 - getConversationMessages - chronological sorting
+      ---
+      duration_ms: 1.08986
+      type: 'test'
+      ...
+    # Subtest: getLatestConversation - returns null when no conversation exists
+    ok 6 - getLatestConversation - returns null when no conversation exists
+      ---
+      duration_ms: 0.826204
+      type: 'test'
+      ...
+    # Subtest: getConversationMessages - error
+    ok 7 - getConversationMessages - error
+      ---
+      duration_ms: 0.762037
+      type: 'test'
+      ...
+    # Subtest: getUserConversations - success
+    ok 8 - getUserConversations - success
+      ---
+      duration_ms: 0.563301
+      type: 'test'
+      ...
+    # Subtest: getUserConversations - error
+    ok 9 - getUserConversations - error
+      ---
+      duration_ms: 0.839862
+      type: 'test'
+      ...
+    1..9
+ok 93 - Database Service
+  ---
+  duration_ms: 14.99291
+  type: 'suite'
+  ...
+# Subtest: Memory DB Service Helpers
+    # Subtest: saveMemory inserts new memory and strips internal metadata
+    ok 1 - saveMemory inserts new memory and strips internal metadata
+      ---
+      duration_ms: 3.310025
+      type: 'test'
+      ...
+    # Subtest: saveMemory handles idempotency (updates existing row on capture_id match)
+    ok 2 - saveMemory handles idempotency (updates existing row on capture_id match)
+      ---
+      duration_ms: 0.837152
+      type: 'test'
+      ...
+    # Subtest: getUserMemories returns memories mapped to ClientMemory
+    ok 3 - getUserMemories returns memories mapped to ClientMemory
+      ---
+      duration_ms: 0.576138
+      type: 'test'
+      ...
+    # Subtest: getMemoryByCaptureId fetches a memory successfully
+    ok 4 - getMemoryByCaptureId fetches a memory successfully
+      ---
+      duration_ms: 0.59489
+      type: 'test'
+      ...
+    # Subtest: getMemoryByCaptureId returns null gracefully if no memory exists
+    ok 5 - getMemoryByCaptureId returns null gracefully if no memory exists
+      ---
+      duration_ms: 0.589342
+      type: 'test'
+      ...
+    # Subtest: updateMemoryText throws on invalid summary length
+    ok 6 - updateMemoryText throws on invalid summary length
+      ---
+      duration_ms: 1.015726
+      type: 'test'
+      ...
+    # Subtest: updateMemoryText calls supabase update
+    ok 7 - updateMemoryText calls supabase update
+      ---
+      duration_ms: 1.664672
+      type: 'test'
+      ...
+    # Subtest: deleteMemory calls supabase delete
+    ok 8 - deleteMemory calls supabase delete
+      ---
+      duration_ms: 0.721416
+      type: 'test'
+      ...
+    # Subtest: getMemoryById fetches a specific memory by ID
+    ok 9 - getMemoryById fetches a specific memory by ID
+      ---
+      duration_ms: 0.875779
+      type: 'test'
+      ...
+    1..9
+ok 94 - Memory DB Service Helpers
+  ---
+  duration_ms: 13.437213
+  type: 'test'
+  ...
+# {"level":"error","message":"OpenAI API request timed out","timestamp":"2026-10-27T10:07:14.169Z"}
+# {"level":"error","message":"OpenAI API error: 429 Too Many Requests","timestamp":"2026-10-27T10:07:14.171Z"}
+# {"level":"error","message":"Error communicating with OpenAI for memory generation","timestamp":"2026-10-27T10:07:14.172Z","error":{"name":"SyntaxError","message":"Unexpected token 'i', \\"invalid json string\\" is not valid JSON","stack":"SyntaxError: Unexpected token 'i', \\"invalid json string\\" is not valid JSON\\n    at JSON.parse (<anonymous>)\\n    at generateMemorySummary (/app/.test-dist/src/lib/ai/memory-generator.js:85:33)\\n    at async TestContext.<anonymous> (/app/.test-dist/tests/lib/ai/memory-generator.test.js:97:24)\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\n    at async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)"}}
+# {"level":"error","message":"OpenAI API error: undefined undefined","timestamp":"2026-10-27T10:07:14.173Z"}
+# Subtest: generateMemorySummary
+    # Subtest: successfully generates summary for capture with note
+    ok 1 - successfully generates summary for capture with note
+      ---
+      duration_ms: 3.565133
+      type: 'test'
+      ...
+    # Subtest: handles timeout by returning fallback
+    ok 2 - handles timeout by returning fallback
+      ---
+      duration_ms: 1.864921
+      type: 'test'
+      ...
+    # Subtest: handles 429 rate limit by returning fallback
+    ok 3 - handles 429 rate limit by returning fallback
+      ---
+      duration_ms: 0.58033
+      type: 'test'
+      ...
+    # Subtest: handles malformed JSON by returning fallback
+    ok 4 - handles malformed JSON by returning fallback
+      ---
+      duration_ms: 0.98303
+      type: 'test'
+      ...
+    # Subtest: handles empty capture properly with fallback
+    ok 5 - handles empty capture properly with fallback
+      ---
+      duration_ms: 0.49549
+      type: 'test'
+      ...
+    1..5
+ok 95 - generateMemorySummary
+  ---
+  duration_ms: 9.094776
+  type: 'suite'
+  ...
+# Subtest: processConversation
+    # Subtest: calls buildPromptContext, composePrompt, and generateConversationResponse
+    ok 1 - calls buildPromptContext, composePrompt, and generateConversationResponse
+      ---
+      duration_ms: 3.848493
+      type: 'test'
+      ...
+    # Subtest: handles errors from buildPromptContext
+    ok 2 - handles errors from buildPromptContext
+      ---
+      duration_ms: 2.608887
+      type: 'test'
+      ...
+    # Subtest: passes correct history and context to composePrompt
+    ok 3 - passes correct history and context to composePrompt
+      ---
+      duration_ms: 1.408919
+      type: 'test'
+      ...
+    # Subtest: handles errors from composePrompt
+    ok 4 - handles errors from composePrompt
+      ---
+      duration_ms: 1.190031
+      type: 'test'
+      ...
+    # Subtest: gracefully falls back to empty history if DB returns empty array or conversationId is null
+    ok 5 - gracefully falls back to empty history if DB returns empty array or conversationId is null
+      ---
+      duration_ms: 1.067401
+      type: 'test'
+      ...
+    # Subtest: returns generateConversationResponse result even if it's an error object
+    ok 6 - returns generateConversationResponse result even if it's an error object
+      ---
+      duration_ms: 0.755615
+      type: 'test'
+      ...
+    1..6
+ok 96 - processConversation
+  ---
+  duration_ms: 12.618236
+  type: 'suite'
+  ...
+# Subtest: Prompt Composer
+    # Subtest: Standard full prompt assembly and persona compliance
+    ok 1 - Standard full prompt assembly and persona compliance
+      ---
+      duration_ms: 1.398743
+      type: 'test'
+      ...
+    # Subtest: Suggestion context formatting
+    ok 2 - Suggestion context formatting
+      ---
+      duration_ms: 0.366116
+      type: 'test'
+      ...
+    # Subtest: User context fallback interpolation
+    ok 3 - User context fallback interpolation
+      ---
+      duration_ms: 0.237082
+      type: 'test'
+      ...
+    # Subtest: Companion vibe resolution (case-insensitive)
+    ok 4 - Companion vibe resolution (case-insensitive)
+      ---
+      duration_ms: 0.422086
+      type: 'test'
+      ...
+    # Subtest: Companion vibe resolution for Creative
+    ok 5 - Companion vibe resolution for Creative
+      ---
+      duration_ms: 0.244976
+      type: 'test'
+      ...
+    # Subtest: Companion vibe fallback for unknown vibes
+    ok 6 - Companion vibe fallback for unknown vibes
+      ---
+      duration_ms: 0.377694
+      type: 'test'
+      ...
+    # Subtest: Conversation history sliding window limit
+    ok 7 - Conversation history sliding window limit
+      ---
+      duration_ms: 0.387531
+      type: 'test'
+      ...
+    # Subtest: Per-message character truncation
+    ok 8 - Per-message character truncation
+      ---
+      duration_ms: 0.40471
+      type: 'test'
+      ...
+    # Subtest: Role filtering
+    ok 9 - Role filtering
+      ---
+      duration_ms: 0.524877
+      type: 'test'
+      ...
+    # Subtest: Active user prompt deduplication
+    ok 10 - Active user prompt deduplication
+      ---
+      duration_ms: 0.347811
+      type: 'test'
+      ...
+    # Subtest: Complete metadata sanitization
+    ok 11 - Complete metadata sanitization
+      ---
+      duration_ms: 1.010923
+      type: 'test'
+      ...
+    1..11
+ok 97 - Prompt Composer
+  ---
+  duration_ms: 10.013829
+  type: 'test'
+  ...
+# Subtest: generateConversationResponse
+    # Subtest: returns an error if API key is missing
+    ok 1 - returns an error if API key is missing
+      ---
+      duration_ms: 3.16217
+      type: 'test'
+      ...
+    # Subtest: sends a valid request and parses the successful response correctly
+    ok 2 - sends a valid request and parses the successful response correctly
+      ---
+      duration_ms: 34.970876
+      type: 'test'
+      ...
+    # Subtest: handles AbortError as timeout
+    ok 3 - handles AbortError as timeout
+      ---
+      duration_ms: 1.235025
+      type: 'test'
+      ...
+    # Subtest: handles simulated 15s network timeout cleanly as TIMEOUT
+    ok 4 - handles simulated 15s network timeout cleanly as TIMEOUT
+      ---
+      duration_ms: 12.728169
+      type: 'test'
+      ...
+    # Subtest: aborts cleanly when stream abortSignal is triggered (cancelling stream completion)
+    ok 5 - aborts cleanly when stream abortSignal is triggered (cancelling stream completion)
+      ---
+      duration_ms: 1.024684
+      type: 'test'
+      ...
+    # Subtest: handles rate limit (429)
+    ok 6 - handles rate limit (429)
+      ---
+      duration_ms: 0.88445
+      type: 'test'
+      ...
+    # Subtest: handles authentication failures (401/403)
+    ok 7 - handles authentication failures (401/403)
+      ---
+      duration_ms: 0.749453
+      type: 'test'
+      ...
+    # Subtest: handles invalid requests (400)
+    ok 8 - handles invalid requests (400)
+      ---
+      duration_ms: 0.851454
+      type: 'test'
+      ...
+    # Subtest: handles JSON parsing errors
+    ok 9 - handles JSON parsing errors
+      ---
+      duration_ms: 1.075323
+      type: 'test'
+      ...
+    # Subtest: handles malformed responses lacking choices/message
+    ok 10 - handles malformed responses lacking choices/message
+      ---
+      duration_ms: 1.612774
+      type: 'test'
+      ...
+    # Subtest: handles unhandled exception in fetch
+    ok 11 - handles unhandled exception in fetch
+      ---
+      duration_ms: 0.863487
+      type: 'test'
+      ...
+    1..11
+ok 98 - generateConversationResponse
+  ---
+  duration_ms: 61.539982
+  type: 'suite'
+  ...
+# {"level":"error","message":"Invalid outgoing conversation response","timestamp":"2026-10-27T10:07:14.539Z","context":"ai","source":"api.ai.conversation","metadata":{"userId":"user1"},"error":{"name":"ZodError","message":"[\\n  {\\n    \\"code\\": \\"invalid_value\\",\\n    \\"values\\": [\\n      \\"user\\",\\n      \\"assistant\\",\\n      \\"system\\"\\n    ],\\n    \\"path\\": [\\n      \\"message\\",\\n      \\"role\\"\\n    ],\\n    \\"message\\": \\"Invalid option: expected one of \\\\\\"user\\\\\\"|\\\\\\"assistant\\\\\\"|\\\\\\"system\\\\\\"\\"\\n  }\\n]","stack":"ZodError: [\\n  {\\n    \\"code\\": \\"invalid_value\\",\\n    \\"values\\": [\\n      \\"user\\",\\n      \\"assistant\\",\\n      \\"system\\"\\n    ],\\n    \\"path\\": [\\n      \\"message\\",\\n      \\"role\\"\\n    ],\\n    \\"message\\": \\"Invalid option: expected one of \\\\\\"user\\\\\\"|\\\\\\"assistant\\\\\\"|\\\\\\"system\\\\\\"\\"\\n  }\\n]\\n    at new ZodError (/app/node_modules/zod/v4/core/core.cjs:45:39)\\n    at Object.safeParse (/app/node_modules/zod/v4/core/parse.cjs:68:20)\\n    at inst.safeParse (/app/node_modules/zod/v4/classic/schemas.cjs:196:46)\\n    at POST (/app/.test-dist/src/app/api/ai/conversation/route.js:166:69)\\n    at async TestContext.<anonymous> (/app/.test-dist/tests/lib/ai/route.test.js:254:27)\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\n    at async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)"}}
+# RESPONSE: MockNextResponse {
+#   body: ReadableStream { locked: false, state: 'readable', supportsBYOB: false },
+#   status: 200,
+#   headers: Headers {
+#     'Content-Type': 'text/event-stream',
+#     'Cache-Control': 'no-cache, no-transform',
+#     Connection: 'keep-alive',
+#     'x-conversation-id': 'conv1',
+#     'Access-Control-Expose-Headers': 'x-conversation-id'
+#   }
+# }
+# {"level":"error","message":"Unexpected error in conversation route","timestamp":"2026-10-27T10:07:14.561Z","context":"ai","source":"api.ai.conversation","metadata":{"userId":"user1"},"error":{"name":"Error","message":"Simulated runtime crash","stack":"Error: Simulated runtime crash\\n    at /app/.test-dist/tests/lib/ai/route.test.js:475:19\\n    at Object.apply (node:internal/test_runner/mock/mock:765:20)\\n    at POST (/app/.test-dist/src/app/api/ai/conversation/route.js:94:71)\\n    at async TestContext.<anonymous> (/app/.test-dist/tests/lib/ai/route.test.js:484:27)\\n    at async Test.run (node:internal/test_runner/test:1054:7)\\n    at async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)"}}
+# Subtest: POST /api/ai/conversation
+    # Subtest: should return 403 if origin metadata is missing or not allowed
+    ok 1 - should return 403 if origin metadata is missing or not allowed
+      ---
+      duration_ms: 5.260469
+      type: 'test'
+      ...
+    # Subtest: should return 401 if user is not authenticated
+    ok 2 - should return 401 if user is not authenticated
+      ---
+      duration_ms: 0.935545
+      type: 'test'
+      ...
+    # Subtest: should return 400 on invalid JSON payload
+    ok 3 - should return 400 on invalid JSON payload
+      ---
+      duration_ms: 2.53606
+      type: 'test'
+      ...
+    # Subtest: should return 400 on primitive JSON payloads
+    ok 4 - should return 400 on primitive JSON payloads
+      ---
+      duration_ms: 2.02142
+      type: 'test'
+      ...
+    # Subtest: should return 400 on array JSON payloads
+    ok 5 - should return 400 on array JSON payloads
+      ---
+      duration_ms: 1.63838
+      type: 'test'
+      ...
+    # Subtest: should return 400 on null JSON payloads
+    ok 6 - should return 400 on null JSON payloads
+      ---
+      duration_ms: 1.013797
+      type: 'test'
+      ...
+    # Subtest: should return 400 on invalid schema payload
+    ok 7 - should return 400 on invalid schema payload
+      ---
+      duration_ms: 1.505576
+      type: 'test'
+      ...
+    # Subtest: should return 400 on HTML injection attempts that result in empty content
+    ok 8 - should return 400 on HTML injection attempts that result in empty content
+      ---
+      duration_ms: 1.741154
+      type: 'test'
+      ...
+    # Subtest: should handle error responses from processConversation
+    ok 9 - should handle error responses from processConversation
+      ---
+      duration_ms: 1.925363
+      type: 'test'
+      ...
+    # Subtest: should return 500 if outgoing response fails schema validation
+    ok 10 - should return 500 if outgoing response fails schema validation
+      ---
+      duration_ms: 4.192133
+      type: 'test'
+      ...
+    # Subtest: should return 500 and structured ConversationError for TIMEOUT
+    ok 11 - should return 500 and structured ConversationError for TIMEOUT
+      ---
+      duration_ms: 1.363939
+      type: 'test'
+      ...
+    # Subtest: should generate a title from the first user message when conversationId is omitted
+    ok 12 - should generate a title from the first user message when conversationId is omitted
+      ---
+      duration_ms: 1.802066
+      type: 'test'
+      ...
+    # Subtest: should extract conversationId from request body and pass it to processConversation
+    ok 13 - should extract conversationId from request body and pass it to processConversation
+      ---
+      duration_ms: 0.900132
+      type: 'test'
+      ...
+    # Subtest: should return 200 and the valid response on success
+    ok 14 - should return 200 and the valid response on success
+      ---
+      duration_ms: 1.645997
+      type: 'test'
+      ...
+    # Subtest: should pass AbortController cancellation abortSignal to processConversation
+    ok 15 - should pass AbortController cancellation abortSignal to processConversation
+      ---
+      duration_ms: 1.358556
+      type: 'test'
+      ...
+    # Subtest: should stream the response and save the assistant message on stream completion
+    ok 16 - should stream the response and save the assistant message on stream completion
+      ---
+      duration_ms: 11.341028
+      type: 'test'
+      ...
+    # Subtest: should return 500 and a structured ConversationError if an unexpected exception is thrown
+    ok 17 - should return 500 and a structured ConversationError if an unexpected exception is thrown
+      ---
+      duration_ms: 1.390005
+      type: 'test'
+      ...
+    1..17
+ok 99 - POST /api/ai/conversation
+  ---
+  duration_ms: 44.986973
+  type: 'suite'
+  ...
+# Subtest: should prevent multi-tenant context leakage by gracefully handling unauthorized DB read
+ok 100 - should prevent multi-tenant context leakage by gracefully handling unauthorized DB read
+  ---
+  duration_ms: 0.818707
+  type: 'test'
+  ...
+# Subtest: Daily Suggestion Status Route Handler
+    # Subtest: should return 401 if user is unauthorized
+    ok 1 - should return 401 if user is unauthorized
+      ---
+      duration_ms: 7.628321
+      type: 'test'
+      ...
+    # Subtest: should return 400 for invalid JSON payload
+    ok 2 - should return 400 for invalid JSON payload
+      ---
+      duration_ms: 1.600189
+      type: 'test'
+      ...
+    # Subtest: should return 400 for invalid payload shape
+    ok 3 - should return 400 for invalid payload shape
+      ---
+      duration_ms: 3.019198
+      type: 'test'
+      ...
+    # Subtest: should return 200 and updated suggestion on success
+    ok 4 - should return 200 and updated suggestion on success
+      ---
+      duration_ms: 2.719383
+      type: 'test'
+      ...
+    # Subtest: should return 200 when suggestion is not found (mock/on-the-fly handling)
+    ok 5 - should return 200 when suggestion is not found (mock/on-the-fly handling)
+      ---
+      duration_ms: 2.625054
+      type: 'test'
+      ...
+    1..5
+ok 101 - Daily Suggestion Status Route Handler
+  ---
+  duration_ms: 19.494501
+  type: 'suite'
+  ...
+# Subtest: Suggestion Context Builder
+    # Subtest: merges user profile context properly
+    ok 1 - merges user profile context properly
+      ---
+      duration_ms: 2.358328
+      type: 'test'
+      ...
+    # Subtest: provides graceful defaults when situational input is omitted or malformed
+    ok 2 - provides graceful defaults when situational input is omitted or malformed
+      ---
+      duration_ms: 1.77646
+      type: 'test'
+      ...
+    # Subtest: bounds and formats recent suggestions properly
+    ok 3 - bounds and formats recent suggestions properly
+      ---
+      duration_ms: 1.346664
+      type: 'test'
+      ...
+    # Subtest: strictly ensures no raw database fields leak into the final payload
+    ok 4 - strictly ensures no raw database fields leak into the final payload
+      ---
+      duration_ms: 0.495208
+      type: 'test'
+      ...
+    1..4
+ok 102 - Suggestion Context Builder
+  ---
+  duration_ms: 7.520052
+  type: 'suite'
+  ...
+# Subtest: suggestion-db
+    # Subtest: saveDailySuggestion
+        # Subtest: should successfully save and return a sanitized suggestion
+        ok 1 - should successfully save and return a sanitized suggestion
+          ---
+          duration_ms: 2.032405
+          type: 'test'
+          ...
+        # Subtest: should handle db error gracefully
+        ok 2 - should handle db error gracefully
+          ---
+          duration_ms: 0.888034
+          type: 'test'
+          ...
+        1..2
+    ok 1 - saveDailySuggestion
+      ---
+      duration_ms: 3.909702
+      type: 'suite'
+      ...
+    # Subtest: updateSuggestionStatus
+        # Subtest: should update status and return sanitized output
+        ok 1 - should update status and return sanitized output
+          ---
+          duration_ms: 1.026326
+          type: 'test'
+          ...
+        1..1
+    ok 2 - updateSuggestionStatus
+      ---
+      duration_ms: 4.596372
+      type: 'suite'
+      ...
+    # Subtest: getRecentDailySuggestions
+        # Subtest: should retrieve chronological history stripped of DB metadata
+        ok 1 - should retrieve chronological history stripped of DB metadata
+          ---
+          duration_ms: 1.69948
+          type: 'test'
+          ...
+        1..1
+    ok 3 - getRecentDailySuggestions
+      ---
+      duration_ms: 1.934969
+      type: 'suite'
+      ...
+    1..3
+ok 103 - suggestion-db
+  ---
+  duration_ms: 11.448079
+  type: 'suite'
+  ...
+# Subtest: Suggestion Engine End-to-End
+    # Subtest: executes the deterministic AI failure recovery successfully
+    ok 1 - executes the deterministic AI failure recovery successfully
+      ---
+      duration_ms: 8.640562
+      type: 'test'
+      ...
+    # Subtest: prevents multi-tenant context leakage (isolation test)
+    ok 2 - prevents multi-tenant context leakage (isolation test)
+      ---
+      duration_ms: 1.235488
+      type: 'test'
+      ...
+    # Subtest: strictly ensures no raw database fields leak into final payload (boundary isolation test)
+    ok 3 - strictly ensures no raw database fields leak into final payload (boundary isolation test)
+      ---
+      duration_ms: 4.873663
+      type: 'test'
+      ...
+    # Subtest: executes the full end-to-end suggestion pipeline successfully
+    ok 4 - executes the full end-to-end suggestion pipeline successfully
+      ---
+      duration_ms: 3.567732
+      type: 'test'
+      ...
+    1..4
+ok 104 - Suggestion Engine End-to-End
+  ---
+  duration_ms: 19.735494
+  type: 'suite'
+  ...
+# Subtest: generateDailySuggestion
+    # Subtest: returns fallback if API key is missing
+    ok 1 - returns fallback if API key is missing
+      ---
+      duration_ms: 3.493392
+      type: 'test'
+      ...
+    # Subtest: sends a valid request and parses the successful JSON response correctly
+    ok 2 - sends a valid request and parses the successful JSON response correctly
+      ---
+      duration_ms: 6.766156
+      type: 'test'
+      ...
+    # Subtest: uses reflective fallback when fetch fails and vibe is reflective
+    ok 3 - uses reflective fallback when fetch fails and vibe is reflective
+      ---
+      duration_ms: 1.281661
+      type: 'test'
+      ...
+    # Subtest: uses creative fallback when fetch timeout occurs and vibe is creative
+    ok 4 - uses creative fallback when fetch timeout occurs and vibe is creative
+      ---
+      duration_ms: 8.632168
+      type: 'test'
+      ...
+    # Subtest: uses fallback on rate limit (429)
+    ok 5 - uses fallback on rate limit (429)
+      ---
+      duration_ms: 1.128351
+      type: 'test'
+      ...
+    # Subtest: uses fallback on invalid JSON response
+    ok 6 - uses fallback on invalid JSON response
+      ---
+      duration_ms: 1.436383
+      type: 'test'
+      ...
+    # Subtest: uses fallback when LLM returns invalid JSON missing required fields
+    ok 7 - uses fallback when LLM returns invalid JSON missing required fields
+      ---
+      duration_ms: 2.322593
+      type: 'test'
+      ...
+    1..7
+ok 105 - generateDailySuggestion
+  ---
+  duration_ms: 26.911119
+  type: 'suite'
+  ...
+# Subtest: validation
+    # Subtest: sanitizeMessageContent
+        # Subtest: should remove HTML tags
+        ok 1 - should remove HTML tags
+          ---
+          duration_ms: 1.40129
+          type: 'test'
+          ...
+        # Subtest: should remove invalid control characters
+        ok 2 - should remove invalid control characters
+          ---
+          duration_ms: 0.330991
+          type: 'test'
+          ...
+        # Subtest: should keep valid control characters like newline and tab
+        ok 3 - should keep valid control characters like newline and tab
+          ---
+          duration_ms: 0.22633
+          type: 'test'
+          ...
+        # Subtest: should trim the result
+        ok 4 - should trim the result
+          ---
+          duration_ms: 0.293723
+          type: 'test'
+          ...
+        # Subtest: should handle non-strings gracefully
+        ok 5 - should handle non-strings gracefully
+          ---
+          duration_ms: 0.178132
+          type: 'test'
+          ...
+        1..5
+    ok 1 - sanitizeMessageContent
+      ---
+      duration_ms: 3.573387
+      type: 'suite'
+      ...
+    # Subtest: ConversationInputSchema
+        # Subtest: should validate and sanitize correct input
+        ok 1 - should validate and sanitize correct input
+          ---
+          duration_ms: 2.848114
+          type: 'test'
+          ...
+        # Subtest: should reject input with empty messages after sanitization
+        ok 2 - should reject input with empty messages after sanitization
+          ---
+          duration_ms: 0.862854
+          type: 'test'
+          ...
+        # Subtest: should reject input with empty messages array
+        ok 3 - should reject input with empty messages array
+          ---
+          duration_ms: 0.702061
+          type: 'test'
+          ...
+        # Subtest: should reject input with missing messages array
+        ok 4 - should reject input with missing messages array
+          ---
+          duration_ms: 0.795877
+          type: 'test'
+          ...
+        # Subtest: should reject input with invalid message role
+        ok 5 - should reject input with invalid message role
+          ---
+          duration_ms: 0.715544
+          type: 'test'
+          ...
+        # Subtest: should allow valid settings
+        ok 6 - should allow valid settings
+          ---
+          duration_ms: 1.017301
+          type: 'test'
+          ...
+        # Subtest: should reject invalid settings
+        ok 7 - should reject invalid settings
+          ---
+          duration_ms: 0.479454
+          type: 'test'
+          ...
+        1..7
+    ok 2 - ConversationInputSchema
+      ---
+      duration_ms: 8.015141
+      type: 'suite'
+      ...
+    1..2
+ok 106 - validation
+  ---
+  duration_ms: 12.451511
+  type: 'suite'
+  ...
+# Subtest: Storage Service
+    # Subtest: validateFileConstraints
+        # Subtest: should accept valid MIME types and sizes
+        ok 1 - should accept valid MIME types and sizes
+          ---
+          duration_ms: 1.593923
+          type: 'test'
+          ...
+        # Subtest: should reject invalid MIME types
+        ok 2 - should reject invalid MIME types
+          ---
+          duration_ms: 0.819311
+          type: 'test'
+          ...
+        # Subtest: should reject files larger than 10MB
+        ok 3 - should reject files larger than 10MB
+          ---
+          duration_ms: 0.451511
+          type: 'test'
+          ...
+        1..3
+    ok 1 - validateFileConstraints
+      ---
+      duration_ms: 4.014771
+      type: 'suite'
+      ...
+    # Subtest: generateStoragePath
+        # Subtest: should generate a valid path
+        ok 1 - should generate a valid path
+          ---
+          duration_ms: 0.848113
+          type: 'test'
+          ...
+        # Subtest: should sanitize malicious paths (directory traversal)
+        ok 2 - should sanitize malicious paths (directory traversal)
+          ---
+          duration_ms: 0.571969
+          type: 'test'
+          ...
+        # Subtest: should strip invalid characters from filename
+        ok 3 - should strip invalid characters from filename
+          ---
+          duration_ms: 3.036482
+          type: 'test'
+          ...
+        1..3
+    ok 2 - generateStoragePath
+      ---
+      duration_ms: 4.972518
+      type: 'suite'
+      ...
+    # Subtest: storageService
+        # Subtest: should upload a file and return the path
+        ok 1 - should upload a file and return the path
+          ---
+          duration_ms: 1.275961
+          type: 'test'
+          ...
+        # Subtest: should generate a signed URL
+        ok 2 - should generate a signed URL
+          ---
+          duration_ms: 0.633245
+          type: 'test'
+          ...
+        # Subtest: should delete a file
+        ok 3 - should delete a file
+          ---
+          duration_ms: 0.786244
+          type: 'test'
+          ...
+        # Subtest: should handle upload errors
+        ok 4 - should handle upload errors
+          ---
+          duration_ms: 0.766972
+          type: 'test'
+          ...
+        1..4
+    ok 3 - storageService
+      ---
+      duration_ms: 3.837105
+      type: 'suite'
+      ...
+    1..3
+ok 107 - Storage Service
+  ---
+  duration_ms: 13.847512
+  type: 'suite'
+  ...
+# Subtest: Multi-tenant Isolation and Boundaries
+    # Subtest: should strictly ensure generated path starts with the isolated userId
+    ok 1 - should strictly ensure generated path starts with the isolated userId
+      ---
+      duration_ms: 0.200209
+      type: 'test'
+      ...
+    1..1
+ok 108 - Multi-tenant Isolation and Boundaries
+  ---
+  duration_ms: 0.360134
+  type: 'suite'
+  ...
+# Error uploading capture media: Error: Failed to upload file: Storage Error
+#     at SupabaseStorageService.uploadFile (/app/.test-dist/src/lib/storage/storage-service.js:54:19)
+#     at async POST (/app/.test-dist/src/app/api/capture/upload/route.js:32:29)
+#     at async TestContext.<anonymous> (/app/.test-dist/tests/lib/storage/upload-route.test.js:128:21)
+#     at async Test.run (node:internal/test_runner/test:1054:7)
+#     at async Suite.processPendingSubtests (node:internal/test_runner/test:744:7)
+# Subtest: Upload Route
+    # Subtest: returns 401 if user is unauthorized
+    ok 1 - returns 401 if user is unauthorized
+      ---
+      duration_ms: 9.267207
+      type: 'test'
+      ...
+    # Subtest: returns 400 if missing file or captureId
+    ok 2 - returns 400 if missing file or captureId
+      ---
+      duration_ms: 4.694096
+      type: 'test'
+      ...
+    # Subtest: returns 400 for invalid file constraints
+    ok 3 - returns 400 for invalid file constraints
+      ---
+      duration_ms: 9.206648
+      type: 'test'
+      ...
+    # Subtest: uploads file and returns mediaMetadata on success
+    ok 4 - uploads file and returns mediaMetadata on success
+      ---
+      duration_ms: 4.28703
+      type: 'test'
+      ...
+    # Subtest: returns 500 on upload failure
+    ok 5 - returns 500 on upload failure
+      ---
+      duration_ms: 4.215218
+      type: 'test'
+      ...
+    1..5
+ok 109 - Upload Route
+  ---
+  duration_ms: 35.377842
+  type: 'suite'
+  ...
+# Subtest: redirects from /dashboard to /onboarding if onboarding_completed is missing or false
+ok 110 - redirects from /dashboard to /onboarding if onboarding_completed is missing or false
+  ---
+  duration_ms: 176.124773
+  type: 'test'
+  ...
+# Subtest: does not redirect from /dashboard if onboarding_completed is true
+ok 111 - does not redirect from /dashboard if onboarding_completed is true
+  ---
+  duration_ms: 1.733829
+  type: 'test'
+  ...
+# Subtest: redirects from /onboarding to /dashboard if onboarding_completed is true
+ok 112 - redirects from /onboarding to /dashboard if onboarding_completed is true
+  ---
+  duration_ms: 2.460174
+  type: 'test'
+  ...
+# Subtest: does not redirect from /onboarding if onboarding_completed is missing or false
+ok 113 - does not redirect from /onboarding if onboarding_completed is missing or false
+  ---
+  duration_ms: 1.166835
+  type: 'test'
+  ...
+# Subtest: onboarding flow client component JSONB merge logic correctly handles default configuration settings
+ok 114 - onboarding flow client component JSONB merge logic correctly handles default configuration settings
+  ---
+  duration_ms: 3.793736
+  type: 'test'
+  ...
+1..114
+# tests 280
+# suites 40
+# pass 274
+# fail 1
+# cancelled 0
+# skipped 5
+# todo 0
+# duration_ms 11439.831383
