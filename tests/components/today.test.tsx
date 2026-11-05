@@ -291,6 +291,25 @@ describe("TodayPage Integration Tests", () => {
   test("TodayPage handles Accept correctly", async () => {
     let fetchCalledWith: FetchMockCall = {};
     global.fetch = async (url, options) => {
+      if (url === "/api/ai/daily-suggestion") {
+        return {
+          ok: true,
+          json: async () => ({
+            data: {
+              id: "mock-id-123",
+              primarySuggestion: "Take a 15-minute walk without your phone",
+              supportingContext: "You've been indoors most of the morning.",
+              alternatives: [
+                "Stretch by the window for 5 minutes.",
+                "Make a fresh cup of tea and focus on the brewing process.",
+              ],
+              estimatedDuration: "15m",
+              categoryTags: ["outdoor"],
+              status: "pending",
+            }
+          })
+        } as Response;
+      }
       fetchCalledWith = { url: url as string, options };
       return { ok: true, json: async () => ({}) } as Response;
     };
@@ -309,7 +328,7 @@ describe("TodayPage Integration Tests", () => {
 
     // Wait for the mock 1s load
     await act(async () => {
-      await new Promise((r) => setTimeout(r, 1100));
+      await new Promise((r) => setTimeout(r, 0)); // tick
     });
 
     const buttons = document.querySelectorAll("button");
@@ -336,6 +355,25 @@ describe("TodayPage Integration Tests", () => {
   test("TodayPage handles Skip correctly", async () => {
     let fetchCalledWith: FetchMockCall = {};
     global.fetch = async (url, options) => {
+      if (url === "/api/ai/daily-suggestion") {
+        return {
+          ok: true,
+          json: async () => ({
+            data: {
+              id: "mock-id-123",
+              primarySuggestion: "Take a 15-minute walk without your phone",
+              supportingContext: "You've been indoors most of the morning.",
+              alternatives: [
+                "Stretch by the window for 5 minutes.",
+                "Make a fresh cup of tea and focus on the brewing process.",
+              ],
+              estimatedDuration: "15m",
+              categoryTags: ["outdoor"],
+              status: "pending",
+            }
+          })
+        } as Response;
+      }
       fetchCalledWith = { url: url as string, options };
       return { ok: true, json: async () => ({}) } as Response;
     };
@@ -354,7 +392,7 @@ describe("TodayPage Integration Tests", () => {
 
     // Wait for the mock 1s load
     await act(async () => {
-      await new Promise((r) => setTimeout(r, 1100));
+      await new Promise((r) => setTimeout(r, 0)); // tick
     });
 
     const buttons = document.querySelectorAll("button");
@@ -377,7 +415,19 @@ describe("TodayPage Integration Tests", () => {
   });
 
   test("TodayPage handles Error State on failed status update", async () => {
-    global.fetch = async () => {
+    global.fetch = async (url, options) => {
+      if (url === "/api/ai/daily-suggestion") {
+        return {
+          ok: true,
+          json: async () => ({
+            data: {
+              id: "mock-id-123",
+              primarySuggestion: "Take a 15-minute walk without your phone",
+              status: "pending",
+            }
+          })
+        } as Response;
+      }
       return { ok: false, json: async () => ({}) } as Response;
     };
 
@@ -395,7 +445,7 @@ describe("TodayPage Integration Tests", () => {
 
     // Wait for the mock 1s load
     await act(async () => {
-      await new Promise((r) => setTimeout(r, 1100));
+      await new Promise((r) => setTimeout(r, 0)); // tick
     });
 
     const buttons = document.querySelectorAll("button");
@@ -440,11 +490,20 @@ describe("TodayPage Integration Tests", () => {
     });
 
     global.fetch = async (url, options) => {
+      if (url === "/api/ai/daily-suggestion") {
+        return {
+          ok: true,
+          json: async () => ({
+            data: {
+              id: "mock-id-123",
+              primarySuggestion: "Take a 15-minute walk without your phone",
+              status: "pending",
+            }
+          })
+        } as Response;
+      }
       fetchCalledWith = { url: url as string, options };
-      return {
-        ok: true,
-        body: mockStreamResponse,
-      } as unknown as Response;
+      return { ok: true, body: mockStreamResponse } as unknown as Response;
     };
 
     act(() => {
@@ -461,7 +520,7 @@ describe("TodayPage Integration Tests", () => {
 
     // Wait for the mock 1s load
     await act(async () => {
-      await new Promise((r) => setTimeout(r, 1100));
+      await new Promise((r) => setTimeout(r, 0)); // tick
     });
 
     const buttons = document.querySelectorAll("button");
@@ -500,6 +559,25 @@ describe("TodayPage Integration Tests", () => {
   test("TodayPage handles Alternatives correctly", async () => {
     let fetchCalledWith: FetchMockCall = {};
     global.fetch = async (url, options) => {
+      if (url === "/api/ai/daily-suggestion") {
+        return {
+          ok: true,
+          json: async () => ({
+            data: {
+              id: "mock-id-123",
+              primarySuggestion: "Take a 15-minute walk without your phone",
+              supportingContext: "You've been indoors most of the morning.",
+              alternatives: [
+                "Stretch by the window for 5 minutes.",
+                "Make a fresh cup of tea and focus on the brewing process.",
+              ],
+              estimatedDuration: "15m",
+              categoryTags: ["outdoor"],
+              status: "pending",
+            }
+          })
+        } as Response;
+      }
       fetchCalledWith = { url: url as string, options };
       return { ok: true, json: async () => ({}) } as Response;
     };
@@ -518,7 +596,7 @@ describe("TodayPage Integration Tests", () => {
 
     // Wait for the mock 1s load
     await act(async () => {
-      await new Promise((r) => setTimeout(r, 1100));
+      await new Promise((r) => setTimeout(r, 0)); // tick
     });
 
     const buttons = document.querySelectorAll("button");

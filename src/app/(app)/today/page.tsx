@@ -35,28 +35,28 @@ export default function TodayPage({ router: injectedRouter }: TodayPageProps) {
     // We mock a delay and empty state or simple suggestion to make the UI testable
     // and visually verifiable for now without crashing, or we can fetch a dummy endpoint.
     // Let's create a stub since we are building the UI.
-    const loadMock = async () => {
+    const loadSuggestion = async () => {
       setIsLoading(true);
-      await new Promise((r) => setTimeout(r, 1000));
-
-      // Simulate getting a pending suggestion
-      setSuggestion({
-        id: "mock-id-123",
-        primarySuggestion: "Take a 15-minute walk without your phone",
-        supportingContext:
-          "You've been indoors most of the morning. A quick screen-free walk will clear your head and fits the spontaneous vibe.",
-        alternatives: [
-          "Stretch by the window for 5 minutes.",
-          "Make a fresh cup of tea and focus on the brewing process.",
-        ],
-        estimatedDuration: "15m",
-        categoryTags: ["outdoor", "mindful", "screen-free"],
-        status: "pending",
-      });
-      setIsLoading(false);
+      setError(null);
+      try {
+        const response = await fetch("/api/ai/daily-suggestion");
+        if (!response.ok) {
+          throw new Error("Failed to load suggestion");
+        }
+        const json = await response.json();
+        if (json.data) {
+          setSuggestion(json.data);
+        } else {
+          setSuggestion(null);
+        }
+      } catch (err) {
+        setError("Could not load your daily suggestion. Please try again.");
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    loadMock();
+    loadSuggestion();
   }, []);
 
   const updateStatus = async (status: string, alternativeText?: string) => {
