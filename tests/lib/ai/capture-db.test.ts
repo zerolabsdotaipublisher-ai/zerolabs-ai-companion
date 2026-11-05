@@ -28,6 +28,7 @@ describe("Experience Capture Database Service", () => {
       order: mock.fn(() => mockSupabase),
       limit: mock.fn(() => mockSupabase),
       single: mock.fn(),
+      maybeSingle: mock.fn(() => ({ data: null, error: null })),
     };
     mockGetSupabaseServerClient.mock.resetCalls();
   });
@@ -65,6 +66,70 @@ describe("Experience Capture Database Service", () => {
       assert.strictEqual((result as any).userId, undefined);
       assert.strictEqual((result as any).createdAt, undefined);
       assert.strictEqual((result as any).suggestionId, undefined);
+    });
+
+    it("prevents duplicate capture by returning existing one when suggestionId matches", async () => {
+      const mockExistingCaptureRow = {
+        id: "capture-existing",
+        user_id: "user-1",
+        suggestion_id: "6fa36e8b-a459-42b7-87bb-b9b5f5431633",
+        note_text: "Old note",
+        media_metadata: null,
+        created_at: "2023-10-27T10:00:00Z",
+      };
+
+      mockSupabase.maybeSingle.mock.mockImplementationOnce(() => ({
+        data: mockExistingCaptureRow,
+        error: null,
+      }));
+
+      const input = {
+        suggestionId: "6fa36e8b-a459-42b7-87bb-b9b5f5431633",
+        noteText: "New note (should be ignored)",
+      };
+
+      const result = await saveExperienceCapture("user-1", input);
+
+      // Verify it returns the existing capture
+      assert.deepStrictEqual(result, {
+        noteText: "Old note",
+        mediaMetadata: null,
+      });
+
+      // Verify insert was never called
+      assert.strictEqual(mockSupabase.insert.mock.callCount(), 0);
+    });
+
+    it("successfully sanitizes invalid UUIDs and saves as spontaneous capture", async () => {
+      const mockCaptureRow = {
+        id: "capture-2",
+        user_id: "user-1",
+        suggestion_id: null,
+        note_text: "My note with invalid UUID",
+        media_metadata: null,
+        created_at: "2023-10-27T11:00:00Z",
+      };
+
+      mockSupabase.single.mock.mockImplementationOnce(() => ({
+        data: mockCaptureRow,
+        error: null,
+      }));
+
+      const input = {
+        suggestionId: "mock-id-123", // invalid uuid string
+        noteText: "My note with invalid UUID",
+      };
+
+      const result = await saveExperienceCapture("user-1", input);
+
+      assert.deepStrictEqual(result, {
+        noteText: "My note with invalid UUID",
+        mediaMetadata: null,
+      });
+
+      // Verify the insert call coerced it to null
+      const insertCallArgs = mockSupabase.insert.mock.calls[0].arguments[0];
+      assert.strictEqual(insertCallArgs.suggestion_id, null);
     });
 
     it("successfully saves a spontaneous capture (no suggestionId)", async () => {

@@ -50,6 +50,20 @@ export async function saveExperienceCapture(
   }
 
   const supabase = await getSupabaseServerClient();
+
+  if (validatedInput.suggestionId) {
+    const { data: existingCapture, error: checkError } = await supabase
+      .from("captures")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("suggestion_id", validatedInput.suggestionId)
+      .maybeSingle();
+
+    if (!checkError && existingCapture) {
+      return mapRowToClientCapture(existingCapture);
+    }
+  }
+
   const { data, error } = await supabase
     .from("captures")
     .insert({
