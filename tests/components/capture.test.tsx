@@ -23,10 +23,31 @@ global.matchMedia =
   };
 
 import { CaptureForm } from "../../src/components/capture/capture-form";
+import { CaptureHeader } from "../../src/components/capture/capture-header";
 
 describe("CaptureForm - Basics", () => {
   afterEach(() => {
     mock.restoreAll();
+  });
+
+  test("renders CaptureHeader with activity context", () => {
+    const { container } = render(
+      <CaptureHeader suggestionContext="Take a 15-minute walk" />,
+    );
+    const title = container.querySelector("h1");
+    assert.strictEqual(title?.textContent, "Capture a moment");
+
+    const context = container.querySelector("p");
+    assert.strictEqual(context?.textContent, "Take a 15-minute walk");
+  });
+
+  test("renders CaptureHeader correctly in spontaneous mode (no context)", () => {
+    const { container } = render(<CaptureHeader suggestionContext={null} />);
+    const title = container.querySelector("h1");
+    assert.strictEqual(title?.textContent, "Capture a moment");
+
+    const context = container.querySelector("p");
+    assert.strictEqual(context, null);
   });
 
   test("renders capture form and textarea correctly", async () => {

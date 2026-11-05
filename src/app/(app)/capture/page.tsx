@@ -10,7 +10,7 @@ import { CreateExperienceCaptureInput } from "@/lib/ai/types";
 function CapturePageContent() {
   const searchParams = useSearchParams();
   const suggestionId = searchParams.get("suggestionId");
-  const suggestionContext = searchParams.get("suggestionContext");
+  const suggestionContext = searchParams.get("activity");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);

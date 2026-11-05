@@ -290,6 +290,7 @@ describe("TodayPage Integration Tests", () => {
 
   test("TodayPage handles Accept correctly", async () => {
     let fetchCalledWith: FetchMockCall = {};
+    let routerPushCalledWith = "";
     global.fetch = async (url, options) => {
       if (url === "/api/ai/daily-suggestion") {
         return {
@@ -306,8 +307,8 @@ describe("TodayPage Integration Tests", () => {
               estimatedDuration: "15m",
               categoryTags: ["outdoor"],
               status: "pending",
-            }
-          })
+            },
+          }),
         } as Response;
       }
       fetchCalledWith = { url: url as string, options };
@@ -318,7 +319,11 @@ describe("TodayPage Integration Tests", () => {
       render(
         <TodayPage
           router={
-            { push: () => {} } as unknown as ReturnType<
+            {
+              push: (url: string) => {
+                routerPushCalledWith = url;
+              },
+            } as unknown as ReturnType<
               typeof import("next/navigation").useRouter
             >
           }
@@ -347,9 +352,10 @@ describe("TodayPage Integration Tests", () => {
     const body = JSON.parse(fetchCalledWith.options?.body as string);
     assert.strictEqual(body.status, "accepted");
 
-    // UI should transition to empty state
-    const heading = document.querySelector("h2");
-    assert.strictEqual(heading?.textContent, "All Done");
+    assert.strictEqual(
+      routerPushCalledWith,
+      `/capture?suggestionId=mock-id-123&activity=${encodeURIComponent("Take a 15-minute walk without your phone")}`,
+    );
   });
 
   test("TodayPage handles Skip correctly", async () => {
@@ -370,8 +376,8 @@ describe("TodayPage Integration Tests", () => {
               estimatedDuration: "15m",
               categoryTags: ["outdoor"],
               status: "pending",
-            }
-          })
+            },
+          }),
         } as Response;
       }
       fetchCalledWith = { url: url as string, options };
@@ -424,8 +430,8 @@ describe("TodayPage Integration Tests", () => {
               id: "mock-id-123",
               primarySuggestion: "Take a 15-minute walk without your phone",
               status: "pending",
-            }
-          })
+            },
+          }),
         } as Response;
       }
       return { ok: false, json: async () => ({}) } as Response;
@@ -498,8 +504,8 @@ describe("TodayPage Integration Tests", () => {
               id: "mock-id-123",
               primarySuggestion: "Take a 15-minute walk without your phone",
               status: "pending",
-            }
-          })
+            },
+          }),
         } as Response;
       }
       fetchCalledWith = { url: url as string, options };
@@ -574,8 +580,8 @@ describe("TodayPage Integration Tests", () => {
               estimatedDuration: "15m",
               categoryTags: ["outdoor"],
               status: "pending",
-            }
-          })
+            },
+          }),
         } as Response;
       }
       fetchCalledWith = { url: url as string, options };
