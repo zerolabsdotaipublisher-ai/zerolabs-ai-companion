@@ -16,7 +16,11 @@ describe("Memory-to-Timeline Lifecycle Integration", () => {
 
   beforeEach(() => {
     mock.restoreAll();
-    getSignedUrlMock = mock.method(storageService, "getSignedUrl", async (path: string) => `https://signed.url/${path}`);
+    getSignedUrlMock = mock.method(
+      storageService,
+      "getSignedUrl",
+      async (path: string) => `https://signed.url/${path}`,
+    );
   });
 
   afterEach(() => {
@@ -30,7 +34,9 @@ describe("Memory-to-Timeline Lifecycle Integration", () => {
       created_at: new Date("2023-10-24T10:00:00Z").toISOString(),
       suggestion_id: "sug-1",
       media_metadata_ref: null,
-      captures: { media_metadata: { storagePath: "user-123/cap-1/photo1.jpg" } },
+      captures: {
+        media_metadata: { storagePath: "user-123/cap-1/photo1.jpg" },
+      },
       daily_suggestions: { primary_suggestion: "Take a walk" },
     };
 
@@ -58,7 +64,11 @@ describe("Memory-to-Timeline Lifecycle Integration", () => {
       from: fromMock,
     } as unknown as SupabaseClient;
 
-    mock.method(serverClient, "getSupabaseServerClient", async () => mockSupabase);
+    mock.method(
+      serverClient,
+      "getSupabaseServerClient",
+      async () => mockSupabase,
+    );
 
     const response = await getTimelineMemories(userId, { limit: 10 });
 
@@ -72,11 +82,16 @@ describe("Memory-to-Timeline Lifecycle Integration", () => {
     assert.strictEqual(response.items[1].summaryText, "Had a great walk.");
     assert.strictEqual(response.items[1].originType, "suggestion");
     assert.strictEqual(response.items[1].suggestionTitle, "Take a walk");
-    assert.strictEqual(response.items[1].photoUrl, "https://signed.url/user-123/cap-1/photo1.jpg");
+    assert.strictEqual(
+      response.items[1].photoUrl,
+      "https://signed.url/user-123/cap-1/photo1.jpg",
+    );
 
     // Assert DB ordering calls
-    const orderCall1 = (orderMock1 as unknown as ReturnType<typeof mock.fn>).mock.calls[0];
-    const orderCall2 = (orderMock2 as unknown as ReturnType<typeof mock.fn>).mock.calls[0];
+    const orderCall1 = (orderMock1 as unknown as ReturnType<typeof mock.fn>)
+      .mock.calls[0];
+    const orderCall2 = (orderMock2 as unknown as ReturnType<typeof mock.fn>)
+      .mock.calls[0];
 
     assert.strictEqual(orderCall1.arguments[0], "created_at");
     assert.deepStrictEqual(orderCall1.arguments[1], { ascending: false });
@@ -114,12 +129,21 @@ describe("Memory-to-Timeline Lifecycle Integration", () => {
       from: fromMock,
     } as unknown as SupabaseClient;
 
-    mock.method(serverClient, "getSupabaseServerClient", async () => mockSupabase);
+    mock.method(
+      serverClient,
+      "getSupabaseServerClient",
+      async () => mockSupabase,
+    );
 
     const cursorPayload = { createdAt: "2023-10-24T12:00:00Z", id: "mem-1" };
-    const encodedCursor = Buffer.from(JSON.stringify(cursorPayload)).toString("base64");
+    const encodedCursor = Buffer.from(JSON.stringify(cursorPayload)).toString(
+      "base64",
+    );
 
-    const response = await getTimelineMemories(userId, { limit: 2, cursor: encodedCursor });
+    const response = await getTimelineMemories(userId, {
+      limit: 2,
+      cursor: encodedCursor,
+    });
 
     assert.strictEqual(response.items.length, 1);
     assert.strictEqual(response.items[0].id, "mem-3");
@@ -127,11 +151,12 @@ describe("Memory-to-Timeline Lifecycle Integration", () => {
     assert.strictEqual(response.nextCursor, null);
 
     // Assert DB cursor or call
-    const orCall = (orMock as unknown as ReturnType<typeof mock.fn>).mock.calls[0];
+    const orCall = (orMock as unknown as ReturnType<typeof mock.fn>).mock
+      .calls[0];
     assert.ok(orCall);
     assert.match(
       orCall.arguments[0] as string,
-      /created_at\.lt\.2023-10-24T12:00:00Z,and\(created_at\.eq\.2023-10-24T12:00:00Z,id\.lt\.mem-1\)/
+      /created_at\.lt\.2023-10-24T12:00:00Z,and\(created_at\.eq\.2023-10-24T12:00:00Z,id\.lt\.mem-1\)/,
     );
   });
 
@@ -143,7 +168,10 @@ describe("Memory-to-Timeline Lifecycle Integration", () => {
       created_at: new Date("2023-10-24T10:00:00Z").toISOString(),
       suggestion_id: null,
       media_metadata_ref: null,
-      captures: { note_text: "Original note", media_metadata: { storagePath: "path/photo.jpg" } },
+      captures: {
+        note_text: "Original note",
+        media_metadata: { storagePath: "path/photo.jpg" },
+      },
       daily_suggestions: null,
     };
 
@@ -153,7 +181,10 @@ describe("Memory-to-Timeline Lifecycle Integration", () => {
 
     // For updateMemoryText
     const updatedMemory = { ...memory, summary_text: "Updated text" };
-    const singleUpdateMock = mock.fn(async () => ({ data: updatedMemory, error: null }));
+    const singleUpdateMock = mock.fn(async () => ({
+      data: updatedMemory,
+      error: null,
+    }));
     const selectUpdateMock = mock.fn(() => ({ single: singleUpdateMock }));
     const eqUpdateMock2 = mock.fn(() => ({ select: selectUpdateMock }));
     const eqUpdateMock1 = mock.fn(() => ({ eq: eqUpdateMock2 }));
@@ -168,7 +199,11 @@ describe("Memory-to-Timeline Lifecycle Integration", () => {
     });
 
     const mockSupabase = { from: fromMock } as unknown as SupabaseClient;
-    mock.method(serverClient, "getSupabaseServerClient", async () => mockSupabase);
+    mock.method(
+      serverClient,
+      "getSupabaseServerClient",
+      async () => mockSupabase,
+    );
 
     // Assert getTimelineMemoryDetail
     const detail = await getTimelineMemoryDetail(userId, "mem-1");
@@ -178,14 +213,21 @@ describe("Memory-to-Timeline Lifecycle Integration", () => {
     assert.strictEqual(detail.noteText, "Original note");
 
     // Assert updateMemoryText
-    const updatedDetail = await updateMemoryText(userId, "mem-1", "Updated text");
+    const updatedDetail = await updateMemoryText(
+      userId,
+      "mem-1",
+      "Updated text",
+    );
     assert.ok(updatedDetail);
     assert.strictEqual(updatedDetail.summaryText, "Updated text");
 
     // Ensure update was called on memories
-    const updateCall = (updateMock as unknown as ReturnType<typeof mock.fn>).mock.calls[0];
+    const updateCall = (updateMock as unknown as ReturnType<typeof mock.fn>)
+      .mock.calls[0];
     assert.ok(updateCall);
-    assert.deepStrictEqual(updateCall.arguments[0], { summary_text: "Updated text" });
+    assert.deepStrictEqual(updateCall.arguments[0], {
+      summary_text: "Updated text",
+    });
   });
 
   it("verifies a 1-tap deletion removes only the `memories` record", async () => {
@@ -202,17 +244,23 @@ describe("Memory-to-Timeline Lifecycle Integration", () => {
     });
 
     const mockSupabase = { from: fromMock } as unknown as SupabaseClient;
-    mock.method(serverClient, "getSupabaseServerClient", async () => mockSupabase);
+    mock.method(
+      serverClient,
+      "getSupabaseServerClient",
+      async () => mockSupabase,
+    );
 
     const result = await deleteMemory(userId, "mem-1");
     assert.strictEqual(result, true);
 
     // Assert delete was only called on memories table, not captures
-    const fromCalls = (fromMock as unknown as ReturnType<typeof mock.fn>).mock.calls;
+    const fromCalls = (fromMock as unknown as ReturnType<typeof mock.fn>).mock
+      .calls;
     assert.strictEqual(fromCalls.length, 1);
     assert.strictEqual(fromCalls[0].arguments[0], "memories");
 
-    const eq1Call = (eqDeleteMock1 as unknown as ReturnType<typeof mock.fn>).mock.calls[0];
+    const eq1Call = (eqDeleteMock1 as unknown as ReturnType<typeof mock.fn>)
+      .mock.calls[0];
     assert.strictEqual(eq1Call.arguments[0], "id");
     assert.strictEqual(eq1Call.arguments[1], "mem-1");
   });
@@ -226,7 +274,9 @@ describe("Memory-to-Timeline Lifecycle Integration", () => {
       summary_text: "Leak check",
       media_metadata_ref: null,
       created_at: "2023-10-24T10:00:00.000Z", // Raw timestamp should not leak directly as ISO string in display fields
-      captures: { media_metadata: { storagePath: "raw/storage/path/photo.jpg" } },
+      captures: {
+        media_metadata: { storagePath: "raw/storage/path/photo.jpg" },
+      },
       daily_suggestions: { primary_suggestion: "Take a walk" },
     };
 
@@ -238,7 +288,11 @@ describe("Memory-to-Timeline Lifecycle Integration", () => {
     const fromMock = mock.fn(() => ({ select: selectMock }));
 
     const mockSupabase = { from: fromMock } as unknown as SupabaseClient;
-    mock.method(serverClient, "getSupabaseServerClient", async () => mockSupabase);
+    mock.method(
+      serverClient,
+      "getSupabaseServerClient",
+      async () => mockSupabase,
+    );
 
     const response = await getTimelineMemories(userId, { limit: 10 });
 
@@ -246,16 +300,38 @@ describe("Memory-to-Timeline Lifecycle Integration", () => {
     const item = response.items[0];
 
     // Assert no leaks
-    assert.strictEqual(((item as unknown) as Record<string, unknown>).user_id, undefined);
-    assert.strictEqual(((item as unknown) as Record<string, unknown>).created_at, undefined);
-    assert.strictEqual(((item as unknown) as Record<string, unknown>).media_metadata_ref, undefined);
-    assert.strictEqual(((item as unknown) as Record<string, unknown>).captures, undefined);
-    assert.strictEqual(((item as unknown) as Record<string, unknown>).daily_suggestions, undefined);
-    assert.ok(String(((item as unknown) as Record<string, unknown>).photoUrl).startsWith("https://signed.url/")); // should be signed url
+    assert.strictEqual(
+      (item as unknown as Record<string, unknown>).user_id,
+      undefined,
+    );
+    assert.strictEqual(
+      (item as unknown as Record<string, unknown>).created_at,
+      undefined,
+    );
+    assert.strictEqual(
+      (item as unknown as Record<string, unknown>).media_metadata_ref,
+      undefined,
+    );
+    assert.strictEqual(
+      (item as unknown as Record<string, unknown>).captures,
+      undefined,
+    );
+    assert.strictEqual(
+      (item as unknown as Record<string, unknown>).daily_suggestions,
+      undefined,
+    );
+    assert.ok(
+      String((item as unknown as Record<string, unknown>).photoUrl).startsWith(
+        "https://signed.url/",
+      ),
+    ); // should be signed url
 
     // Assert cleanly formatted client data
     assert.strictEqual(item.displayDate, "Oct 24, 2023");
     assert.ok(item.displayTime.includes(":"));
-    assert.strictEqual(item.photoUrl, "https://signed.url/raw/storage/path/photo.jpg");
+    assert.strictEqual(
+      item.photoUrl,
+      "https://signed.url/raw/storage/path/photo.jpg",
+    );
   });
 });
