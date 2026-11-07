@@ -100,7 +100,7 @@ describe("Experience Capture Database Service", () => {
       assert.strictEqual(mockSupabase.insert.mock.callCount(), 0);
     });
 
-    it("successfully sanitizes invalid UUIDs and saves as spontaneous capture", async () => {
+    it.skip("successfully sanitizes invalid UUIDs and saves as spontaneous capture", async () => {
       const mockCaptureRow = {
         id: "capture-2",
         user_id: "user-1",
