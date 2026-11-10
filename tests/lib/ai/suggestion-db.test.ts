@@ -78,11 +78,13 @@ describe("suggestion-db", () => {
       assert.strictEqual("createdAt" in result.data, false);
     });
 
-
     it("should gracefully return a fallback mock object when db constraints fail (schema drift)", async () => {
       const mockSingle = mock.fn(async () => ({
         data: null,
-        error: { message: "column primary_suggestion of relation daily_suggestions does not exist" },
+        error: {
+          message:
+            "column primary_suggestion of relation daily_suggestions does not exist",
+        },
       }));
 
       const mockSelect = mock.fn(() => ({ single: mockSingle }));
@@ -108,9 +110,9 @@ describe("suggestion-db", () => {
       assert.ok(result.data.id.startsWith("mock-"));
     });
 
-  describe("getTodaySuggestion", () => {
-    it("should retrieve today's suggestion correctly", async () => {
-      const mockRows = {
+    describe("getTodaySuggestion", () => {
+      it("should retrieve today's suggestion correctly", async () => {
+        const mockRows = {
           id: "sugg-1",
           user_id: "user-123",
           primary_suggestion: "Action 1",
@@ -121,32 +123,31 @@ describe("suggestion-db", () => {
           status: "accepted",
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-      };
+        };
 
-      const mockSingle = mock.fn(async () => ({
-        data: mockRows,
-        error: null,
-      }));
-      const mockLimit = mock.fn(() => ({ maybeSingle: mockSingle }));
-      const mockOrder = mock.fn(() => ({ limit: mockLimit }));
-      const mockGte = mock.fn(() => ({ order: mockOrder }));
-      const mockEq = mock.fn(() => ({ gte: mockGte }));
-      const mockSelect = mock.fn(() => ({ eq: mockEq }));
-      const mockFrom = mock.fn(() => ({ select: mockSelect }));
+        const mockSingle = mock.fn(async () => ({
+          data: mockRows,
+          error: null,
+        }));
+        const mockLimit = mock.fn(() => ({ maybeSingle: mockSingle }));
+        const mockOrder = mock.fn(() => ({ limit: mockLimit }));
+        const mockGte = mock.fn(() => ({ order: mockOrder }));
+        const mockEq = mock.fn(() => ({ gte: mockGte }));
+        const mockSelect = mock.fn(() => ({ eq: mockEq }));
+        const mockFrom = mock.fn(() => ({ select: mockSelect }));
 
-      mockGetSupabaseServerClient.mock.mockImplementation(async () => ({
-        from: mockFrom,
-      }));
+        mockGetSupabaseServerClient.mock.mockImplementation(async () => ({
+          from: mockFrom,
+        }));
 
-      const { getTodaySuggestion } = await import("@/lib/ai/suggestion-db");
-      const result = await getTodaySuggestion("user-123");
+        const { getTodaySuggestion } = await import("@/lib/ai/suggestion-db");
+        const result = await getTodaySuggestion("user-123");
 
-      assert.strictEqual(result.error, null);
-      assert.ok(result.data);
-      assert.strictEqual(result.data.id, "sugg-1");
+        assert.strictEqual(result.error, null);
+        assert.ok(result.data);
+        assert.strictEqual(result.data.id, "sugg-1");
+      });
     });
-  });
-
   });
 
   describe("updateSuggestionStatus", () => {
