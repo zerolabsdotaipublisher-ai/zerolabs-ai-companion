@@ -13,6 +13,10 @@ export function TodaySuggestionCard({
   tags = [],
   rationale,
 }: TodaySuggestionCardProps) {
+  const displayTitle = title || "Mindful Moment";
+  const displayRationale = rationale || "A brief pause to reset.";
+  const displayDuration = duration || "10m";
+
   return (
     <div
       className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col gap-4"
@@ -21,11 +25,11 @@ export function TodaySuggestionCard({
     >
       <div className="flex items-start justify-between gap-4">
         <h2 className="text-2xl font-semibold text-slate-900 leading-tight">
-          {title}
+          {displayTitle}
         </h2>
-        {duration && (
+        {displayDuration && (
           <span className="shrink-0 bg-indigo-50 text-indigo-700 text-xs font-medium px-2.5 py-1 rounded-full whitespace-nowrap">
-            {duration}
+            {displayDuration}
           </span>
         )}
       </div>
@@ -43,7 +47,7 @@ export function TodaySuggestionCard({
         </div>
       )}
 
-      <p className="text-slate-600 leading-relaxed text-base">{rationale}</p>
+      <p className="text-slate-600 leading-relaxed text-base">{displayRationale}</p>
     </div>
   );
 }
