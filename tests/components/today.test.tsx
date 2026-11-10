@@ -38,13 +38,7 @@ describe("Today UI Components", () => {
 
   test("TodaySuggestionCard renders correctly with fallbacks", () => {
     act(() => {
-      render(
-        <TodaySuggestionCard
-          title=""
-          duration={null}
-          rationale=""
-        />,
-      );
+      render(<TodaySuggestionCard title="" duration={null} rationale="" />);
     });
 
     const textContent = document.body.textContent || "";

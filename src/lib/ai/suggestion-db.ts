@@ -23,11 +23,15 @@ function mapRowToClientSuggestion(
   return {
     id: r.id,
     primarySuggestion: r.primary_suggestion || r.title || "Mindful Moment",
-    supportingContext: r.supporting_context || r.rationale || "A brief pause to reset.",
+    supportingContext:
+      r.supporting_context || r.rationale || "A brief pause to reset.",
     alternatives: (r.alternatives as string[]) || [],
     estimatedDuration:
-      ((r.estimated_duration || r.duration || "10m") as unknown as "15m" | "30m" | "1h" | "flex") ||
-      null,
+      ((r.estimated_duration || r.duration || "10m") as unknown as
+        | "15m"
+        | "30m"
+        | "1h"
+        | "flex") || null,
     categoryTags: (r.category_tags || r.categories || ["Mindful"]) as string[],
     status: (r.status as SuggestionStatus) || "pending",
   };
@@ -63,10 +67,13 @@ export async function saveDailySuggestion(
 
     if (error || !data) {
       if (error) {
-        logger.error("Failed to save daily suggestion, using self-healing fallback", {
-          error,
-          metadata: { userId },
-        });
+        logger.error(
+          "Failed to save daily suggestion, using self-healing fallback",
+          {
+            error,
+            metadata: { userId },
+          },
+        );
       }
 
       const fallbackClientSuggestion: ClientDailySuggestion = {
@@ -74,7 +81,11 @@ export async function saveDailySuggestion(
         primarySuggestion: suggestion.primarySuggestion,
         supportingContext: suggestion.supportingContext,
         alternatives: suggestion.alternatives,
-        estimatedDuration: suggestion.estimatedDuration as "15m" | "30m" | "1h" | "flex",
+        estimatedDuration: suggestion.estimatedDuration as
+          | "15m"
+          | "30m"
+          | "1h"
+          | "flex",
         categoryTags: suggestion.categoryTags,
         status: "pending",
       };
@@ -84,16 +95,23 @@ export async function saveDailySuggestion(
 
     return { data: mapRowToClientSuggestion(data), error: null };
   } catch (error: unknown) {
-    logger.error("Unexpected error saving daily suggestion, using self-healing fallback", {
-      error,
-      metadata: { userId },
-    });
+    logger.error(
+      "Unexpected error saving daily suggestion, using self-healing fallback",
+      {
+        error,
+        metadata: { userId },
+      },
+    );
     const fallbackClientSuggestion: ClientDailySuggestion = {
       id: "mock-" + Date.now().toString(),
       primarySuggestion: suggestion.primarySuggestion,
       supportingContext: suggestion.supportingContext,
       alternatives: suggestion.alternatives,
-      estimatedDuration: suggestion.estimatedDuration as "15m" | "30m" | "1h" | "flex",
+      estimatedDuration: suggestion.estimatedDuration as
+        | "15m"
+        | "30m"
+        | "1h"
+        | "flex",
       categoryTags: suggestion.categoryTags,
       status: "pending",
     };
@@ -247,7 +265,7 @@ export async function getTodaySuggestion(
     }
 
     if (!data) {
-       return { data: null, error: "Not found" };
+      return { data: null, error: "Not found" };
     }
 
     return { data: mapRowToClientSuggestion(data), error: null };

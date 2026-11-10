@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { getTimelineMemories } from "@/lib/ai/memory-db";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { TimelineList } from "@/components/timeline/timeline-list";
 import { TimelineSkeleton } from "@/components/timeline/timeline-skeleton";
 import { TimelineError } from "@/components/timeline/timeline-error";
@@ -9,21 +8,7 @@ import { AppHeader } from "@/components/auth/app-header";
 import { logger } from "@/lib/logger";
 
 async function TimelineData() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll() {
-          // Read-only on server components
-        },
-      },
-    },
-  );
+  const supabase = await getSupabaseServerClient();
 
   const {
     data: { user },
@@ -48,19 +33,7 @@ async function TimelineData() {
 }
 
 export default async function TimelinePage() {
-  const cookieStore = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll() {},
-      },
-    },
-  );
+  const supabase = await getSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

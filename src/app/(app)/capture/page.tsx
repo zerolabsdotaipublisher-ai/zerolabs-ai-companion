@@ -1,21 +1,19 @@
 "use client";
 
 import React, { useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { CaptureHeader } from "@/components/capture/capture-header";
 import { CaptureForm } from "@/components/capture/capture-form";
-import { CaptureSaveState } from "@/components/capture/capture-save-state";
 import { CreateExperienceCaptureInput } from "@/lib/ai/types";
 
 function CapturePageContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const suggestionId = searchParams.get("suggestionId");
   const suggestionContext = searchParams.get("activity");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [savedSignedUrl, setSavedSignedUrl] = useState<string | null>(null);
 
   const handleSubmit = async (data: CreateExperienceCaptureInput) => {
     setIsSubmitting(true);
@@ -32,12 +30,7 @@ function CapturePageContent() {
         throw new Error("Failed to save capture");
       }
 
-      const responseData = await response.json();
-      if (responseData.signedUrl) {
-        setSavedSignedUrl(responseData.signedUrl);
-      }
-
-      setIsSuccess(true);
+      router.push("/timeline");
     } catch (err) {
       console.error(err);
       setError("Unable to save experience. Please try again.");
@@ -45,14 +38,6 @@ function CapturePageContent() {
       setIsSubmitting(false);
     }
   };
-
-  if (isSuccess) {
-    return (
-      <div className="flex-1 flex flex-col justify-center max-w-xl mx-auto w-full px-6">
-        <CaptureSaveState signedUrl={savedSignedUrl} />
-      </div>
-    );
-  }
 
   return (
     <div className="flex-1 flex flex-col max-w-xl mx-auto w-full px-6 pt-12">

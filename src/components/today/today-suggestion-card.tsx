@@ -47,7 +47,9 @@ export function TodaySuggestionCard({
         </div>
       )}
 
-      <p className="text-slate-600 leading-relaxed text-base">{displayRationale}</p>
+      <p className="text-slate-600 leading-relaxed text-base">
+        {displayRationale}
+      </p>
     </div>
   );
 }
