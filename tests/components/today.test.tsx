@@ -36,6 +36,22 @@ describe("Today UI Components", () => {
     document.body.innerHTML = "";
   });
 
+  test("TodaySuggestionCard renders correctly with fallbacks", () => {
+    act(() => {
+      render(
+        <TodaySuggestionCard
+          title=""
+          duration={null}
+          rationale=""
+        />,
+      );
+    });
+
+    const textContent = document.body.textContent || "";
+    assert.ok(textContent.includes("Mindful Moment"));
+    assert.ok(textContent.includes("A brief pause to reset."));
+  });
+
   test("TodaySuggestionCard renders correctly", () => {
     act(() => {
       render(
